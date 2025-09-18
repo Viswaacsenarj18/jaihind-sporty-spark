@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -68,11 +69,13 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
                 <Heart className="w-4 h-4" />
               </Button>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-              <Button size="sm" variant="secondary" className="w-10 h-10 rounded-full p-0">
-                <Eye className="w-4 h-4" />
-              </Button>
-            </motion.div>
+            <Link to={`/product/${product.id}`}>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button size="sm" variant="secondary" className="w-10 h-10 rounded-full p-0">
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            </Link>
           </div>
 
           {/* Add to Cart Button */}
@@ -82,10 +85,17 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             transition={{ duration: 0.3 }}
             className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300"
           >
-            <Button className="w-full btn-hero rounded-full">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Add to Cart
-            </Button>
+            <div className="space-y-2">
+              <Button className="w-full btn-hero rounded-full">
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Add to Cart
+              </Button>
+              <Link to={`/product/${product.id}`}>
+                <Button size="sm" variant="outline" className="w-full rounded-full">
+                  View Details
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
 

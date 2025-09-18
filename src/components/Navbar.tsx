@@ -44,6 +44,9 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
+            <Link to="/" className="text-foreground hover:text-primary transition-colors duration-300 font-medium">
+              Home
+            </Link>
             {categories.map((category, index) => (
               <motion.button
                 key={category}
@@ -57,6 +60,9 @@ const Navbar = () => {
                 {category}
               </motion.button>
             ))}
+            <Link to="/products" className="text-foreground hover:text-primary transition-colors duration-300 font-medium">
+              View All
+            </Link>
           </div>
 
           {/* Search Bar */}
@@ -90,11 +96,13 @@ const Navbar = () => {
               </motion.div>
             </Link>
 
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="ghost" size="sm">
-                <User className="w-5 h-5" />
-              </Button>
-            </motion.div>
+            <Link to="/login">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="ghost" size="sm">
+                  <User className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            </Link>
 
             {/* Mobile Menu Toggle */}
             <motion.div 
@@ -156,8 +164,12 @@ const Navbar = () => {
                 ))}
               </div>
               <div className="flex space-x-4 mt-4 pt-4 border-t">
-                <Button className="flex-1">Login</Button>
-                <Button variant="outline" className="flex-1">Sign Up</Button>
+                <Link to="/login" className="flex-1">
+                  <Button className="w-full">Login</Button>
+                </Link>
+                <Link to="/signup" className="flex-1">
+                  <Button variant="outline" className="w-full">Sign Up</Button>
+                </Link>
               </div>
             </div>
           </motion.div>

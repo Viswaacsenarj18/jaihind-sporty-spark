@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -249,15 +250,19 @@ const Cart = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button size="lg" className="w-full btn-hero rounded-full group">
-                    Proceed to Checkout
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link to="/checkout">
+                    <Button size="lg" className="w-full btn-hero rounded-full group">
+                      Proceed to Checkout
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </motion.div>
 
-                <Button variant="outline" size="lg" className="w-full rounded-full">
-                  Continue Shopping
-                </Button>
+                <Link to="/products">
+                  <Button variant="outline" size="lg" className="w-full rounded-full">
+                    Continue Shopping
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
