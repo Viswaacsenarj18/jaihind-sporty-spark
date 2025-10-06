@@ -1,22 +1,32 @@
 import { useState } from "react";
-import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
-const categories = [
-  "Cricket",
-  "Football",
-  "Badminton",
-  "Fitness",
-  "Accessories",
-  "Shoes"
-];
+const categories = ["Cricket", "Football", "Badminton", "Fitness", "Accessories", "Shoes"];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // 🔹 change to false to test logged-out state
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    // Here you can clear auth tokens or session storage if needed
+    console.log("User logged out");
+    navigate("/login");
+  };
 
   return (
     <motion.nav
@@ -32,7 +42,7 @@ const Navbar = () => {
             <img
               src="/logo.png"
               alt="Jaihind Sports Logo"
-              className="w-12 h-12 object-contain rounded-md"
+              className="w-12 h-12 object-contain"
             />
             <span className="text-xl lg:text-2xl font-bold text-primary tracking-wide">
               Jaihind Sports
@@ -57,7 +67,6 @@ const Navbar = () => {
                 {category}
               </motion.button>
             ))}
-            {/* ✅ Added Virtual Room Link */}
             <Link
               to="/virtual-room"
               className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
@@ -68,6 +77,7 @@ const Navbar = () => {
 
           {/* --- RIGHT SECTION: Icons --- */}
           <div className="flex items-center space-x-4">
+            {/* Search (Desktop) */}
             <div className="hidden lg:flex items-center space-x-4 flex-1 max-w-xs">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -91,12 +101,42 @@ const Navbar = () => {
               </Button>
             </Link>
 
-            {/* User Icon */}
-            <Link to="/login">
-              <Button variant="ghost" size="sm">
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
+            {/* --- USER SECTION --- */}
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <User className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600 focus:text-red-700"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  <User className="w-5 h-5" />
+                </Button>
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
@@ -110,7 +150,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Search */}
+        {/* --- Mobile Search --- */}
         <div className="lg:hidden pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -136,7 +176,7 @@ const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-4">
               <div className="grid grid-cols-2 gap-4">
-                {categories.map((category, index) => (
+                {categories.map((category) => (
                   <button
                     key={category}
                     className="text-foreground hover:text-primary font-medium py-2 text-left"
@@ -148,7 +188,6 @@ const Navbar = () => {
                     {category}
                   </button>
                 ))}
-                {/* ✅ Added Virtual Room in mobile */}
                 <Link
                   to="/virtual-room"
                   onClick={() => setIsMenuOpen(false)}
@@ -158,15 +197,40 @@ const Navbar = () => {
                 </Link>
               </div>
 
-              <div className="flex space-x-4 mt-4 pt-4 border-t">
-                <Link to="/login" className="flex-1">
-                  <Button className="w-full">Login</Button>
-                </Link>
-                <Link to="/signup" className="flex-1">
-                  <Button variant="outline" className="w-full">
-                    Sign Up
-                  </Button>
-                </Link>
+              {/* --- User Section (Mobile) --- */}
+              <div className="mt-4 pt-4 border-t">
+                {isLoggedIn ? (
+                  <div className="flex flex-col gap-2">
+                    <Button onClick={() => navigate("/profile")} className="w-full">
+                      Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/settings")}
+                      className="w-full"
+                    >
+                      Settings
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleLogout}
+                      className="w-full"
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex space-x-4">
+                    <Link to="/login" className="flex-1">
+                      <Button className="w-full">Login</Button>
+                    </Link>
+                    <Link to="/signup" className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
