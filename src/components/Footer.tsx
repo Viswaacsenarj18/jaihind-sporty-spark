@@ -184,7 +184,7 @@ const Footer = () => {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
             <p className="text-primary-foreground/80 text-sm">
-              © 2024 Jaihind Sports. All rights reserved.
+              © 2025 Jaihind Sports. All rights reserved.
             </p>
             <div className="flex space-x-4 text-sm">
               <motion.a href="/privacy" whileHover={{ y: -1 }} className="text-primary-foreground/80 hover:text-secondary transition-colors">
