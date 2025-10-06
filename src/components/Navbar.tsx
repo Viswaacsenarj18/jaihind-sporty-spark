@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 
 const categories = [
   "Cricket",
-  "Football", 
+  "Football",
   "Badminton",
   "Fitness",
   "Accessories",
@@ -19,7 +19,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -27,24 +27,32 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link to="/">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-2"
-            >
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">J</span>
-              </div>
-              <span className="text-xl lg:text-2xl font-bold text-primary">
-                Jaihind Sports
-              </span>
-            </motion.div>
-          </Link>
+          {/* --- LEFT SECTION: Logo --- */}
+          <div className="flex items-center space-x-3">
+            <Link to="/">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center space-x-3"
+              >
+                {/* ✅ Corrected Logo Image Path */}
+                <img
+                  src="/logo.png"
+                  alt="Jaihind Sports Logo"
+                  className="w-12 h-12 object-contain rounded-md"
+                />
+                <span className="text-xl lg:text-2xl font-bold text-primary tracking-wide">
+                  Jaihind Sports
+                </span>
+              </motion.div>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <Link to="/" className="text-foreground hover:text-primary transition-colors duration-300 font-medium">
+          {/* --- CENTER SECTION: Nav Links (Desktop) --- */}
+          <div className="hidden lg:flex items-center space-x-8 mx-auto">
+            <Link
+              to="/"
+              className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
+            >
               Home
             </Link>
             {categories.map((category, index) => (
@@ -55,37 +63,41 @@ const Navbar = () => {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -2 }}
                 className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
-                onClick={() => window.location.href = "/products"}
+                onClick={() => (window.location.href = "/products")}
               >
                 {category}
               </motion.button>
             ))}
-            <Link to="/products" className="text-foreground hover:text-primary transition-colors duration-300 font-medium">
-              View All
+            <Link
+              to="/products"
+              className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
+            >
+              Trial Room
             </Link>
           </div>
 
-          {/* Search Bar */}
-          <div className="hidden lg:flex items-center space-x-4 flex-1 max-w-md mx-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Search sports equipment..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full rounded-full border-2 focus:border-primary"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
+          {/* --- RIGHT SECTION: Search + Icons --- */}
           <div className="flex items-center space-x-4">
+            {/* Search Bar (Desktop Only) */}
+            <div className="hidden lg:flex items-center space-x-4 flex-1 max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search sports equipment..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-full rounded-full border-2 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            {/* Cart Icon */}
             <Link to="/cart">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button variant="ghost" size="sm" className="relative">
                   <ShoppingCart className="w-5 h-5" />
-                  <motion.span 
+                  <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center"
@@ -96,6 +108,7 @@ const Navbar = () => {
               </motion.div>
             </Link>
 
+            {/* User Icon */}
             <Link to="/login">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button variant="ghost" size="sm">
@@ -105,8 +118,8 @@ const Navbar = () => {
             </Link>
 
             {/* Mobile Menu Toggle */}
-            <motion.div 
-              whileHover={{ scale: 1.1 }} 
+            <motion.div
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               className="lg:hidden"
             >
@@ -115,13 +128,17 @@ const Navbar = () => {
                 size="sm"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
               </Button>
             </motion.div>
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
+        {/* --- Mobile Search --- */}
         <div className="lg:hidden pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -136,7 +153,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* --- Mobile Menu --- */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -163,12 +180,15 @@ const Navbar = () => {
                   </motion.button>
                 ))}
               </div>
+
               <div className="flex space-x-4 mt-4 pt-4 border-t">
                 <Link to="/login" className="flex-1">
                   <Button className="w-full">Login</Button>
                 </Link>
                 <Link to="/signup" className="flex-1">
-                  <Button variant="outline" className="w-full">Sign Up</Button>
+                  <Button variant="outline" className="w-full">
+                    Sign Up
+                  </Button>
                 </Link>
               </div>
             </div>

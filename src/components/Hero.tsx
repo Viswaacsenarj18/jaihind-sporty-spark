@@ -142,64 +142,22 @@ const Hero = () => {
             className="relative hidden lg:block"
           >
             <div className="relative">
-              {/* Floating Product Cards */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-0 right-0 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
-              >
-                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-2">
-                  <span className="text-2xl">🏏</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground">Cricket Gear</div>
-                <div className="text-xs text-muted-foreground">Premium Quality</div>
-              </motion.div>
+              
 
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-0 left-0 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
-              >
-                <div className="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-2">
-                  <span className="text-2xl">⚽</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground">Football</div>
-                <div className="text-xs text-muted-foreground">Professional Grade</div>
-              </motion.div>
+              
 
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
-              >
-                <div className="w-16 h-16 bg-success/10 rounded-xl flex items-center justify-center mb-2">
-                  <span className="text-2xl">🏸</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground">Badminton</div>
-                <div className="text-xs text-muted-foreground">Tournament Ready</div>
-              </motion.div>
+              
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/70"
-      >
-        <div className="flex flex-col items-center space-y-2">
-          <span className="text-sm font-medium">Scroll to explore</span>
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-            <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-1 h-3 bg-white/60 rounded-full mt-2"
-            />
-          </div>
-        </div>
-      </motion.div>
+      
+      
+        
+          
+      
+    
     </section>
   );
 };

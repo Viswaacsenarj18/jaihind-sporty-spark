@@ -24,6 +24,8 @@ import ShippingInfo from "./pages/ShippingInfo";
 import Returns from "./pages/Returns";
 import CookiePolicy from "./pages/CookiePolicy";
 import RefundPolicy from "./pages/RefundPolicy";
+import VirtualRoom from "./pages/VirtualRoom";
+
 
 const queryClient = new QueryClient();
 
@@ -56,6 +58,8 @@ const App = () => (
           <Route path="/refund" element={<RefundPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
+          <Route path="/virtual-room" element={<VirtualRoom />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
