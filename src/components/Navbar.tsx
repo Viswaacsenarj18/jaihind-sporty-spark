@@ -28,31 +28,20 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* --- LEFT SECTION: Logo --- */}
-          <div className="flex items-center space-x-3">
-            <Link to="/">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center space-x-3"
-              >
-                {/* ✅ Corrected Logo Image Path */}
-                <img
-                  src="/logo.png"
-                  alt="Jaihind Sports Logo"
-                  className="w-12 h-12 object-contain rounded-md"
-                />
-                <span className="text-xl lg:text-2xl font-bold text-primary tracking-wide">
-                  Jaihind Sports
-                </span>
-              </motion.div>
-            </Link>
-          </div>
+          <Link to="/" className="flex items-center space-x-3">
+            <img
+              src="/logo.png"
+              alt="Jaihind Sports Logo"
+              className="w-12 h-12 object-contain rounded-md"
+            />
+            <span className="text-xl lg:text-2xl font-bold text-primary tracking-wide">
+              Jaihind Sports
+            </span>
+          </Link>
 
           {/* --- CENTER SECTION: Nav Links (Desktop) --- */}
           <div className="hidden lg:flex items-center space-x-8 mx-auto">
-            <Link
-              to="/"
-              className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
-            >
+            <Link to="/" className="hover:text-primary font-medium">
               Home
             </Link>
             {categories.map((category, index) => (
@@ -62,23 +51,23 @@ const Navbar = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -2 }}
-                className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
+                className="hover:text-primary font-medium"
                 onClick={() => (window.location.href = "/products")}
               >
                 {category}
               </motion.button>
             ))}
+            {/* ✅ Added Virtual Room Link */}
             <Link
-              to="/products"
+              to="/virtual-room"
               className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
             >
               Trial Room
             </Link>
           </div>
 
-          {/* --- RIGHT SECTION: Search + Icons --- */}
+          {/* --- RIGHT SECTION: Icons --- */}
           <div className="flex items-center space-x-4">
-            {/* Search Bar (Desktop Only) */}
             <div className="hidden lg:flex items-center space-x-4 flex-1 max-w-xs">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -94,51 +83,34 @@ const Navbar = () => {
 
             {/* Cart Icon */}
             <Link to="/cart">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="ghost" size="sm" className="relative">
-                  <ShoppingCart className="w-5 h-5" />
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                  >
-                    3
-                  </motion.span>
-                </Button>
-              </motion.div>
+              <Button variant="ghost" size="sm" className="relative">
+                <ShoppingCart className="w-5 h-5" />
+                <span className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  3
+                </span>
+              </Button>
             </Link>
 
             {/* User Icon */}
             <Link to="/login">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="ghost" size="sm">
-                  <User className="w-5 h-5" />
-                </Button>
-              </motion.div>
+              <Button variant="ghost" size="sm">
+                <User className="w-5 h-5" />
+              </Button>
             </Link>
 
             {/* Mobile Menu Toggle */}
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+            <Button
+              variant="ghost"
+              size="sm"
               className="lg:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
-              </Button>
-            </motion.div>
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
 
-        {/* --- Mobile Search --- */}
+        {/* Mobile Search */}
         <div className="lg:hidden pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -165,20 +137,25 @@ const Navbar = () => {
             <div className="container mx-auto px-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 {categories.map((category, index) => (
-                  <motion.button
+                  <button
                     key={category}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="text-foreground hover:text-primary transition-colors duration-300 font-medium py-2 text-left"
+                    className="text-foreground hover:text-primary font-medium py-2 text-left"
                     onClick={() => {
                       setIsMenuOpen(false);
                       window.location.href = "/products";
                     }}
                   >
                     {category}
-                  </motion.button>
+                  </button>
                 ))}
+                {/* ✅ Added Virtual Room in mobile */}
+                <Link
+                  to="/virtual-room"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-foreground hover:text-primary font-medium py-2 text-left"
+                >
+                  Virtual Trial Room
+                </Link>
               </div>
 
               <div className="flex space-x-4 mt-4 pt-4 border-t">

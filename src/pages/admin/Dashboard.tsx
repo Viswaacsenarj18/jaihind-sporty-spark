@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+
 import {
   Package,
   Users,
@@ -7,8 +9,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 
 const stats = [
   { 
