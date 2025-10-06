@@ -42,7 +42,7 @@ const Footer = () => {
   return (
     <footer className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
       <div className="container mx-auto px-4 py-16">
-        {/* Main Footer Content */}
+        {/* Main Footer */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand Section */}
           <motion.div
@@ -87,9 +87,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="space-y-4"
             >
-              <h3 className="text-lg font-semibold text-primary-foreground">
-                {section.title}
-              </h3>
+              <h3 className="text-lg font-semibold text-primary-foreground">{section.title}</h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.name}>
@@ -107,7 +105,7 @@ const Footer = () => {
           ))}
         </div>
 
-        {/* Social Media & Newsletter */}
+        {/* Social & Newsletter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
