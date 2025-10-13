@@ -7,74 +7,71 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock expanded product data
+// Mock product data for Jaihind Sportify
 const allProducts = [
-  {
-    id: "1",
-    name: "Professional Cricket Bat - English Willow",
-    price: 8999,
-    originalPrice: 12999,
-    rating: 4.8,
-    reviews: 124,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop",
-    category: "Cricket",
-    isNew: true,
-    isSale: true,
-  },
-  {
-    id: "2",
-    name: "Nike Premier League Football",
-    price: 2499,
-    rating: 4.7,
-    reviews: 89,
-    image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop",
-    category: "Football",
-  },
-  {
-    id: "3",
-    name: "YONEX Arcsaber 11 Badminton Racket",
-    price: 15999,
-    originalPrice: 18999,
-    rating: 4.9,
-    reviews: 76,
-    image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop",
-    category: "Badminton",
-    isSale: true,
-  },
-  {
-    id: "4",
-    name: "Adjustable Dumbbells Set - 20kg",
-    price: 6999,
-    rating: 4.6,
-    reviews: 156,
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
-    category: "Fitness",
-  },
-  {
-    id: "5",
-    name: "Adidas Running Shoes - UltraBoost 22",
-    price: 12999,
-    originalPrice: 15999,
-    rating: 4.8,
-    reviews: 203,
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    category: "Shoes",
-    isSale: true,
-  },
-  {
-    id: "6",
-    name: "Premium Sports Water Bottle",
-    price: 899,
-    rating: 4.5,
-    reviews: 67,
-    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&h=400&fit=crop",
-    category: "Accessories",
-    isNew: true,
-  },
-  // Add more products...
+  // T-Shirts & Apparel
+  { id: "1", name: "Plain T-shirts", price: 499, rating: 4.5, reviews: 45, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop", category: "T-Shirts & Apparel" },
+  { id: "2", name: "Sublimation T-shirts", price: 799, originalPrice: 999, rating: 4.7, reviews: 62, image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=400&fit=crop", category: "T-Shirts & Apparel", isSale: true },
+  { id: "3", name: "Football Jersey", price: 1299, rating: 4.8, reviews: 88, image: "https://images.unsplash.com/photo-1614632537197-38a17061c2bd?w=400&h=400&fit=crop", category: "T-Shirts & Apparel", isNew: true },
+  { id: "4", name: "Shorts", price: 599, rating: 4.4, reviews: 54, image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400&h=400&fit=crop", category: "T-Shirts & Apparel" },
+  { id: "5", name: "Lowers", price: 699, rating: 4.6, reviews: 41, image: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&h=400&fit=crop", category: "T-Shirts & Apparel" },
+  { id: "6", name: "Tights", price: 799, rating: 4.5, reviews: 38, image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&h=400&fit=crop", category: "T-Shirts & Apparel" },
+  { id: "7", name: "Swimming Suit", price: 1499, originalPrice: 1899, rating: 4.7, reviews: 29, image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&h=400&fit=crop", category: "T-Shirts & Apparel", isSale: true },
+  
+  // Cricket
+  { id: "8", name: "Cricket Bat", price: 8999, originalPrice: 12999, rating: 4.8, reviews: 124, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop", category: "Cricket", isSale: true },
+  { id: "9", name: "Cricket Ball", price: 599, rating: 4.6, reviews: 89, image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=400&fit=crop", category: "Cricket" },
+  { id: "10", name: "Cricket Batting Pad", price: 2499, rating: 4.7, reviews: 56, image: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=400&h=400&fit=crop", category: "Cricket", isNew: true },
+  { id: "11", name: "Keeping Pad", price: 3499, rating: 4.8, reviews: 42, image: "https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=400&h=400&fit=crop", category: "Cricket" },
+  { id: "12", name: "All Cricket Equipment", price: 15999, originalPrice: 19999, rating: 4.9, reviews: 67, image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=400&h=400&fit=crop", category: "Cricket", isSale: true },
+  
+  // Badminton
+  { id: "13", name: "Badminton Racquet", price: 2999, rating: 4.7, reviews: 76, image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop", category: "Badminton" },
+  { id: "14", name: "Badminton Cock", price: 399, rating: 4.5, reviews: 92, image: "https://images.unsplash.com/photo-1596131397351-bdd8a1e6137b?w=400&h=400&fit=crop", category: "Badminton" },
+  
+  // Kabaddi
+  { id: "15", name: "Kabaddi Set", price: 3999, rating: 4.6, reviews: 34, image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400&h=400&fit=crop", category: "Kabaddi", isNew: true },
+  { id: "16", name: "Kabaddi Shoes", price: 1999, rating: 4.7, reviews: 28, image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop", category: "Kabaddi" },
+  
+  // Football
+  { id: "17", name: "Football Shoes", price: 4999, originalPrice: 6999, rating: 4.8, reviews: 112, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop", category: "Football", isSale: true },
+  { id: "18", name: "Football", price: 1499, rating: 4.6, reviews: 89, image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop", category: "Football" },
+  
+  // Volleyball & Basketball
+  { id: "19", name: "Volleyball", price: 1299, rating: 4.5, reviews: 64, image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop", category: "Volleyball & Basketball" },
+  { id: "20", name: "Basketball", price: 1899, rating: 4.7, reviews: 78, image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop", category: "Volleyball & Basketball" },
+  
+  // Other Sports
+  { id: "21", name: "Tennikoit", price: 899, rating: 4.4, reviews: 31, image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=400&fit=crop", category: "Other Sports", isNew: true },
+  { id: "22", name: "Skipping Rope", price: 299, rating: 4.6, reviews: 126, image: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=400&h=400&fit=crop", category: "Other Sports" },
+  
+  // Indoor Games
+  { id: "23", name: "Carrom Board", price: 2499, rating: 4.7, reviews: 53, image: "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=400&h=400&fit=crop", category: "Indoor Games" },
+  { id: "24", name: "Carrom Coins", price: 399, rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=400&h=400&fit=crop", category: "Indoor Games" },
+  { id: "25", name: "Carrom Powder", price: 149, rating: 4.4, reviews: 84, image: "https://images.unsplash.com/photo-1604357209793-fca5dca89f97?w=400&h=400&fit=crop", category: "Indoor Games" },
+  { id: "26", name: "Chess Board", price: 1999, originalPrice: 2499, rating: 4.8, reviews: 91, image: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=400&h=400&fit=crop", category: "Indoor Games", isSale: true },
+  { id: "27", name: "Chess Pieces", price: 799, rating: 4.6, reviews: 48, image: "https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=400&h=400&fit=crop", category: "Indoor Games" },
+  
+  // Gym & Fitness
+  { id: "28", name: "Gym Equipment", price: 12999, originalPrice: 16999, rating: 4.9, reviews: 143, image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=400&fit=crop", category: "Gym & Fitness", isSale: true },
+  { id: "29", name: "Athletes Shoes", price: 5999, rating: 4.7, reviews: 167, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop", category: "Gym & Fitness", isNew: true },
+  { id: "30", name: "Skates", price: 3999, rating: 4.6, reviews: 58, image: "https://images.unsplash.com/photo-1564632439127-c7d5b4e66b38?w=400&h=400&fit=crop", category: "Gym & Fitness" },
 ];
 
-const categories = ["All", "Cricket", "Football", "Badminton", "Fitness", "Shoes", "Accessories"];
+// Categories with descriptions
+const categoryData = [
+  { name: "All", description: "Browse all products from Jaihind Sportify" },
+  { name: "T-Shirts & Apparel", description: "Premium sportswear including jerseys, tees, and athletic wear for peak performance" },
+  { name: "Cricket", description: "Complete cricket gear from bats to pads for professional and amateur players" },
+  { name: "Badminton", description: "Quality racquets and shuttlecocks for badminton enthusiasts" },
+  { name: "Kabaddi", description: "Specialized kabaddi equipment and footwear for traditional sports lovers" },
+  { name: "Football", description: "Top-grade footballs and boots for the beautiful game" },
+  { name: "Volleyball & Basketball", description: "Premium balls for court sports and team play" },
+  { name: "Other Sports", description: "Unique sports equipment including tennikoit and skipping ropes" },
+  { name: "Indoor Games", description: "Classic board games and accessories for indoor entertainment" },
+  { name: "Gym & Fitness", description: "Professional fitness equipment, athletic shoes, and skates for your training needs" },
+];
+
 const sortOptions = [
   { value: "featured", label: "Featured" },
   { value: "price-low", label: "Price: Low to High" },
@@ -106,10 +103,10 @@ const ProductListing = () => {
             className="text-center"
           >
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Sports Equipment
+              Jaihind Sportify Products
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our complete collection of premium sports gear
+              Discover premium quality sports gear across all categories—built for champions like you!
             </p>
           </motion.div>
         </div>
@@ -131,19 +128,29 @@ const ProductListing = () => {
                 Categories
               </h3>
               <div className="space-y-2">
-                {categories.map((category) => (
-                  <motion.button
-                    key={category}
+                {categoryData.map((category) => (
+                  <motion.div
+                    key={category.name}
                     whileHover={{ x: 4 }}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`w-full text-left py-2 px-3 rounded-lg transition-colors ${
-                      selectedCategory === category
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
                   >
-                    {category}
-                  </motion.button>
+                    <button
+                      onClick={() => setSelectedCategory(category.name)}
+                      className={`w-full text-left py-3 px-4 rounded-lg transition-all ${
+                        selectedCategory === category.name
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div className="font-medium mb-1">{category.name}</div>
+                      <div className={`text-xs ${
+                        selectedCategory === category.name 
+                          ? "text-primary-foreground/80" 
+                          : "text-muted-foreground"
+                      }`}>
+                        {category.description}
+                      </div>
+                    </button>
+                  </motion.div>
                 ))}
               </div>
             </div>
