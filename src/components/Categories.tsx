@@ -1,69 +1,99 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
-  ShoppingBag, 
-  Trophy, 
-  Dumbbell, 
   Shirt, 
   Circle,
-  Award
+  Wind,
+  Users,
+  Target,
+  Volleyball,
+  Gamepad2,
+  Dumbbell,
+  Trophy
 } from "lucide-react";
 
 // Category data
 const categories = [
   {
     id: 1,
-    name: "Sports Shoes",
-    icon: ShoppingBag,
-    description: "Step into performance! Explore our collection of top-quality sports shoes.",
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    link: "/products?category=shoes",
+    name: "T-Shirts & Apparel",
+    icon: Shirt,
+    description: "Dress for success! Explore jerseys, sublimation tees, shorts, tights, and swimwear for every sport.",
+    image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&h=400&fit=crop",
+    link: "/products?category=apparel",
     gradient: "from-blue-500 to-blue-600"
   },
   {
     id: 2,
-    name: "Cricket & Bats",
+    name: "Cricket",
     icon: Circle,
-    description: "Hit your best shot! Browse premium cricket gear and bats.",
+    description: "Master the pitch! Shop cricket bats, balls, pads, and all essential equipment for champions.",
     image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=400&fit=crop",
     link: "/products?category=cricket",
     gradient: "from-green-500 to-green-600"
   },
   {
     id: 3,
-    name: "Balls & Equipment",
-    icon: Circle,
-    description: "Gear up for every game! Check out our range of balls and sports equipment.",
-    image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=400&h=400&fit=crop",
-    link: "/products?category=equipment",
-    gradient: "from-orange-500 to-orange-600"
+    name: "Badminton",
+    icon: Wind,
+    description: "Smash your way to victory! Find premium badminton racquets and shuttlecocks here.",
+    image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop",
+    link: "/products?category=badminton",
+    gradient: "from-yellow-500 to-yellow-600"
   },
   {
     id: 4,
-    name: "Gym Equipment",
-    icon: Dumbbell,
-    description: "Bring the gym home! Discover our top-notch fitness equipment.",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=400&fit=crop",
-    link: "/products?category=gym",
-    gradient: "from-red-500 to-red-600"
+    name: "Kabaddi",
+    icon: Users,
+    description: "Raid with confidence! Get kabaddi sets and specialized shoes for pro-level performance.",
+    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400&h=400&fit=crop",
+    link: "/products?category=kabaddi",
+    gradient: "from-orange-500 to-orange-600"
   },
   {
     id: 5,
-    name: "Sports Apparel",
-    icon: Shirt,
-    description: "Look sharp, play sharper! Shop sports apparel for every athlete.",
-    image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&h=400&fit=crop",
-    link: "/products?category=apparel",
-    gradient: "from-purple-500 to-purple-600"
+    name: "Football",
+    icon: Target,
+    description: "Score big! Browse top-quality football shoes and balls for every player.",
+    image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=400&h=400&fit=crop",
+    link: "/products?category=football",
+    gradient: "from-red-500 to-red-600"
   },
   {
     id: 6,
-    name: "Trophies & Awards",
-    icon: Award,
-    description: "Celebrate achievements! Find trophies and awards for all occasions.",
-    image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&h=400&fit=crop",
-    link: "/products?category=trophies",
-    gradient: "from-yellow-500 to-yellow-600"
+    name: "Volleyball & Basketball",
+    icon: Volleyball,
+    description: "Spike and dunk in style! Discover volleyballs and basketballs built for the game.",
+    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop",
+    link: "/products?category=ball-sports",
+    gradient: "from-purple-500 to-purple-600"
+  },
+  {
+    id: 7,
+    name: "Other Sports",
+    icon: Trophy,
+    description: "Expand your game! Check out tennikoit rings, skipping ropes, and more unique sports gear.",
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=400&fit=crop",
+    link: "/products?category=other-sports",
+    gradient: "from-teal-500 to-teal-600"
+  },
+  {
+    id: 8,
+    name: "Indoor Games",
+    icon: Gamepad2,
+    description: "Family fun awaits! Explore carrom boards, chess sets, and all the pieces you need.",
+    image: "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=400&h=400&fit=crop",
+    link: "/products?category=indoor-games",
+    gradient: "from-indigo-500 to-indigo-600"
+  },
+  {
+    id: 9,
+    name: "Gym & Fitness",
+    icon: Dumbbell,
+    description: "Build strength at home! Shop gym equipment, athletic shoes, and skates for peak fitness.",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=400&fit=crop",
+    link: "/products?category=gym-fitness",
+    gradient: "from-pink-500 to-pink-600"
   }
 ];
 
@@ -83,10 +113,7 @@ const Categories = () => {
             Find Your Perfect Gear
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Welcome to your ultimate sports destination! Explore our carefully curated collection 
-            featuring Sports Shoes, Cricket & Bats, Balls & Equipment, Gym Equipment, Sports Apparel, 
-            and Trophies & Awards. Each category offers premium quality products designed to elevate 
-            your performance and celebrate your achievements. Discover the variety that matches your passion!
+            Welcome to Jaihind Sportify, your one-stop destination for premium sports gear! From cricket bats to gym equipment, apparel to indoor games—discover quality products that fuel your passion and elevate every game.
           </p>
         </motion.div>
 
