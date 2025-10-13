@@ -15,7 +15,7 @@ const categories = [
     id: 1,
     name: "Sports Shoes",
     icon: ShoppingBag,
-    description: "Performance footwear for every sport",
+    description: "Step into performance! Explore our collection of top-quality sports shoes.",
     image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
     link: "/products?category=shoes",
     gradient: "from-blue-500 to-blue-600"
@@ -24,7 +24,7 @@ const categories = [
     id: 2,
     name: "Cricket & Bats",
     icon: Circle,
-    description: "Premium cricket equipment",
+    description: "Hit your best shot! Browse premium cricket gear and bats.",
     image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=400&fit=crop",
     link: "/products?category=cricket",
     gradient: "from-green-500 to-green-600"
@@ -33,7 +33,7 @@ const categories = [
     id: 3,
     name: "Balls & Equipment",
     icon: Circle,
-    description: "Quality gear for all sports",
+    description: "Gear up for every game! Check out our range of balls and sports equipment.",
     image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=400&h=400&fit=crop",
     link: "/products?category=equipment",
     gradient: "from-orange-500 to-orange-600"
@@ -42,7 +42,7 @@ const categories = [
     id: 4,
     name: "Gym Equipment",
     icon: Dumbbell,
-    description: "Build strength with pro gear",
+    description: "Bring the gym home! Discover our top-notch fitness equipment.",
     image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=400&fit=crop",
     link: "/products?category=gym",
     gradient: "from-red-500 to-red-600"
@@ -51,7 +51,7 @@ const categories = [
     id: 5,
     name: "Sports Apparel",
     icon: Shirt,
-    description: "Comfortable performance wear",
+    description: "Look sharp, play sharper! Shop sports apparel for every athlete.",
     image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&h=400&fit=crop",
     link: "/products?category=apparel",
     gradient: "from-purple-500 to-purple-600"
@@ -60,7 +60,7 @@ const categories = [
     id: 6,
     name: "Trophies & Awards",
     icon: Award,
-    description: "Celebrate your victories",
+    description: "Celebrate achievements! Find trophies and awards for all occasions.",
     image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&h=400&fit=crop",
     link: "/products?category=trophies",
     gradient: "from-yellow-500 to-yellow-600"
