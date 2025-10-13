@@ -115,7 +115,7 @@ const VirtualRoom = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <Button variant="hero" size="lg" className="flex-1">
+              <Button size="lg" className="flex-1 btn-hero">
                 Start Virtual Try-On
               </Button>
               <Button variant="outline" size="lg">

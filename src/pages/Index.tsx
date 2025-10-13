@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Categories from "@/components/Categories";
 import ProductGrid from "@/components/ProductGrid";
 
 const Index = () => {
@@ -10,6 +11,9 @@ const Index = () => {
 
       {/* Hero Section */}
       <Hero />
+
+      {/* Categories Section */}
+      <Categories />
 
       {/* Products Grid */}
       <div className="flex-1">
