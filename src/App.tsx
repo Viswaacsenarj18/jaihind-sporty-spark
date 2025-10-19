@@ -12,7 +12,6 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import VirtualRoom from "./pages/VirtualRoom";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -21,13 +20,23 @@ import Settings from "./pages/admin/Settings";
 
 // Misc
 import NotFound from "./pages/NotFound";
-import Footer from "@/components/Footer"; // Footer includes "Our Story", "Customer Service", "Policies"
+import Footer from "@/components/Footer";
+
+// Cart Context
+import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
 
 const AppWrapper = () => {
   const location = useLocation();
-  const hideFooterPaths = ["/login", "/signup", "/admin", "/admin/users", "/admin/products", "/admin/settings"];
+  const hideFooterPaths = [
+    "/login",
+    "/signup",
+    "/admin",
+    "/admin/users",
+    "/admin/products",
+    "/admin/settings"
+  ];
 
   return (
     <>
@@ -40,7 +49,6 @@ const AppWrapper = () => {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/virtual-room" element={<VirtualRoom />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<Dashboard />} />
@@ -63,9 +71,11 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AppWrapper />
-      </BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
+          <AppWrapper />
+        </BrowserRouter>
+      </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

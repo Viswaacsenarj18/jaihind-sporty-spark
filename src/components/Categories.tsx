@@ -99,66 +99,66 @@ const categories = [
 
 const Categories = () => {
   return (
-    <section className="py-20 px-4 bg-muted/30">
+    <section className="py-12 px-4 bg-muted/20">
       <div className="container mx-auto">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl lg:text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Find Your Perfect Gear
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-sm md:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Welcome to Jaihind Sportify, your one-stop destination for premium sports gear! From cricket bats to gym equipment, apparel to indoor games—discover quality products that fuel your passion and elevate every game.
           </p>
         </motion.div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
               <motion.div
                 key={category.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <Link to={category.link}>
-                  <div className="group relative overflow-hidden rounded-2xl bg-card shadow-card hover-lift cursor-pointer h-full">
+                  <div className="group relative overflow-hidden rounded-lg bg-card shadow-card hover-lift cursor-pointer h-full">
                     {/* Image Background */}
                     <div className="aspect-square overflow-hidden relative">
                       <img 
                         src={category.image} 
                         alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
                       />
                       {/* Gradient Overlay */}
-                      <div className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-60 group-hover:opacity-70 transition-opacity`} />
+                      <div className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-50 group-hover:opacity-60 transition-opacity`} />
                       
                       {/* Icon */}
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Icon className="w-6 h-6 text-white" />
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Icon className="w-4 h-4 text-white" />
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 bg-card">
-                      <h3 className="text-xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                    <div className="p-3 bg-card">
+                      <h3 className="text-md font-semibold mb-1 text-foreground group-hover:text-primary transition-colors">
                         {category.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {category.description}
                       </p>
                     </div>
 
                     {/* Hover Effect Border */}
-                    <div className="absolute inset-0 border-2 border-primary opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 border-2 border-primary opacity-0 group-hover:opacity-100 rounded-lg transition-opacity pointer-events-none" />
                   </div>
                 </Link>
               </motion.div>
