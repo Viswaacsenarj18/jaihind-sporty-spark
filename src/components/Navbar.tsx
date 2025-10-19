@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { Search, ShoppingCart, User, Menu, X, LogOut, Settings } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  LogOut,
+  Settings,
+  Heart,
+  Info,
+  Phone,
+  Percent,
+  Trophy,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,16 +34,15 @@ const Navbar = () => {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    console.log("User logged out");
     navigate("/login");
   };
 
   return (
     <motion.nav
-      initial={{ y: -100, opacity: 0 }}
+      initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b shadow-sm"
+      className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b shadow-sm"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
@@ -47,36 +59,53 @@ const Navbar = () => {
           </Link>
 
           {/* --- NAV LINKS (Desktop) --- */}
-          <div className="hidden lg:flex items-center space-x-8 mx-auto">
-            <Link to="/" className="hover:text-primary font-medium">
+          <div className="hidden lg:flex items-center space-x-8 font-medium">
+            <Link to="/" className="hover:text-primary transition-colors">
               Home
             </Link>
-            <Link to="/products" className="hover:text-primary font-medium">
-              Sports
+            <Link to="/products" className="hover:text-primary transition-colors">
+              Shop
+            </Link>
+            <Link to="/categories" className="hover:text-primary transition-colors">
+              Categories
+            </Link>
+            <Link to="/offers" className="hover:text-primary transition-colors">
+              Offers
+            </Link>
+            <Link to="/about" className="hover:text-primary transition-colors">
+              About
+            </Link>
+            <Link to="/contact" className="hover:text-primary transition-colors">
+              Contact
             </Link>
           </div>
 
-          {/* --- RIGHT ICONS --- */}
-          <div className="flex items-center space-x-4">
-            {/* Search (Desktop) */}
-            <div className="hidden lg:flex items-center flex-1 max-w-xs">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search sports equipment..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full rounded-full border-2 focus:border-primary"
-                />
-              </div>
+          {/* --- RIGHT SECTION --- */}
+          <div className="flex items-center space-x-3">
+            {/* --- SEARCH (Desktop) --- */}
+            <div className="hidden lg:flex relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search for products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 w-64 rounded-full border-2 focus:border-primary transition-all"
+              />
             </div>
 
-            {/* Cart Icon */}
+            {/* Wishlist */}
+            <Link to="/wishlist">
+              <Button variant="ghost" size="sm">
+                <Heart className="w-5 h-5" />
+              </Button>
+            </Link>
+
+            {/* Cart */}
             <Link to="/cart">
               <Button variant="ghost" size="sm" className="relative">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   3
                 </span>
               </Button>
@@ -116,7 +145,7 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* --- MOBILE MENU TOGGLE --- */}
+            {/* --- MOBILE MENU BUTTON --- */}
             <Button
               variant="ghost"
               size="sm"
@@ -128,13 +157,13 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* --- MOBILE SEARCH BAR --- */}
+        {/* --- MOBILE SEARCH --- */}
         <div className="lg:hidden pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               type="text"
-              placeholder="Search sports equipment..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 py-2 w-full rounded-full"
@@ -150,29 +179,33 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-background border-t"
+            className="lg:hidden bg-background border-t shadow-md"
           >
             <div className="container mx-auto px-4 py-4">
-              {/* Nav Links */}
-              <div className="flex flex-col space-y-3">
-                <Link
-                  to="/"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="hover:text-primary font-medium"
-                >
-                  Home
+              {/* Links */}
+              <div className="flex flex-col space-y-3 text-sm">
+                <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                  🏠 Home
                 </Link>
-                <Link
-                  to="/products"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="hover:text-primary font-medium"
-                >
-                  Sports
+                <Link to="/products" onClick={() => setIsMenuOpen(false)}>
+                  🏅 Shop
+                </Link>
+                <Link to="/categories" onClick={() => setIsMenuOpen(false)}>
+                  🧢 Categories
+                </Link>
+                <Link to="/offers" onClick={() => setIsMenuOpen(false)}>
+                  💥 Offers
+                </Link>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)}>
+                  ℹ️ About
+                </Link>
+                <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
+                  📞 Contact
                 </Link>
               </div>
 
-              {/* --- User Section (Mobile) --- */}
-              <div className="mt-4 pt-4 border-t">
+              {/* --- User Section --- */}
+              <div className="mt-5 pt-4 border-t">
                 {isLoggedIn ? (
                   <div className="flex flex-col gap-2">
                     <Button onClick={() => navigate("/profile")} className="w-full">
