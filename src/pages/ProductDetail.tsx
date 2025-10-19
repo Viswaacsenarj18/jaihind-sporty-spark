@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, ShoppingCart, Star, Plus, Minus } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock product data
 const mockProduct = {
@@ -51,12 +53,39 @@ const mockReviews = [
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity(Math.max(1, Math.min(mockProduct.stockCount, quantity + delta)));
+  };
+
+  const handleAddToCart = () => {
+    // Add to cart with the selected quantity
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: mockProduct.id,
+        name: mockProduct.name,
+        price: mockProduct.price,
+        originalPrice: mockProduct.originalPrice,
+        image: mockProduct.images[0],
+        quantity: 1,
+        category: mockProduct.category,
+      });
+    }
+    
+    toast({
+      title: "Added to cart",
+      description: `${quantity} × ${mockProduct.name} added to your cart.`,
+    });
+    
+    // Reset quantity after adding
+    setQuantity(1);
   };
 
   const discount = Math.round(
@@ -171,7 +200,11 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button className="flex-1 text-sm" size="sm">
+                <Button 
+                  className="flex-1 text-sm" 
+                  size="sm"
+                  onClick={handleAddToCart}
+                >
                   <ShoppingCart className="w-4 h-4 mr-1" /> Add to Cart
                 </Button>
                 <Button
@@ -216,7 +249,7 @@ const ProductDetail = () => {
         </motion.div>
       </main>
 
-      
+      <Footer />
     </div>
   );
 };
