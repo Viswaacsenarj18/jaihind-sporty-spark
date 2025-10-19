@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,52 +5,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-// Mock cart data
-const initialCartItems = [
-  {
-    id: "1",
-    name: "Professional Cricket Bat - English Willow",
-    price: 8999,
-    originalPrice: 12999,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop",
-    quantity: 1,
-  },
-  {
-    id: "2",
-    name: "Nike Premier League Football",
-    price: 2499,
-    image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop",
-    quantity: 2,
-  },
-  {
-    id: "3",
-    name: "YONEX Arcsaber 11 Badminton Racket",
-    price: 15999,
-    originalPrice: 18999,
-    image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop",
-    quantity: 1,
-  },
-];
+import { useCart } from "@/context/CartContext";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
-
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setCartItems(items => items.filter(item => item.id !== id));
-    } else {
-      setCartItems(items =>
-        items.map(item =>
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        )
-      );
-    }
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
+  const { cartItems, updateQuantity, removeFromCart } = useCart();
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discount = cartItems.reduce((sum, item) => {
@@ -77,9 +34,11 @@ const Cart = () => {
             <p className="text-muted-foreground mb-8">
               Looks like you haven't added any items to your cart yet.
             </p>
-            <Button size="lg" className="btn-hero rounded-full">
-              Continue Shopping
-            </Button>
+            <Link to="/products">
+              <Button size="lg" className="btn-hero rounded-full">
+                Continue Shopping
+              </Button>
+            </Link>
           </motion.div>
         </div>
         <Footer />
@@ -186,7 +145,7 @@ const Cart = () => {
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeFromCart(item.id)}
                           className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -282,7 +241,7 @@ const Cart = () => {
         </div>
       </div>
 
-      
+      <Footer />
     </div>
   );
 };

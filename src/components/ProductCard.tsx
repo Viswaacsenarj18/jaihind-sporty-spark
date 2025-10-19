@@ -3,6 +3,8 @@ import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   product: {
@@ -21,9 +23,29 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      quantity: 1,
+      category: product.category,
+    });
+    
+    toast({
+      title: "Added to cart",
+      description: `${product.name} has been added to your cart.`,
+    });
+  };
 
   return (
     <motion.div
@@ -109,7 +131,11 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
           {/* Buttons */}
           <div className="mt-2 flex flex-col gap-1">
-            <Button size="sm" className="w-full py-1 text-[0.65rem] flex items-center justify-center">
+            <Button 
+              size="sm" 
+              className="w-full py-1 text-[0.65rem] flex items-center justify-center"
+              onClick={handleAddToCart}
+            >
               <ShoppingCart className="w-3 h-3 mr-1" />
               Add
             </Button>
