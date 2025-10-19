@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, ShoppingCart, Star, Plus, Minus } from "lucide-react";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock product data
+// Mock product data (replace with API data later)
 const mockProduct = {
   id: "1",
   name: "Professional Cricket Bat",
@@ -29,34 +31,25 @@ const mockProduct = {
     "Professional Grade",
     "Hand Crafted",
   ],
-  images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
+  images: [
+    "/placeholder.svg",
+    "/placeholder.svg",
+    "/placeholder.svg"
+  ],
   inStock: true,
   stockCount: 15,
 };
 
 const mockReviews = [
-  {
-    id: 1,
-    user: "Rohit S.",
-    rating: 5,
-    comment: "Excellent bat! Great balance and pickup. Highly recommended.",
-    date: "2 days ago",
-  },
-  {
-    id: 2,
-    user: "Virat K.",
-    rating: 4,
-    comment: "Good quality bat, but delivery was a bit slow.",
-    date: "1 week ago",
-  },
+  { id: 1, user: "Rohit S.", rating: 5, comment: "Excellent bat! Great balance and pickup. Highly recommended.", date: "2 days ago" },
+  { id: 2, user: "Virat K.", rating: 4, comment: "Good quality bat, but delivery was a bit slow.", date: "1 week ago" },
 ];
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  
+
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -66,7 +59,6 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    // Add to cart with the selected quantity
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: mockProduct.id,
@@ -78,13 +70,12 @@ const ProductDetail = () => {
         category: mockProduct.category,
       });
     }
-    
+
     toast({
       title: "Added to cart",
       description: `${quantity} × ${mockProduct.name} added to your cart.`,
     });
-    
-    // Reset quantity after adding
+
     setQuantity(1);
   };
 
@@ -103,16 +94,19 @@ const ProductDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-2 mb-4 text-sm"
         >
-          <Link to="/products" className="flex items-center gap-1 text-muted-foreground hover:text-primary">
+          <Link
+            to="/products"
+            className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+          >
             <ArrowLeft className="w-4 h-4" /> Back to Products
           </Link>
         </motion.div>
 
         {/* Grid Layout */}
-        <div className="grid lg:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {/* Product Images */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden">
                 <img
                   src={mockProduct.images[selectedImage]}
@@ -120,16 +114,16 @@ const ProductDetail = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-1">
-                {mockProduct.images.map((image, index) => (
+              <div className="grid grid-cols-3 gap-2">
+                {mockProduct.images.map((img, idx) => (
                   <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
                     className={`aspect-square bg-muted rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedImage === index ? "border-primary" : "border-transparent"
+                      selectedImage === idx ? "border-primary" : "border-transparent"
                     }`}
                   >
-                    <img src={image} alt={`${mockProduct.name} ${index + 1}`} className="w-full h-full object-cover" />
+                    <img src={img} alt={`${mockProduct.name} ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -138,10 +132,8 @@ const ProductDetail = () => {
 
           {/* Product Info */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-            <Badge variant="secondary" className="mb-1 text-xs">
-              {mockProduct.category}
-            </Badge>
-            <h1 className="text-2xl font-bold text-foreground mb-2">{mockProduct.name}</h1>
+            <Badge variant="secondary" className="mb-1 text-xs">{mockProduct.category}</Badge>
+            <h1 className="text-2xl font-bold mb-2">{mockProduct.name}</h1>
 
             {/* Rating */}
             <div className="flex items-center gap-2 mb-3 text-sm">
@@ -160,18 +152,16 @@ const ProductDetail = () => {
             <div className="flex items-center gap-2 mb-3 text-lg">
               <span className="font-bold text-primary">₹{mockProduct.price}</span>
               <span className="text-muted-foreground line-through text-sm">₹{mockProduct.originalPrice}</span>
-              <Badge variant="destructive" className="text-xs">
-                {discount}% OFF
-              </Badge>
+              <Badge variant="destructive" className="text-xs">{discount}% OFF</Badge>
             </div>
 
             <p className="text-sm text-muted-foreground mb-3">{mockProduct.description}</p>
 
-            {/* Key Features */}
+            {/* Features */}
             <ul className="space-y-1 mb-3 text-sm">
-              {mockProduct.features.map((feature, index) => (
-                <li key={index} className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full" /> {feature}
+              {mockProduct.features.map((feat, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full" /> {feat}
                 </li>
               ))}
             </ul>
@@ -179,7 +169,7 @@ const ProductDetail = () => {
             <Separator />
 
             {/* Quantity & Actions */}
-            <div className="mt-2 space-y-2">
+            <div className="mt-3 space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <span className="font-medium">Quantity:</span>
                 <div className="flex items-center gap-1">
@@ -187,12 +177,7 @@ const ProductDetail = () => {
                     <Minus className="w-4 h-4" />
                   </Button>
                   <span className="w-8 text-center">{quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= mockProduct.stockCount}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleQuantityChange(1)} disabled={quantity >= mockProduct.stockCount}>
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -200,11 +185,7 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  className="flex-1 text-sm" 
-                  size="sm"
-                  onClick={handleAddToCart}
-                >
+                <Button className="flex-1 text-sm" size="sm" onClick={handleAddToCart}>
                   <ShoppingCart className="w-4 h-4 mr-1" /> Add to Cart
                 </Button>
                 <Button
@@ -232,10 +213,7 @@ const ProductDetail = () => {
                       <span className="font-medium">{review.user}</span>
                       <div className="flex items-center gap-0.5">
                         {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
-                          />
+                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
                         ))}
                       </div>
                     </div>

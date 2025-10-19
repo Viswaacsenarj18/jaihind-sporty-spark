@@ -8,9 +8,12 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 const ContactUs = () => {
+  const phoneNumber = "9659059697"; // WhatsApp format: country code + number
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
       <main className="pt-20">
         <div className="container mx-auto px-4 py-12">
           <motion.div
@@ -19,9 +22,12 @@ const ContactUs = () => {
             transition={{ duration: 0.6 }}
             className="max-w-6xl mx-auto"
           >
-            <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Contact Us</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-8 text-center">
+              Contact Us
+            </h1>
             
             <div className="grid md:grid-cols-2 gap-12">
+              {/* Contact Form */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -44,6 +50,7 @@ const ContactUs = () => {
                 </Card>
               </motion.div>
 
+              {/* Contact Info */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -56,27 +63,33 @@ const ContactUs = () => {
                       <Phone className="h-6 w-6 text-primary" />
                       <div>
                         <h3 className="font-semibold">Phone</h3>
-                        <p className="text-muted-foreground">+91 98765 43210</p>
+                        <p className="text-muted-foreground">
+                          86374 50696 / 80568 91366
+                        </p>
                       </div>
                     </div>
+
                     <div className="flex items-center space-x-4 mb-4">
                       <Mail className="h-6 w-6 text-primary" />
                       <div>
                         <h3 className="font-semibold">Email</h3>
-                        <p className="text-muted-foreground">info@jaihindsports.com</p>
+                        <p className="text-muted-foreground">
+                          sethupathi51469@gmail.com
+                        </p>
                       </div>
                     </div>
+
                     <div className="flex items-center space-x-4 mb-4">
                       <MapPin className="h-6 w-6 text-primary" />
                       <div>
                         <h3 className="font-semibold">Address</h3>
                         <p className="text-muted-foreground">
-                          123 Sports Complex<br />
-                          Mumbai, Maharashtra 400001<br />
-                          India
+                          Near Bus Stand, Thuraiyur Rd,<br />
+                          Mettuppalayam - 621210
                         </p>
                       </div>
                     </div>
+
                     <div className="flex items-center space-x-4">
                       <Clock className="h-6 w-6 text-primary" />
                       <div>
@@ -90,16 +103,23 @@ const ContactUs = () => {
                   </CardContent>
                 </Card>
 
+                {/* Live Chat Support */}
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="font-semibold mb-4">Customer Support</h3>
                     <p className="text-muted-foreground mb-4">
                       Need help with your order or have questions about our products? 
-                      Our customer support team is here to help!
+                      Chat directly with us via WhatsApp!
                     </p>
-                    <Button variant="outline" className="w-full">
-                      Live Chat Support
-                    </Button>
+                    <a
+                      href={`https://wa.me/${8637450696}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" className="w-full">
+                        Live Chat Support
+                      </Button>
+                    </a>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -107,7 +127,7 @@ const ContactUs = () => {
           </motion.div>
         </div>
       </main>
-    
+
     </div>
   );
 };

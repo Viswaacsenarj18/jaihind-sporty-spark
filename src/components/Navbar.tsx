@@ -8,10 +8,6 @@ import {
   LogOut,
   Settings,
   Heart,
-  Info,
-  Phone,
-  Percent,
-  Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -30,7 +26,7 @@ import { useCart } from "@/context/CartContext";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // change to false for testing
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // toggle for testing
   const navigate = useNavigate();
   const { cartCount } = useCart();
 
@@ -38,6 +34,15 @@ const Navbar = () => {
     setIsLoggedIn(false);
     navigate("/login");
   };
+
+  const navLinks = [
+    { name: "Home", href: "/", icon: "🏠" },
+    { name: "Shop", href: "/products", icon: "🏅" },
+    { name: "Categories", href: "/categories", icon: "🧢" },
+    { name: "Offers", href: "/offers", icon: "💥" },
+    { name: "About", href: "/about", icon: "ℹ️" },
+    { name: "Contact", href: "/contact", icon: "📞" },
+  ];
 
   return (
     <motion.nav
@@ -62,34 +67,25 @@ const Navbar = () => {
 
           {/* --- NAV LINKS (Desktop) --- */}
           <div className="hidden lg:flex items-center space-x-8 font-medium">
-            <Link to="/" className="hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link to="/products" className="hover:text-primary transition-colors">
-              Shop
-            </Link>
-            <Link to="/categories" className="hover:text-primary transition-colors">
-              Categories
-            </Link>
-            <Link to="/offers" className="hover:text-primary transition-colors">
-              Offers
-            </Link>
-            <Link to="/about" className="hover:text-primary transition-colors">
-              About
-            </Link>
-            <Link to="/contact" className="hover:text-primary transition-colors">
-              Contact
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                className="hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
 
           {/* --- RIGHT SECTION --- */}
           <div className="flex items-center space-x-3">
-            {/* --- SEARCH (Desktop) --- */}
+            {/* Desktop Search */}
             <div className="hidden lg:flex relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="text"
-                placeholder="Search for products..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 w-64 rounded-full border-2 focus:border-primary transition-all"
@@ -104,8 +100,8 @@ const Navbar = () => {
             </Link>
 
             {/* Cart */}
-            <Link to="/cart">
-              <Button variant="ghost" size="sm" className="relative">
+            <Link to="/cart" className="relative">
+              <Button variant="ghost" size="sm">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -115,7 +111,7 @@ const Navbar = () => {
               </Button>
             </Link>
 
-            {/* --- USER MENU --- */}
+            {/* User Menu */}
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -149,7 +145,7 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* --- MOBILE MENU BUTTON --- */}
+            {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="sm"
@@ -183,41 +179,34 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
             className="lg:hidden bg-background border-t shadow-md"
           >
             <div className="container mx-auto px-4 py-4">
-              {/* Links */}
+              {/* Mobile Links */}
               <div className="flex flex-col space-y-3 text-sm">
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                  🏠 Home
-                </Link>
-                <Link to="/products" onClick={() => setIsMenuOpen(false)}>
-                  🏅 Shop
-                </Link>
-                <Link to="/categories" onClick={() => setIsMenuOpen(false)}>
-                  🧢 Categories
-                </Link>
-                <Link to="/offers" onClick={() => setIsMenuOpen(false)}>
-                  💥 Offers
-                </Link>
-                <Link to="/about" onClick={() => setIsMenuOpen(false)}>
-                  ℹ️ About
-                </Link>
-                <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
-                  📞 Contact
-                </Link>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {link.icon} {link.name}
+                  </Link>
+                ))}
               </div>
 
-              {/* --- User Section --- */}
+              {/* Mobile User Section */}
               <div className="mt-5 pt-4 border-t">
                 {isLoggedIn ? (
                   <div className="flex flex-col gap-2">
-                    <Button onClick={() => navigate("/profile")} className="w-full">
+                    <Button onClick={() => { navigate("/profile"); setIsMenuOpen(false); }} className="w-full">
                       Profile
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => navigate("/settings")}
+                      onClick={() => { navigate("/settings"); setIsMenuOpen(false); }}
                       className="w-full"
                     >
                       Settings
@@ -233,10 +222,12 @@ const Navbar = () => {
                 ) : (
                   <div className="flex space-x-4">
                     <Link to="/login" className="flex-1">
-                      <Button className="w-full">Login</Button>
+                      <Button className="w-full" onClick={() => setIsMenuOpen(false)}>
+                        Login
+                      </Button>
                     </Link>
                     <Link to="/signup" className="flex-1">
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full" onClick={() => setIsMenuOpen(false)}>
                         Sign Up
                       </Button>
                     </Link>
