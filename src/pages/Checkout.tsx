@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ArrowLeft, CreditCard, Shield, Truck } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, CreditCard, Shield, Truck, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,26 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Mock cart data
-const cartItems = [
-  {
-    id: "1",
-    name: "Professional Cricket Bat",
-    price: 2499,
-    quantity: 1,
-    image: "/placeholder.svg"
-  },
-  {
-    id: "2", 
-    name: "Football Size 5",
-    price: 899,
-    quantity: 2,
-    image: "/placeholder.svg"
-  }
-];
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Checkout = () => {
+  const { cartItems, clearCart } = useCart();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
     lastName: "",
@@ -53,16 +40,65 @@ const Checkout = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 99;
+  const shipping = subtotal > 5000 ? 0 : 99;
   const tax = Math.round(subtotal * 0.18); // 18% GST
-  const total = subtotal + shipping + tax;
+  const codCharge = paymentMethod === "cod" ? 50 : 0;
+  const total = subtotal + shipping + tax + codCharge;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual checkout logic
-    console.log("Checkout:", { shippingInfo, paymentMethod });
-    alert("Order placed successfully!");
+    
+    // Validate form
+    if (!shippingInfo.firstName || !shippingInfo.email || !shippingInfo.phone) {
+      toast({
+        title: "Incomplete information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Clear cart and show success
+    clearCart();
+    toast({
+      title: "Order placed successfully!",
+      description: `Thank you ${shippingInfo.firstName}! Your order will be delivered soon.`,
+    });
+    
+    // Redirect to home page after 2 seconds
+    setTimeout(() => {
+      navigate("/");
+    }, 2000);
   };
+
+  // Show empty cart message if no items
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-md mx-auto"
+          >
+            <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-muted-foreground" />
+            <h2 className="text-2xl font-bold text-foreground mb-4">Your cart is empty</h2>
+            <p className="text-muted-foreground mb-8">
+              Add some products to your cart before checking out.
+            </p>
+            <Link to="/products">
+              <Button size="lg" className="rounded-full">
+                Browse Products
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -295,21 +331,29 @@ const Checkout = () => {
                 {/* Price Breakdown */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>₹{subtotal}</span>
+                    <span>Subtotal ({cartItems.length} items)</span>
+                    <span>₹{subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Shipping</span>
-                    <span>₹{shipping}</span>
+                    <span className={shipping === 0 ? "text-success" : ""}>
+                      {shipping === 0 ? "Free" : `₹${shipping}`}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Tax (GST 18%)</span>
-                    <span>₹{tax}</span>
+                    <span>₹{tax.toLocaleString()}</span>
                   </div>
+                  {codCharge > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span>COD Charges</span>
+                      <span>₹{codCharge}</span>
+                    </div>
+                  )}
                   <Separator />
-                  <div className="flex justify-between font-medium">
+                  <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>₹{total}</span>
+                    <span className="text-primary">₹{total.toLocaleString()}</span>
                   </div>
                 </div>
 
