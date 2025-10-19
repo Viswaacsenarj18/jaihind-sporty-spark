@@ -113,7 +113,7 @@ const CookiePolicy = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

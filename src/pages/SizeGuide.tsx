@@ -291,7 +291,7 @@ const SizeGuide = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

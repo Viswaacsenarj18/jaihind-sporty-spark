@@ -214,7 +214,7 @@ const RefundPolicy = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

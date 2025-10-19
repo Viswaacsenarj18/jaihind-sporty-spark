@@ -75,7 +75,7 @@ const AboutUs = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

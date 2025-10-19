@@ -197,7 +197,7 @@ const Returns = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

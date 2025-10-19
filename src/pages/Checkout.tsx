@@ -375,7 +375,7 @@ const Checkout = () => {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

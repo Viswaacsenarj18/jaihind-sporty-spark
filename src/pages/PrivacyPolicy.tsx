@@ -83,7 +83,7 @@ const PrivacyPolicy = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

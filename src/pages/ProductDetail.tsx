@@ -249,7 +249,7 @@ const ProductDetail = () => {
         </motion.div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

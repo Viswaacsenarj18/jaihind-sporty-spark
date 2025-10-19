@@ -13,6 +13,16 @@ import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
+// Footer / Informational Pages
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
+import Shipping from "./pages/Shipping";
+import Returns from "./pages/Returns";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import RefundPolicy from "./pages/RefundPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
+
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
@@ -29,13 +39,15 @@ const queryClient = new QueryClient();
 
 const AppWrapper = () => {
   const location = useLocation();
+
+  // Footer hidden only on these paths
   const hideFooterPaths = [
     "/login",
     "/signup",
     "/admin",
     "/admin/users",
     "/admin/products",
-    "/admin/settings"
+    "/admin/settings",
   ];
 
   return (
@@ -50,6 +62,16 @@ const AppWrapper = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
+        {/* Footer / Informational Pages */}
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/shipping" element={<Shipping />} />
+        <Route path="/returns" element={<Returns />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
+
         {/* Admin Routes */}
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
@@ -60,8 +82,8 @@ const AppWrapper = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* Footer visible only if not on login/signup/admin pages */}
-      {!hideFooterPaths.includes(location.pathname) && <Footer />}
+      {/* Show footer on all pages except auth/admin pages */}
+      {!hideFooterPaths.some(path => location.pathname.startsWith(path)) && <Footer />}
     </>
   );
 };

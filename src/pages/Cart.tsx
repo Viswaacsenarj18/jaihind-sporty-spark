@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
@@ -41,7 +40,6 @@ const Cart = () => {
             </Link>
           </motion.div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -240,8 +238,6 @@ const Cart = () => {
           </motion.div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

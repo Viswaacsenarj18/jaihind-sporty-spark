@@ -107,7 +107,7 @@ const ContactUs = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
+    
     </div>
   );
 };
