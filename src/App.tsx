@@ -12,6 +12,10 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Offers from "./pages/Offers";
+import Categories from "./pages/Categories";
 
 // Footer / Informational Pages
 import AboutUs from "./pages/AboutUs";
@@ -26,7 +30,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
-import Settings from "./pages/admin/Settings";
+import AdminSettings from "./pages/admin/Settings";
 
 // Misc
 import NotFound from "./pages/NotFound";
@@ -61,6 +65,10 @@ const AppWrapper = () => {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/offers" element={<Offers />} />
+        <Route path="/categories" element={<Categories />} />
 
         {/* Footer / Informational Pages */}
         <Route path="/about" element={<AboutUs />} />
@@ -76,7 +84,7 @@ const AppWrapper = () => {
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/products" element={<ProductListing />} />
-        <Route path="/admin/settings" element={<Settings />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
