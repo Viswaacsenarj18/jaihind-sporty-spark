@@ -62,19 +62,19 @@ const allProducts = [
   { id: "29", name: "Athletes Shoes", price: 5999, rating: 4.7, reviews: 167, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop", category: "Gym & Fitness", isNew: true },
   { id: "30", name: "Skates", price: 3999, rating: 4.6, reviews: 58, image: "https://images.unsplash.com/photo-1564632439127-c7d5b4e66b38?w=400&h=400&fit=crop", category: "Gym & Fitness" },
 ];
-// Category data (unchanged)
+// Category data
 const categoryData = [
   { name: "All", description: "Browse all products from Jaihind Sportify" },
-  { name: "T-Shirts & Apparel", description: "Premium sportswear including jerseys, tees, and athletic wear for peak performance" },
-  { name: "Cricket", description: "Complete cricket gear from bats to pads for professional and amateur players" },
-  { name: "Badminton", description: "Quality racquets and shuttlecocks for badminton enthusiasts" },
-  { name: "Kabaddi", description: "Specialized kabaddi equipment and footwear for traditional sports lovers" },
+  { name: "T-Shirts & Apparel", description: "Premium sportswear including jerseys, tees, and athletic wear" },
+  { name: "Cricket", description: "Complete cricket gear from bats to pads for players" },
+  { name: "Badminton", description: "Quality racquets and shuttlecocks for badminton" },
+  { name: "Tennis", description: "Professional tennis rackets, balls, and shoes" },
+  { name: "Kabaddi", description: "Specialized kabaddi equipment and footwear" },
   { name: "Football", description: "Top-grade footballs and boots for the beautiful game" },
   { name: "Volleyball & Basketball", description: "Premium balls for court sports and team play" },
-  { name: "Tennis", description: "Professional tennis rackets, balls, and shoes for court excellence" },
-  { name: "Other Sports", description: "Unique sports equipment including tennikoit and skipping ropes" },
-  { name: "Indoor Games", description: "Classic board games and accessories for indoor entertainment" },
-  { name: "Gym & Fitness", description: "Professional fitness equipment, athletic shoes, and skates for your training needs" },
+  { name: "Other Sports", description: "Unique sports equipment and accessories" },
+  { name: "Indoor Games", description: "Classic board games and accessories for indoor fun" },
+  { name: "Gym & Fitness", description: "Professional fitness equipment and athletic gear" },
 ];
 
 // Sorting options (unchanged)
