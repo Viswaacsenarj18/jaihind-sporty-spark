@@ -60,7 +60,8 @@ const Navbar = () => {
               alt="Jaihind Sports Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-xl lg:text-2xl font-bold text-primary tracking-wide">
+            <span className="text-xl lg:text-2xl font-extrabold tracking-wide bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+
               JAIHIND SPORTS
             </span>
           </Link>
