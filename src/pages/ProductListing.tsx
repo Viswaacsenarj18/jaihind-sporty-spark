@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Filter, Grid, List, SlidersHorizontal } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -80,6 +81,9 @@ const sortOptions = [
 ];
 
 const ProductListing = () => {
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -89,6 +93,27 @@ const ProductListing = () => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [appliedRange, setAppliedRange] = useState<{ min?: number; max?: number }>({});
+
+  // ✅ Update category when URL param changes
+  useEffect(() => {
+    if (categoryParam) {
+      // Map URL category to display category
+      const categoryMap: Record<string, string> = {
+        "apparel": "T-Shirts & Apparel",
+        "cricket": "Cricket",
+        "badminton": "Badminton",
+        "kabaddi": "Kabaddi",
+        "football": "Football",
+        "ball-sports": "Volleyball & Basketball",
+        "other-sports": "Other Sports",
+        "indoor-games": "Indoor Games",
+        "gym-fitness": "Gym & Fitness",
+      };
+      
+      const mappedCategory = categoryMap[categoryParam.toLowerCase()] || "All";
+      setSelectedCategory(mappedCategory);
+    }
+  }, [categoryParam]);
 
   // ✅ Handle Add to Cart
   const handleAddToCart = (product: any) => {
