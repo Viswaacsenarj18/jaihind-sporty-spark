@@ -41,27 +41,73 @@ const Offers = () => {
 
   const categoryDeals = [
     {
-      category: "Cricket",
+      category: "T-Shirts & Apparel",
+      slug: "apparel",
       discount: "Up to 30% OFF",
       products: 156,
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+    },
+    {
+      category: "Cricket",
+      slug: "cricket",
+      discount: "Up to 35% OFF",
+      products: 128,
       image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400",
     },
     {
-      category: "Football",
-      discount: "Up to 35% OFF",
-      products: 128,
-      image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400",
-    },
-    {
       category: "Badminton",
+      slug: "badminton",
       discount: "Up to 25% OFF",
       products: 89,
       image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400",
     },
     {
-      category: "Tennis",
+      category: "Football",
+      slug: "football",
       discount: "Up to 28% OFF",
       products: 95,
+      image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400",
+    },
+    {
+      category: "Kabaddi",
+      slug: "kabaddi",
+      discount: "Up to 20% OFF",
+      products: 73,
+      image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400",
+    },
+    {
+      category: "Volleyball & Basketball",
+      slug: "ball-sports",
+      discount: "Up to 30% OFF",
+      products: 142,
+      image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400",
+    },
+    {
+      category: "Other Sports",
+      slug: "other-sports",
+      discount: "Up to 25% OFF",
+      products: 198,
+      image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400",
+    },
+    {
+      category: "Indoor Games",
+      slug: "indoor-games",
+      discount: "Up to 35% OFF",
+      products: 67,
+      image: "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=400",
+    },
+    {
+      category: "Gym & Fitness",
+      slug: "gym-fitness",
+      discount: "Up to 40% OFF",
+      products: 84,
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400",
+    },
+    {
+      category: "Tennis",
+      slug: "tennis",
+      discount: "Up to 30% OFF",
+      products: 78,
       image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=400",
     },
   ];
@@ -161,13 +207,13 @@ const Offers = () => {
             <Percent className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">Category Deals</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {categoryDeals.map((deal, index) => (
               <Card
                 key={index}
                 className="overflow-hidden hover:shadow-lg transition-all hover:scale-105 cursor-pointer"
               >
-                <Link to={`/products?category=${deal.category.toLowerCase()}`}>
+                <Link to={`/products?category=${deal.slug}`}>
                   <div className="relative">
                     <img
                       src={deal.image}

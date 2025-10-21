@@ -41,6 +41,11 @@ const allProducts = [
   { id: "19", name: "Volleyball", price: 1299, rating: 4.5, reviews: 64, image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop", category: "Volleyball & Basketball" },
   { id: "20", name: "Basketball", price: 1899, rating: 4.7, reviews: 78, image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop", category: "Volleyball & Basketball" },
 
+  // Tennis
+  { id: "31", name: "Tennis Racket", price: 2499, rating: 4.7, reviews: 89, image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=400&h=400&fit=crop", category: "Tennis", isNew: true },
+  { id: "32", name: "Tennis Balls", price: 499, rating: 4.5, reviews: 112, image: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=400&fit=crop", category: "Tennis" },
+  { id: "33", name: "Tennis Shoes", price: 4499, originalPrice: 5999, rating: 4.8, reviews: 76, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop", category: "Tennis", isSale: true },
+
   // Other Sports
   { id: "21", name: "Tennikoit", price: 899, rating: 4.4, reviews: 31, image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=400&fit=crop", category: "Other Sports", isNew: true },
   { id: "22", name: "Skipping Rope", price: 299, rating: 4.6, reviews: 126, image: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=400&h=400&fit=crop", category: "Other Sports" },
@@ -66,6 +71,7 @@ const categoryData = [
   { name: "Kabaddi", description: "Specialized kabaddi equipment and footwear for traditional sports lovers" },
   { name: "Football", description: "Top-grade footballs and boots for the beautiful game" },
   { name: "Volleyball & Basketball", description: "Premium balls for court sports and team play" },
+  { name: "Tennis", description: "Professional tennis rackets, balls, and shoes for court excellence" },
   { name: "Other Sports", description: "Unique sports equipment including tennikoit and skipping ropes" },
   { name: "Indoor Games", description: "Classic board games and accessories for indoor entertainment" },
   { name: "Gym & Fitness", description: "Professional fitness equipment, athletic shoes, and skates for your training needs" },
@@ -105,6 +111,7 @@ const ProductListing = () => {
         "kabaddi": "Kabaddi",
         "football": "Football",
         "ball-sports": "Volleyball & Basketball",
+        "tennis": "Tennis",
         "other-sports": "Other Sports",
         "indoor-games": "Indoor Games",
         "gym-fitness": "Gym & Fitness",
