@@ -306,7 +306,7 @@ const ProductListing = () => {
         </div>
       </div>
 
-      
+      <Footer />
     </div>
   );
 };

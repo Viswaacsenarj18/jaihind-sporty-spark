@@ -7,87 +7,75 @@ import { ChevronRight } from "lucide-react";
 const Categories = () => {
   const categories = [
     {
-      name: "Cricket",
-      description: "Bats, Balls, Pads & More",
+      name: "T-Shirts & Apparel",
+      slug: "apparel",
+      description: "Jerseys, Tees & Athletic Wear",
       products: 156,
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
+      featured: true,
+    },
+    {
+      name: "Cricket",
+      slug: "cricket",
+      description: "Bats, Balls, Pads & More",
+      products: 128,
       image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600",
       featured: true,
     },
     {
-      name: "Football",
-      description: "Footballs, Boots, Jerseys",
-      products: 128,
-      image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600",
-      featured: true,
-    },
-    {
       name: "Badminton",
+      slug: "badminton",
       description: "Rackets, Shuttles, Shoes",
       products: 89,
       image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600",
       featured: false,
     },
     {
-      name: "Tennis",
-      description: "Rackets, Balls, Accessories",
+      name: "Kabaddi",
+      slug: "kabaddi",
+      description: "Sets, Shoes & Equipment",
       products: 95,
-      image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=600",
+      image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=600",
       featured: false,
     },
     {
-      name: "Basketball",
-      description: "Basketballs, Shoes, Apparel",
+      name: "Football",
+      slug: "football",
+      description: "Footballs, Boots, Jerseys",
       products: 73,
+      image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600",
+      featured: true,
+    },
+    {
+      name: "Volleyball & Basketball",
+      slug: "ball-sports",
+      description: "Premium Balls for Court Sports",
+      products: 142,
       image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600",
       featured: false,
     },
     {
-      name: "Running",
-      description: "Running Shoes, Gear, Apparel",
-      products: 142,
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-      featured: true,
+      name: "Other Sports",
+      slug: "other-sports",
+      description: "Tennikoit, Skipping & More",
+      products: 198,
+      image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600",
+      featured: false,
+    },
+    {
+      name: "Indoor Games",
+      slug: "indoor-games",
+      description: "Carrom, Chess & Board Games",
+      products: 67,
+      image: "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=600",
+      featured: false,
     },
     {
       name: "Gym & Fitness",
-      description: "Weights, Yoga, Equipment",
-      products: 198,
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600",
-      featured: false,
-    },
-    {
-      name: "Swimming",
-      description: "Swimwear, Goggles, Accessories",
-      products: 67,
-      image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600",
-      featured: false,
-    },
-    {
-      name: "Cycling",
-      description: "Bikes, Helmets, Accessories",
+      slug: "gym-fitness",
+      description: "Equipment, Shoes & Training Gear",
       products: 84,
-      image: "https://images.unsplash.com/photo-1571333250630-f0230c320b6d?w=600",
-      featured: false,
-    },
-    {
-      name: "Boxing",
-      description: "Gloves, Bags, Protection",
-      products: 56,
-      image: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600",
-      featured: false,
-    },
-    {
-      name: "Hockey",
-      description: "Sticks, Pucks, Protective Gear",
-      products: 48,
-      image: "https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=600",
-      featured: false,
-    },
-    {
-      name: "Outdoor Sports",
-      description: "Camping, Hiking, Adventure",
-      products: 112,
-      image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600",
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600",
       featured: false,
     },
   ];
@@ -117,7 +105,7 @@ const Categories = () => {
             {featuredCategories.map((category) => (
               <Link
                 key={category.name}
-                to={`/products?category=${category.name.toLowerCase()}`}
+                to={`/products?category=${category.slug}`}
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all hover:scale-105 cursor-pointer h-full">
                   <div className="relative">
@@ -152,7 +140,7 @@ const Categories = () => {
             {regularCategories.map((category) => (
               <Link
                 key={category.name}
-                to={`/products?category=${category.name.toLowerCase()}`}
+                to={`/products?category=${category.slug}`}
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-all hover:scale-105 cursor-pointer h-full">
                   <div className="relative">
