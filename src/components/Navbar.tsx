@@ -22,27 +22,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // toggle for testing
   const navigate = useNavigate();
   const { cartCount } = useCart();
-  const { user, signOut } = useAuth();
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/auth");
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    navigate("/login");
   };
 
   const navLinks = [
     { name: "Home", href: "/", icon: "🏠" },
-    { name: "Shop", href: "/shop", icon: "🏅" },
+    { name: "Shop", href: "/products", icon: "🏅" },
     { name: "Categories", href: "/categories", icon: "🧢" },
     { name: "Offers", href: "/offers", icon: "💥" },
-    { name: "About", href: "/about-us", icon: "ℹ️" },
-    { name: "Contact", href: "/contact-us", icon: "📞" },
+    { name: "About", href: "/about", icon: "ℹ️" },
+    { name: "Contact", href: "/contact", icon: "📞" },
   ];
 
   return (
@@ -114,7 +113,7 @@ const Navbar = () => {
             </Link>
 
             {/* User Menu */}
-            {user ? (
+            {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -126,9 +125,6 @@ const Navbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="w-4 h-4 mr-2" /> Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/wishlist")}>
-                    <Heart className="w-4 h-4 mr-2" /> Wishlist
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="w-4 h-4 mr-2" /> Settings
@@ -143,7 +139,7 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/auth">
+              <Link to="/login">
                 <Button variant="ghost" size="sm">
                   <User className="w-5 h-5" />
                 </Button>
@@ -204,13 +200,10 @@ const Navbar = () => {
 
               {/* Mobile User Section */}
               <div className="mt-5 pt-4 border-t">
-                {user ? (
+                {isLoggedIn ? (
                   <div className="flex flex-col gap-2">
                     <Button onClick={() => { navigate("/profile"); setIsMenuOpen(false); }} className="w-full">
                       Profile
-                    </Button>
-                    <Button onClick={() => { navigate("/wishlist"); setIsMenuOpen(false); }} className="w-full" variant="outline">
-                      Wishlist
                     </Button>
                     <Button
                       variant="outline"
@@ -228,11 +221,18 @@ const Navbar = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Link to="/auth" className="w-full">
-                    <Button className="w-full" onClick={() => setIsMenuOpen(false)}>
-                      Login / Sign Up
-                    </Button>
-                  </Link>
+                  <div className="flex space-x-4">
+                    <Link to="/login" className="flex-1">
+                      <Button className="w-full" onClick={() => setIsMenuOpen(false)}>
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/signup" className="flex-1">
+                      <Button variant="outline" className="w-full" onClick={() => setIsMenuOpen(false)}>
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>
