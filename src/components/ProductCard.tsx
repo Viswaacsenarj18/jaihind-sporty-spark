@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   product: {
@@ -24,7 +28,10 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(false);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -45,6 +52,57 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       title: "Added to cart",
       description: `${product.name} has been added to your cart.`,
     });
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      navigate('/auth');
+      toast({
+        title: "Login required",
+        description: "Please login to add items to wishlist",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      if (isWishlisted) {
+        const { error } = await supabase
+          .from('wishlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', product.id);
+
+        if (error) throw error;
+        
+        setIsWishlisted(false);
+        toast({
+          title: "Removed from wishlist",
+          description: `${product.name} has been removed from your wishlist`
+        });
+      } else {
+        const { error } = await supabase
+          .from('wishlist')
+          .insert([{
+            user_id: user.id,
+            product_id: product.id
+          }]);
+
+        if (error) throw error;
+        
+        setIsWishlisted(true);
+        toast({
+          title: "Added to wishlist",
+          description: `${product.name} has been added to your wishlist`
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -81,8 +139,13 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
           {/* Quick Actions */}
           <div className="absolute top-2 right-2 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity duration-200 space-y-1">
-            <Button size="sm" variant="secondary" className="w-7 h-7 p-0 rounded-full">
-              <Heart className="w-3 h-3" />
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="w-7 h-7 p-0 rounded-full"
+              onClick={handleWishlistToggle}
+            >
+              <Heart className={`w-3 h-3 ${isWishlisted ? 'fill-primary text-primary' : ''}`} />
             </Button>
             <Link to={`/product/${product.id}`}>
               <Button size="sm" variant="secondary" className="w-7 h-7 p-0 rounded-full">

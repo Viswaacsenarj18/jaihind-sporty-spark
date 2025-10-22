@@ -36,8 +36,13 @@ import AdminSettings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
 
-// Cart Context
+// Cart Context & Auth
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import Auth from "./pages/Auth";
+import Wishlist from "./pages/Wishlist";
+import AdminProducts from "./pages/admin/Products";
+import SizeGuide from "./pages/SizeGuide";
 
 const queryClient = new QueryClient();
 
@@ -59,20 +64,23 @@ const AppWrapper = () => {
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Index />} />
-        <Route path="/products" element={<ProductListing />} />
+        <Route path="/shop" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/size-guide" element={<SizeGuide />} />
 
         {/* Footer / Informational Pages */}
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/returns" element={<Returns />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -83,7 +91,7 @@ const AppWrapper = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/products" element={<ProductListing />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Catch-all */}
@@ -99,13 +107,15 @@ const AppWrapper = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <CartProvider>
-        <BrowserRouter>
-          <AppWrapper />
-        </BrowserRouter>
-      </CartProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+            <AppWrapper />
+          </CartProvider>
+        </AuthProvider>
+        <Toaster />
+        <Sonner />
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
