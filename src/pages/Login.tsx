@@ -12,35 +12,54 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<"user" | "admin">("user"); // Role selection
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRoleChange = (selectedRole: "user" | "admin") => {
+    setRole(selectedRole);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // Demo authentication (replace with real API call)
-    const { email, password } = formData;
+    try {
+      const endpoint =
+        role === "admin"
+          ? "http://localhost:5000/api/admin/login"
+          : "http://localhost:5000/api/auth/login";
 
-    // Hardcoded users (demo)
-    const users = [
-      { email: "admin@jaihind.com", password: "admin123", role: "admin" },
-      { email: "user@jaihind.com", password: "user123", role: "user" }
-    ];
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    const user = users.find(u => u.email === email && u.password === password);
+      const data = await res.json();
 
-    if (user) {
-      if (user.role === "admin") {
-        navigate("/admin"); // Redirect admin to dashboard
+      if (!res.ok) {
+        // Show proper error from backend or default message
+        setError(data.message || "Invalid email or password");
       } else {
-        navigate("/"); // Redirect normal user to homepage
+        // Save token and role in localStorage
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", role);
+
+        // Redirect based on role
+        if (role === "admin") navigate("/admin");
+        else navigate("/");
       }
-    } else {
-      setError("Invalid email or password");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,6 +87,22 @@ const Login = () => {
 
           <CardContent className="space-y-6">
             {error && <p className="text-red-500 text-center">{error}</p>}
+
+            {/* Role selection */}
+            <div className="flex justify-center gap-4 mb-4">
+              <Button
+                variant={role === "user" ? "default" : "outline"}
+                onClick={() => handleRoleChange("user")}
+              >
+                User
+              </Button>
+              <Button
+                variant={role === "admin" ? "default" : "outline"}
+                onClick={() => handleRoleChange("admin")}
+              >
+                Admin
+              </Button>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -113,8 +148,8 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Sign In
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
@@ -123,7 +158,9 @@ const Login = () => {
                 <Separator />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
 
@@ -132,9 +169,11 @@ const Login = () => {
               <Button variant="outline">Twitter</Button>
             </div>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-sm mt-4">
               <span className="text-muted-foreground">Don't have an account? </span>
-              <Link to="/signup" className="text-primary hover:underline font-medium">Sign up</Link>
+              <Link to="/signup" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
             </div>
           </CardContent>
         </Card>

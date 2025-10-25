@@ -17,7 +17,7 @@ import Settings from "./pages/Settings";
 import Offers from "./pages/Offers";
 import Categories from "./pages/Categories";
 
-// Footer / Informational Pages
+// Info Pages
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Shipping from "./pages/Shipping";
@@ -31,20 +31,20 @@ import CookiePolicy from "./pages/CookiePolicy";
 import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import AdminSettings from "./pages/admin/Settings";
+import AdminDashboard from "./pages/admin/AdminDashboard"; // ✅ Added this line
 
 // Misc
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
 
-// Cart Context
+// Context
 import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
 
-const AppWrapper = () => {
+const AppRoutes = () => {
   const location = useLocation();
 
-  // Footer hidden only on these paths
   const hideFooterPaths = [
     "/login",
     "/signup",
@@ -52,7 +52,12 @@ const AppWrapper = () => {
     "/admin/users",
     "/admin/products",
     "/admin/settings",
+    "/admin/dashboard"
   ];
+
+  const shouldHideFooter = hideFooterPaths.some(path =>
+    location.pathname.startsWith(path)
+  );
 
   return (
     <>
@@ -70,7 +75,7 @@ const AppWrapper = () => {
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
 
-        {/* Footer / Informational Pages */}
+        {/* Info Pages */}
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/shipping" element={<Shipping />} />
@@ -83,31 +88,32 @@ const AppWrapper = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/products" element={<ProductListing />} />
+        <Route path="/admin/products" element={<AdminDashboard />} /> {/* ✅ Changed to AdminDashboard */}
         <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* Show footer on all pages except auth/admin pages */}
-      {!hideFooterPaths.some(path => location.pathname.startsWith(path)) && <Footer />}
+      {!shouldHideFooter && <Footer />}
     </>
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <CartProvider>
-        <BrowserRouter>
-          <AppWrapper />
-        </BrowserRouter>
-      </CartProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <CartProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </CartProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
