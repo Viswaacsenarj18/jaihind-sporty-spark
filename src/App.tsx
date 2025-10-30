@@ -3,9 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // User Pages
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import ProductListing from "./pages/ProductListing";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
@@ -31,7 +33,8 @@ import CookiePolicy from "./pages/CookiePolicy";
 import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import AdminSettings from "./pages/admin/Settings";
-import AdminDashboard from "./pages/admin/AdminDashboard"; // ✅ Added this line
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ProductManagement from "./pages/admin/ProductManagement";
 
 // Misc
 import NotFound from "./pages/NotFound";
@@ -64,6 +67,7 @@ const AppRoutes = () => {
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
@@ -88,7 +92,8 @@ const AppRoutes = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/products" element={<AdminDashboard />} /> {/* ✅ Changed to AdminDashboard */}
+        <Route path="/admin/products" element={<ProductManagement />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Catch-all */}
@@ -106,11 +111,13 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <CartProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </CartProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
