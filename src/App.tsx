@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 
+// Context Providers
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+
 // User Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -18,6 +22,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Offers from "./pages/Offers";
 import Categories from "./pages/Categories";
+import Wishlist from "./pages/Wishlist";   // ✅ added
 
 // Info Pages
 import AboutUs from "./pages/AboutUs";
@@ -39,9 +44,6 @@ import ProductManagement from "./pages/admin/ProductManagement";
 // Misc
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
-
-// Context
-import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +73,7 @@ const AppRoutes = () => {
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} /> {/* ✅ added */}
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -89,7 +92,7 @@ const AppRoutes = () => {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
 
-        {/* Admin Routes */}
+        {/* Admin */}
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/products" element={<ProductManagement />} />
@@ -113,9 +116,11 @@ const App = () => {
         <Sonner />
         <AuthProvider>
           <CartProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
+            <WishlistProvider> {/* ✅ added */}
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </WishlistProvider>
           </CartProvider>
         </AuthProvider>
       </TooltipProvider>

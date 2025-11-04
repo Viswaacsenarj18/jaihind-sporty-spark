@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";  // ✅ Wishlist Context
 import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
@@ -20,7 +21,20 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const { addToCart } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist(); // ✅
   const { toast } = useToast();
+
+  const isInWishlist = wishlist.some(item => item.id === product.id); // ✅ check
+
+  const handleWishlist = () => {
+    if (isInWishlist) {
+      removeFromWishlist(product.id);
+      toast({ title: "Removed from Wishlist", description: product.name });
+    } else {
+      addToWishlist(product);
+      toast({ title: "Added to Wishlist", description: product.name });
+    }
+  };
 
   const handleAddToCart = () => {
     addToCart({
@@ -46,9 +60,21 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       viewport={{ once: true }}
       className="group"
     >
-      <Card className="overflow-hidden rounded-lg shadow-md flex flex-col h-full border bg-white">
+      <Card className="overflow-hidden rounded-lg shadow-md flex flex-col h-full border bg-white relative">
 
-        {/* ✅ Image box fixed height - No cutting */}
+        {/* ✅ Wishlist Button */}
+        <button
+          onClick={handleWishlist}
+          className="absolute top-2 right-2 bg-white shadow-md rounded-full p-2 z-10 hover:scale-110 transition"
+        >
+          <Heart
+            className={`w-5 h-5 ${
+              isInWishlist ? "text-red-500 fill-red-500" : "text-gray-500"
+            }`}
+          />
+        </button>
+
+        {/* ✅ Product Image */}
         <div className="w-full h-44 bg-white flex items-center justify-center overflow-hidden p-2">
           <img
             src={product.image}
@@ -57,7 +83,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           />
         </div>
 
-        {/* Content */}
+        {/* ✅ Content */}
         <CardContent className="p-3 flex flex-col justify-between flex-1">
           <div>
             <p className="text-[0.65rem] text-muted-foreground uppercase">
@@ -73,7 +99,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             </span>
           </div>
 
-          {/* Buttons */}
+          {/* ✅ Buttons */}
           <div className="mt-3 flex flex-col gap-1">
             <Button
               size="sm"
@@ -89,7 +115,6 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               </Button>
             </Link>
           </div>
-
         </CardContent>
       </Card>
     </motion.div>

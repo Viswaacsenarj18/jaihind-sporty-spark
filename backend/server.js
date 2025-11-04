@@ -8,43 +8,45 @@ import connectDB from "./config/db.js";
 // Routes
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // optional
+import authRoutes from "./routes/authRoutes.js";
 
 // Load environment variables
 dotenv.config();
 
-// Setup __dirname for ES Modules
+// Path setup (for ES Modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// CORS configuration
+// ✅ Database Connection
+connectDB();
+
+// ✅ CORS Configuration
 const corsOptions = {
   origin: [
-    "http://localhost:5173",
+    "http://localhost:5173", 
     "http://localhost:3000",
     "http://localhost:8080"
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
-  exposedHeaders: ["Content-Range", "X-Content-Range"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static folder for uploads
+// ✅ Static file serving for uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/products", productRoutes);
+// ✅ API ROUTES
+app.use("/api/auth", authRoutes);       // User Auth + Admin login
+app.use("/api/admin", adminRoutes);     // Admin protected actions
+app.use("/api/products", productRoutes); // Products CRUD
 
-// Root route
+// ✅ Root Test Route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -53,7 +55,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 handler
+// ✅ 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -61,27 +63,17 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Error:", err.stack);
+  console.error("❌ Server Error:", err.stack);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error"
   });
 });
 
-// Start server
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
-
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(
-        `🚀 Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`
-      );
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

@@ -13,51 +13,49 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<"user" | "admin">("user"); // Role selection
   const navigate = useNavigate();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRoleChange = (selectedRole: "user" | "admin") => {
-    setRole(selectedRole);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    try {
-      const endpoint =
-        role === "admin"
-          ? "http://localhost:5000/api/admin/login"
-          : "http://localhost:5000/api/auth/login";
+    const { email, password } = formData;
 
+    // ✅ Auto detect admin email (change to your admin domain or list)
+    const isAdmin = email.endsWith("@jaihind-sports.com");
+
+    const endpoint = isAdmin
+      ? "http://localhost:5000/api/admin/login"
+      : "http://localhost:5000/api/auth/login";
+
+    try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        // Show proper error from backend or default message
+      if (!data.success) {
         setError(data.message || "Invalid email or password");
-      } else {
-        // Save token and role in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", role);
-
-        // Redirect based on role
-        if (role === "admin") navigate("/admin");
-        else navigate("/");
+        setLoading(false);
+        return;
       }
+
+      // ✅ Save token & role
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", isAdmin ? "admin" : "user");
+
+      // ✅ Redirect
+      navigate(isAdmin ? "/admin/dashboard" : "/");
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Server error. Please try again later.");
+      console.error(err);
+      setError("Server error, please try again.");
     } finally {
       setLoading(false);
     }
@@ -72,6 +70,7 @@ const Login = () => {
         className="w-full max-w-md"
       >
         <Card className="shadow-2xl">
+
           <CardHeader className="text-center space-y-2">
             <motion.div
               initial={{ scale: 0 }}
@@ -88,27 +87,10 @@ const Login = () => {
           <CardContent className="space-y-6">
             {error && <p className="text-red-500 text-center">{error}</p>}
 
-            {/* Role selection */}
-            <div className="flex justify-center gap-4 mb-4">
-              <Button
-                variant={role === "user" ? "default" : "outline"}
-                onClick={() => handleRoleChange("user")}
-              >
-                User
-              </Button>
-              <Button
-                variant={role === "admin" ? "default" : "outline"}
-                onClick={() => handleRoleChange("admin")}
-              >
-                Admin
-              </Button>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label>Email</Label>
                 <Input
-                  id="email"
                   name="email"
                   type="email"
                   placeholder="Enter your email"
@@ -119,10 +101,9 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label>Password</Label>
                 <div className="relative">
                   <Input
-                    id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
@@ -134,7 +115,7 @@ const Login = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -142,32 +123,12 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline">Google</Button>
-              <Button variant="outline">Twitter</Button>
-            </div>
+            <Separator />
 
             <div className="text-center text-sm mt-4">
               <span className="text-muted-foreground">Don't have an account? </span>
@@ -175,6 +136,7 @@ const Login = () => {
                 Sign up
               </Link>
             </div>
+
           </CardContent>
         </Card>
       </motion.div>
