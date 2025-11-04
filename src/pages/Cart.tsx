@@ -26,17 +26,17 @@ const Cart = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center max-w-md mx-auto"
+            className="text-center max-w-sm mx-auto flex flex-col items-center"
           >
-            <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-muted-foreground" />
-            <h2 className="text-2xl font-bold text-foreground mb-4">Your cart is empty</h2>
-            <p className="text-muted-foreground mb-8">
-              Looks like you haven't added any items to your cart yet.
+            <ShoppingBag className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 text-muted-foreground" />
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+              Your cart is empty
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6">
+              Looks like you haven't added any items yet.
             </p>
-            <Link to="/products">
-              <Button size="lg" className="btn-hero rounded-full">
-                Continue Shopping
-              </Button>
+            <Link to="/products" className="w-full">
+              <Button size="lg" className="w-full rounded-full">Continue Shopping</Button>
             </Link>
           </motion.div>
         </div>
@@ -47,108 +47,99 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Page Header */}
-      <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-12">
-        <div className="container mx-auto px-4">
-          <motion.div
+
+      <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8 sm:py-12">
+        <div className="container mx-auto px-4 text-center">
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center"
+            className="text-2xl sm:text-4xl font-bold mb-2"
           >
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Shopping Cart
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Review your selected items
-            </p>
-          </motion.div>
+            Shopping Cart
+          </motion.h1>
+          <p className="text-sm sm:text-lg text-muted-foreground">
+            Review your selected items
+          </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
+
+          {/* ✅ Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            <motion.h2
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-xl font-semibold text-foreground mb-6"
-            >
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">
               Cart Items ({cartItems.length})
-            </motion.h2>
+            </h2>
 
             {cartItems.map((item, index) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <Card className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      {/* Product Image */}
-                      <div className="w-full sm:w-24 h-48 sm:h-24 rounded-lg overflow-hidden flex-shrink-0">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
+
+                      {/* ✅ Image */}
+                      <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-lg overflow-hidden">
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       </div>
 
-                      {/* Product Details */}
-                      <div className="flex-1 space-y-2">
-                        <h3 className="font-semibold text-foreground line-clamp-2">
+                      {/* ✅ Product Info */}
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="font-semibold text-sm sm:text-base line-clamp-2">
                           {item.name}
                         </h3>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-primary">
+
+                        <div className="flex justify-center sm:justify-start items-center gap-2 mt-1">
+                          <span className="font-bold text-primary text-base sm:text-lg">
                             ₹{item.price.toLocaleString()}
                           </span>
+                          
                           {item.originalPrice && (
-                            <span className="text-sm text-muted-foreground line-through">
+                            <span className="text-xs sm:text-sm line-through text-muted-foreground">
                               ₹{item.originalPrice.toLocaleString()}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-3">
+                      {/* ✅ Quantity */}
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className="flex items-center border rounded-lg">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
+                          <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="p-2 hover:bg-muted transition-colors"
+                            className="p-2 sm:p-3"
                           >
-                            <Minus className="w-4 h-4" />
-                          </motion.button>
-                          <span className="px-4 py-2 font-semibold">
+                            <Minus className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                          <span className="px-3 sm:px-4 py-1 font-semibold text-sm sm:text-base">
                             {item.quantity}
                           </span>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
+                          <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="p-2 hover:bg-muted transition-colors"
+                            className="p-2 sm:p-3"
                           >
-                            <Plus className="w-4 h-4" />
-                          </motion.button>
+                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
                         </div>
 
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           onClick={() => removeFromCart(item.id)}
-                          className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg"
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </motion.button>
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
                       </div>
+
                     </div>
                   </CardContent>
                 </Card>
@@ -156,83 +147,54 @@ const Cart = () => {
             ))}
           </div>
 
-          {/* Order Summary */}
+          {/* ✅ Order Summary */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="space-y-6"
+            transition={{ duration: 0.6 }}
+            className="space-y-5"
           >
             <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="text-xl font-semibold text-foreground">Order Summary</h3>
-                
-                <div className="space-y-2">
+              <CardContent className="p-5 sm:p-6 space-y-3 sm:space-y-5">
+                <h3 className="text-lg font-semibold">Order Summary</h3>
+
+                <div className="space-y-2 text-sm sm:text-base">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>Subtotal</span>
                     <span className="font-semibold">₹{subtotal.toLocaleString()}</span>
                   </div>
-                  
+
                   {discount > 0 && (
-                    <div className="flex justify-between text-success">
+                    <div className="flex justify-between text-green-600">
                       <span>Discount</span>
                       <span>-₹{discount.toLocaleString()}</span>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span className={`font-semibold ${shipping === 0 ? 'text-success' : ''}`}>
-                      {shipping === 0 ? 'Free' : `₹${shipping}`}
+                    <span>Shipping</span>
+                    <span className={`${shipping === 0 && "text-green-600 font-semibold"}`}>
+                      {shipping === 0 ? "Free" : `₹${shipping}`}
                     </span>
                   </div>
-                  
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span className="text-primary">₹{total.toLocaleString()}</span>
-                    </div>
+
+                  <div className="border-t pt-2 text-base sm:text-lg font-bold flex justify-between">
+                    <span>Total</span>
+                    <span className="text-primary">₹{total.toLocaleString()}</span>
                   </div>
                 </div>
 
-                {subtotal < 5000 && (
-                  <div className="bg-secondary/10 p-3 rounded-lg">
-                    <p className="text-sm text-secondary-foreground">
-                      Add ₹{(5000 - subtotal).toLocaleString()} more for free shipping!
-                    </p>
-                  </div>
-                )}
-
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link to="/checkout">
-                    <Button size="lg" className="w-full btn-hero rounded-full group">
-                      Proceed to Checkout
-                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </motion.div>
+                <Link to="/checkout">
+                  <Button size="lg" className="w-full rounded-full mt-2">
+                    Proceed to Checkout <ArrowRight className="ml-2" />
+                  </Button>
+                </Link>
 
                 <Link to="/products">
-                  <Button variant="outline" size="lg" className="w-full rounded-full">
+                  <Button variant="outline" size="lg" className="w-full rounded-full mt-2">
                     Continue Shopping
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
-
-            {/* Secure Checkout Info */}
-            <Card>
-              <CardContent className="p-6">
-                <h4 className="font-semibold text-foreground mb-3">Secure Checkout</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ SSL encrypted payment</p>
-                  <p>✓ 30-day return policy</p>
-                  <p>✓ 24/7 customer support</p>
-                  <p>✓ Nationwide delivery</p>
-                </div>
               </CardContent>
             </Card>
           </motion.div>
