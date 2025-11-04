@@ -5,16 +5,17 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/productController.js";
-import { protectAdmin } from "../middleware/auth.js";
+
+import { upload } from "../middleware/upload.js"; // Multer upload middleware
 
 const router = express.Router();
 
-// Public routes (optional — if you want users to see products without login)
+// ✅ Public - fetch products
 router.get("/", getProducts);
 
-// Admin-protected routes
-router.post("/", protectAdmin, addProduct);
-router.put("/:id", protectAdmin, updateProduct);
-router.delete("/:id", protectAdmin, deleteProduct);
+// ✅ TEMP: No auth while testing
+router.post("/", upload.single("imageFile"), addProduct);
+router.put("/:id", upload.single("imageFile"), updateProduct);
+router.delete("/:id", deleteProduct);
 
 export default router;

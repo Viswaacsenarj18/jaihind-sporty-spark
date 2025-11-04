@@ -1,129 +1,122 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Package, 
-  Users, 
-  ShoppingCart, 
-  TrendingUp,
-  Search,
-  Filter
-} from "lucide-react";
+import { Plus, Edit3, Trash2, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-// Mock data
-const stats = [
-  { title: "Total Products", value: "156", icon: Package, change: "+12%" },
-  { title: "Total Users", value: "2,345", icon: Users, change: "+8%" },
-  { title: "Total Orders", value: "456", icon: ShoppingCart, change: "+23%" },
-  { title: "Revenue", value: "₹1,25,000", icon: TrendingUp, change: "+18%" }
-];
-
-const mockProducts = [
-  {
-    id: "1",
-    name: "Professional Cricket Bat",
-    category: "Cricket",
-    price: 2499,
-    stock: 15,
-    image: "/placeholder.svg",
-    status: "active"
-  },
-  {
-    id: "2",
-    name: "Football Size 5",
-    category: "Football",
-    price: 899,
-    stock: 32,
-    image: "/placeholder.svg",
-    status: "active"
-  },
-  {
-    id: "3",
-    name: "Badminton Racket",
-    category: "Badminton",
-    price: 1299,
-    stock: 8,
-    image: "/placeholder.svg",
-    status: "low_stock"
-  }
-];
-
-const mockOrders = [
-  {
-    id: "ORD001",
-    customer: "Rahul Sharma",
-    total: 3398,
-    status: "delivered",
-    date: "2024-01-15",
-    items: 2
-  },
-  {
-    id: "ORD002",
-    customer: "Priya Patel",
-    total: 1299,
-    status: "shipped",
-    date: "2024-01-14",
-    items: 1
-  },
-  {
-    id: "ORD003",
-    customer: "Amit Kumar",
-    total: 2499,
-    status: "processing",
-    date: "2024-01-13",
-    items: 1
-  }
-];
-
 const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [editProductId, setEditProductId] = useState<string | null>(null);
+
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
     description: "",
     price: "",
     stock: "",
-    image: ""
+    imageFile: null as File | null,
+    imageUrl: ""
   });
 
-  const handleAddProduct = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Adding product:", newProduct);
-    setIsAddProductOpen(false);
-    setNewProduct({
-      name: "",
-      category: "",
-      description: "",
-      price: "",
-      stock: "",
-      image: ""
-    });
+  // ✅ Load products from DB
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const res = await fetch("http://localhost:5000/api/products");
+    const data = await res.json();
+    if (data.success) setProducts(data.products);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active": return "bg-green-100 text-green-800";
-      case "low_stock": return "bg-yellow-100 text-yellow-800";
-      case "out_of_stock": return "bg-red-100 text-red-800";
-      case "delivered": return "bg-green-100 text-green-800";
-      case "shipped": return "bg-blue-100 text-blue-800";
-      case "processing": return "bg-yellow-100 text-yellow-800";
-      default: return "bg-gray-100 text-gray-800";
+  // ✅ Add product
+  const handleAddProduct = async (e: any) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    Object.entries(newProduct).forEach(([key, value]) => {
+      if (value) formData.append(key, value as string | Blob);
+    });
+
+    const res = await fetch("http://localhost:5000/api/products", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      fetchProducts();
+      setIsAddProductOpen(false);
+      resetForm();
+    } else alert(data.message);
+  };
+
+  // ✅ Delete product from DB
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure?")) return;
+
+    const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      method: "DELETE"
+    });
+
+    if (res.ok) {
+      setProducts(products.filter((p) => p._id !== id));
     }
+  };
+
+  // ✅ Open Edit Modal
+  const openEditModal = (product: any) => {
+    setEditProductId(product._id);
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      imageFile: null,
+      imageUrl: product.image
+    });
+    setIsEditProductOpen(true);
+  };
+
+  // ✅ Save Edit
+  const handleEditProduct = async (e: any) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    Object.entries(newProduct).forEach(([key, value]) => {
+      if (value) formData.append(key, value as string | Blob);
+    });
+
+    const res = await fetch(`http://localhost:5000/api/products/${editProductId}`, {
+      method: "PUT",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      fetchProducts();
+      setIsEditProductOpen(false);
+      resetForm();
+    } else {
+      alert(data.message);
+    }
+  };
+
+  const resetForm = () => {
+    setNewProduct({ name: "", category: "", description: "", price: "", stock: "", imageFile: null, imageUrl: "" });
   };
 
   return (
@@ -131,242 +124,72 @@ const AdminDashboard = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+          
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage your Jaihind Sports store</p>
             </div>
+
             <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Product
-                </Button>
+                <Button><Plus className="w-4 h-4 mr-2" /> Add Product</Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Product</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Add Product</DialogTitle></DialogHeader>
+
+                {/* ✅ ADD FORM */}
                 <form onSubmit={handleAddProduct} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Product Name</Label>
-                      <Input
-                        id="name"
-                        value={newProduct.name}
-                        onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cricket">Cricket</SelectItem>
-                          <SelectItem value="football">Football</SelectItem>
-                          <SelectItem value="badminton">Badminton</SelectItem>
-                          <SelectItem value="fitness">Fitness</SelectItem>
-                          <SelectItem value="accessories">Accessories</SelectItem>
-                          <SelectItem value="shoes">Shoes</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                      rows={3}
-                    />
-                  </div>
+                  <Input placeholder="Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}/>
+                  <Select value={newProduct.category} onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cricket">Cricket</SelectItem>
+                      <SelectItem value="football">Football</SelectItem>
+                      <SelectItem value="badminton">Badminton</SelectItem>
+                      <SelectItem value="fitness">Fitness</SelectItem>
+                      <SelectItem value="accessories">Accessories</SelectItem>
+                      <SelectItem value="shoes">Shoes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Textarea placeholder="Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}/>
+                  <Input type="number" placeholder="Price" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}/>
+                  <Input type="number" placeholder="Stock" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}/>
+                  <Input type="file" onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })}/>
+                  <Input placeholder="Or Image URL" value={newProduct.imageUrl} onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}/>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Price (₹)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={newProduct.price}
-                        onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="stock">Stock</Label>
-                      <Input
-                        id="stock"
-                        type="number"
-                        value={newProduct.stock}
-                        onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="image">Image URL</Label>
-                    <Input
-                      id="image"
-                      type="url"
-                      value={newProduct.image}
-                      onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsAddProductOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit">Add Product</Button>
-                  </div>
+                  <Button type="submit">Save</Button>
                 </form>
               </DialogContent>
             </Dialog>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                        <p className="text-2xl font-bold">{stat.value}</p>
-                        <p className="text-sm text-green-600">{stat.change}</p>
-                      </div>
-                      <stat.icon className="w-8 h-8 text-primary" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Main Content Tabs */}
-          <Tabs defaultValue="products" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="products">Products</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-            </TabsList>
-
-            {/* Products Tab */}
+          {/* ✅ List Products */}
+          <Tabs defaultValue="products">
             <TabsContent value="products">
               <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Product Management</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input
-                          placeholder="Search products..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 w-64"
-                        />
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filter
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
+                <CardHeader><CardTitle>Products</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {mockProducts.map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded-lg bg-muted"
-                          />
-                          <div>
-                            <h3 className="font-medium">{product.name}</h3>
-                            <p className="text-sm text-muted-foreground">{product.category}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="font-medium">₹{product.price}</span>
-                              <Badge className={getStatusColor(product.status)}>
-                                {product.status.replace("_", " ")}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Stock: {product.stock}</span>
-                          <Button variant="ghost" size="sm">
-                            <Edit3 className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Orders Tab */}
-            <TabsContent value="orders">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {mockOrders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  {products.map((product) => (
+                    <div key={product._id} className="flex items-center justify-between border p-3 rounded-lg mb-2">
+                      <div className="flex gap-4 items-center">
+                        <img src={`http://localhost:5000${product.image}`} className="w-16 h-16 rounded" />
                         <div>
-                          <h3 className="font-medium">{order.id}</h3>
-                          <p className="text-sm text-muted-foreground">{order.customer}</p>
-                          <p className="text-sm text-muted-foreground">{order.date}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">₹{order.total}</p>
-                          <p className="text-sm text-muted-foreground">{order.items} items</p>
-                          <Badge className={getStatusColor(order.status)}>
-                            {order.status}
-                          </Badge>
+                          <p className="font-semibold">{product.name}</p>
+                          <p className="text-sm text-gray-500">{product.category} | Stock: {product.stock}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
-            {/* Users Tab */}
-            <TabsContent value="users">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">User management features coming soon...</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditModal(product)}>
+                          <Edit3 size={16} />
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(product._id)}>
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -375,6 +198,36 @@ const AdminDashboard = () => {
       </main>
 
       <Footer />
+
+      {/* ✅ EDIT PRODUCT MODAL */}
+      <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+
+          <form onSubmit={handleEditProduct} className="space-y-4">
+            <Input placeholder="Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}/>
+            <Select value={newProduct.category} onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cricket">Cricket</SelectItem>
+                <SelectItem value="football">Football</SelectItem>
+                <SelectItem value="badminton">Badminton</SelectItem>
+                <SelectItem value="fitness">Fitness</SelectItem>
+                <SelectItem value="accessories">Accessories</SelectItem>
+                <SelectItem value="shoes">Shoes</SelectItem>
+              </SelectContent>
+            </Select>
+            <Textarea placeholder="Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}/>
+            <Input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}/>
+            <Input type="number" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}/>
+            <Input type="file" onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })}/>
+            <Input placeholder="Or Image URL" value={newProduct.imageUrl} onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}/>
+
+            <Button type="submit">Update</Button>
+          </form>
+
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

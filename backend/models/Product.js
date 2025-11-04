@@ -7,8 +7,7 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     stock: { type: Number, required: true },
-    image: { type: String },
-    status: { type: String, default: "active" },
+    image: { type: String }, // Cloudinary URL or local file path
   },
   { timestamps: true }
 );
