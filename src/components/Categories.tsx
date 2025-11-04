@@ -16,15 +16,16 @@ import {
 
 // ✅ Category data
 const categories = [
-  {
-    id: 1,
-    name: "T-Shirts & Apparel",
-    icon: Shirt,
-    description: "Sports jerseys, shorts & activewear.",
-    image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&q=80",
-    slug: "apparel",
-    gradient: "from-blue-500 to-blue-600"
-  },
+ {
+  id: 1,
+  name: "T-Shirts & Apparel",
+  icon: Shirt,
+  description: "Sports jerseys, shorts & activewear.",
+  image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&q=80",
+  slug: "t-shirts-apparel",   // ✅ FIXED
+  gradient: "from-blue-500 to-blue-600"
+},
+
   {
     id: 2,
     name: "Cricket",

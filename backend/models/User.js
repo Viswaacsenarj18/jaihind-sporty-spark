@@ -2,12 +2,41 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ["user", "admin"], default: "user" }
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
+    }
   },
-  { timestamps: true }
+  { 
+    timestamps: true // ✅ Auto adds createdAt & updatedAt
+  }
 );
 
-export default mongoose.model("User", userSchema);
+// ✅ Prevent model overwrite issue in dev
+export default mongoose.models.User || mongoose.model("User", userSchema);

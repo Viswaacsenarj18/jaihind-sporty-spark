@@ -1,291 +1,248 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Plus, Edit3, Trash2, Search, X } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Plus, Edit3, Trash2, Search } from "lucide-react";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 
 const API_BASE = "http://localhost:5000";
 
 const CATEGORIES = [
-  "Cricket",
-  "Badminton",
-  "Tennis",
-  "Kabaddi",
-  "Football",
-  "Volleyball",
-  "Basketball",
-  "Other Sports",
-  "Indoor Games",
-  "Gym & Fitness",
-  "Trophies"
+  "Cricket","Badminton","Tennis","Kabaddi","Football","Volleyball","Basketball",
+  "Other Sports","Indoor Games","Gym & Fitness","Trophies","T-Shirts & Apparel"
 ] as const;
 
-const AdminDashboard = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+const resolveImg = (img?: string) => {
+  if (!img) return "";
+  return img.startsWith("http") ? img : `${API_BASE}${img}`;
+};
+
+export default function AdminDashboard() {
+
   const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAdd, setIsAdd] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [imgMode, setImgMode] = useState("file");
+  const [editImgMode, setEditImgMode] = useState("file");
+  const [editing, setEditing] = useState<any>(null);
 
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    category: "",
-    description: "",
-    price: "",
-    stock: "",
-    imageFile: null as File | null,
-    imageUrl: ""
+  const [form, setForm] = useState<any>({
+    name: "", category: "", description: "", price: "", stock: "",
+    imageFile: null, imageUrl: ""
   });
 
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    category: "",
-    description: "",
-    price: "",
-    stock: "",
-    imageFile: null as File | null,
-    imageUrl: ""
+  const resetForm = () => setForm({
+    name: "", category: "", description: "", price: "", stock: "",
+    imageFile: null, imageUrl: ""
   });
-
-  const resolveImageSrc = (image?: string) =>
-    image?.startsWith("http") ? image : `${API_BASE}${image}`;
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
+    (async () => {
       const res = await fetch(`${API_BASE}/api/products`);
       const data = await res.json();
       if (data.success) setProducts(data.products);
-      setLoading(false);
-    }
-    load();
+    })();
   }, []);
 
-  const handleAddProduct = async (e: any) => {
+  const submitAdd = async (e: any) => {
     e.preventDefault();
-    if (!newProduct.name || !newProduct.category || !newProduct.price) {
-      return alert("Fill all fields");
-    }
-
     const fd = new FormData();
-    Object.entries(newProduct).forEach(([key, value]) => {
-      if (value) fd.append(key, value as any);
-    });
+
+    Object.entries(form).forEach(([k, v]) => v && fd.append(k, v as any));
 
     const res = await fetch(`${API_BASE}/api/products`, { method: "POST", body: fd });
     const data = await res.json();
+    
     if (data.success) {
       setProducts(prev => [data.product, ...prev]);
-      setIsAddProductOpen(false);
-      setNewProduct({
-        name: "",
-        category: "",
-        description: "",
-        price: "",
-        stock: "",
-        imageFile: null,
-        imageUrl: ""
-      });
+      setIsAdd(false);
+      resetForm();
     }
   };
 
-  const openEdit = (product: any) => {
-    setEditingProduct(product);
-    setEditForm({
-      name: product.name,
-      category: product.category,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      imageFile: null,
-      imageUrl: product.image?.startsWith("http") ? product.image : ""
+  const openEdit = (p: any) => {
+    setEditing(p);
+    setForm({
+      name: p.name, category: p.category, description: p.description,
+      price: p.price, stock: p.stock, imageFile: null,
+      imageUrl: p.image?.startsWith("http") ? p.image : ""
     });
-    setIsEditOpen(true);
+    setEditImgMode(p.image?.startsWith("http") ? "url" : "file");
+    setIsEdit(true);
   };
 
-  const handleUpdateProduct = async (e: any) => {
+  const submitEdit = async (e: any) => {
     e.preventDefault();
     const fd = new FormData();
-    Object.entries(editForm).forEach(([k, v]) => v && fd.append(k, v as any));
 
-    const res = await fetch(`${API_BASE}/api/products/${editingProduct._id}`, {
-      method: "PUT",
-      body: fd
-    });
+    Object.entries(form).forEach(([k, v]) => v && fd.append(k, v as any));
+
+    const res = await fetch(`${API_BASE}/api/products/${editing._id}`, { method: "PUT", body: fd });
     const data = await res.json();
 
     if (data.success) {
-      setProducts(p => p.map(x => x._id === editingProduct._id ? data.product : x));
-      setIsEditOpen(false);
+      setProducts(prev => prev.map(x => x._id === editing._id ? data.product : x));
+      setIsEdit(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
+  const del = async (id: string) => {
+    if (!confirm("Delete?")) return;
     await fetch(`${API_BASE}/api/products/${id}`, { method: "DELETE" });
-    setProducts(p => p.filter(x => x._id !== id));
+    setProducts(prev => prev.filter(p => p._id !== id));
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <AdminLayout>
+      <div className="p-4">
 
-      <main className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-
-          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-2 w-4 h-4" /> Add Product</Button>
-            </DialogTrigger>
-
-            <DialogContent className="max-w-xl">
+        <div className="flex justify-between mb-4">
+          <h2 className="text-2xl font-bold">Products</h2>
+          <Dialog open={isAdd} onOpenChange={setIsAdd}>
+            <DialogTrigger asChild><Button><Plus /> Add Product</Button></DialogTrigger>
+            <DialogContent>
               <DialogHeader><DialogTitle>Add Product</DialogTitle></DialogHeader>
-              <form onSubmit={handleAddProduct} className="space-y-4">
 
-                <Input placeholder="Product Name" 
-                  value={newProduct.name}
-                  onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
+              <form onSubmit={submitAdd} className="space-y-3">
 
-                <Select
-                  value={newProduct.category}
-                  onValueChange={v => setNewProduct({ ...newProduct, category: v })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                <Input placeholder="Name" value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })} />
+
+                <Select onValueChange={v => setForm({ ...form, category: v })}>
+                  <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {CATEGORIES.map(c=> <SelectItem value={c} key={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
 
                 <Textarea placeholder="Description"
-                  value={newProduct.description}
-                  onChange={e => setNewProduct({ ...newProduct, description: e.target.value })} />
+                  onChange={e => setForm({ ...form, description: e.target.value })} />
 
                 <Input type="number" placeholder="Price"
-                  value={newProduct.price}
-                  onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+                  onChange={e => setForm({ ...form, price: e.target.value })} />
 
                 <Input type="number" placeholder="Stock"
-                  value={newProduct.stock}
-                  onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} />
+                  onChange={e => setForm({ ...form, stock: e.target.value })} />
 
-                <Input type="file"
-                  onChange={e => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })} />
+                {/* Image Options */}
+                <div className="flex gap-4">
+                  <label><input type="radio" checked={imgMode==="file"} onChange={()=>setImgMode("file")} /> Upload</label>
+                  <label><input type="radio" checked={imgMode==="url"} onChange={()=>setImgMode("url")} /> URL</label>
+                </div>
+
+                {imgMode==="file" ? (
+                  <Input type="file"
+                    onChange={e => setForm({ ...form, imageFile: e.target.files?.[0] })} />
+                ) : (
+                  <>
+                    <Input placeholder="Paste image URL"
+                      onChange={e => setForm({ ...form, imageUrl: e.target.value })} />
+                    {form.imageUrl && (
+                      <img src={form.imageUrl} className="h-20 rounded border object-cover" />
+                    )}
+                  </>
+                )}
 
                 <Button type="submit" className="w-full">Save</Button>
+
               </form>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Products List */}
+        {/* Search */}
+        <div className="mb-4 relative w-64">
+          <Search className="absolute left-3 top-2 text-gray-500" />
+          <Input className="pl-9" placeholder="Search..."
+            onChange={e => setSearchTerm(e.target.value)} />
+        </div>
+
+        {/* List */}
         <Card>
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle>Products</CardTitle>
-            <div className="relative w-64">
-              <Search className="w-4 h-4 absolute left-3 top-2.5" />
-              <Input placeholder="Search..." className="pl-9"
-                onChange={e => setSearchTerm(e.target.value)} />
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-3">
-            {loading ? "Loading..." : products
-              .filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+          <CardContent className="space-y-3 pt-4">
+            {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
               .map(p => (
-                <div key={p._id} className="flex justify-between items-center p-3 border rounded-md">
+                <div key={p._id} className="flex justify-between items-center p-3 border rounded">
 
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center p-1">
-                      <img src={resolveImageSrc(p.image)} className="w-full h-full object-contain" />
-                    </div>
-
+                  <div className="flex gap-3">
+                    <img src={resolveImg(p.image)} className="w-16 h-16 object-cover rounded" />
                     <div>
-                      <p className="font-semibold">{p.name}</p>
+                      <p className="font-bold">{p.name}</p>
                       <p className="text-xs text-gray-500">{p.category}</p>
                       <p>₹{p.price}</p>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => openEdit(p)}>
-                      <Edit3 className="w-4 h-4 mr-1" /> Edit
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}>
-                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    <Button size="sm" onClick={() => openEdit(p)}><Edit3 size={14} /></Button>
+                    <Button size="sm" variant="destructive" onClick={() => del(p._id)}>
+                      <Trash2 size={14} />
                     </Button>
                   </div>
+
                 </div>
               ))}
           </CardContent>
         </Card>
-      </main>
 
-      <Footer />
+        {/* EDIT */}
+        <Dialog open={isEdit} onOpenChange={setIsEdit}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
 
-      {/* Edit Modal */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader className="flex justify-between">
-            <DialogTitle>Edit Product</DialogTitle>
-            <Button variant="ghost" size="icon" onClick={() => setIsEditOpen(false)}>
-              <X />
-            </Button>
-          </DialogHeader>
+            <form onSubmit={submitEdit} className="space-y-3">
 
-          <form onSubmit={handleUpdateProduct} className="space-y-4">
+              <Input value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })} />
 
-            <Input value={editForm.name}
-              onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
+              <Select value={form.category}
+                onValueChange={v => setForm({ ...form, category: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CATEGORIES.map(c=> <SelectItem key={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
 
-            <Select
-              value={editForm.category}
-              onValueChange={v => setEditForm({ ...editForm, category: v })}
-            >
-              <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+              <Textarea value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })} />
 
-            <Textarea value={editForm.description}
-              onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
+              <Input type="number" value={form.price}
+                onChange={e => setForm({ ...form, price: e.target.value })} />
 
-            <Input type="number" value={editForm.price}
-              onChange={e => setEditForm({ ...editForm, price: e.target.value })} />
+              <Input type="number" value={form.stock}
+                onChange={e => setForm({ ...form, stock: e.target.value })} />
 
-            <Input type="number" value={editForm.stock}
-              onChange={e => setEditForm({ ...editForm, stock: e.target.value })} />
+              <div className="flex gap-4">
+                <label><input type="radio" checked={editImgMode==="file"} onChange={()=>setEditImgMode("file")} /> Upload</label>
+                <label><input type="radio" checked={editImgMode==="url"} onChange={()=>setEditImgMode("url")} /> URL</label>
+              </div>
 
-            <Input type="file"
-              onChange={e => setEditForm({ ...editForm, imageFile: e.target.files?.[0] || null })} />
+              {editImgMode==="file" ? (
+                <Input type="file" onChange={e => setForm({ ...form, imageFile: e.target.files?.[0] })} />
+              ) : (
+                <>
+                  <Input value={form.imageUrl}
+                    onChange={e => setForm({ ...form, imageUrl: e.target.value })} />
+                  {form.imageUrl && (
+                    <img src={form.imageUrl} className="h-20 rounded border object-cover" />
+                  )}
+                </>
+              )}
 
-            <Button type="submit" className="w-full">Save Changes</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+              <Button type="submit" className="w-full">Save Changes</Button>
+            </form>
+
+          </DialogContent>
+        </Dialog>
+
+      </div>
+    </AdminLayout>
   );
-};
-
-export default AdminDashboard;
+}

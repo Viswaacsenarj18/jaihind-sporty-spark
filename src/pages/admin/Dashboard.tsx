@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const API = "http://localhost:5000";
+import { productsAPI, adminAPI } from "@/lib/api";
+import api from "@/lib/api";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -26,22 +26,21 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [productRes, userRes, orderRes] = await Promise.all([
-          fetch(`${API}/api/products`),
-          fetch(`${API}/api/users`), // Create endpoint if not exists
-          fetch(`${API}/api/orders`), // Create endpoint if not exists
+        // Fetch products and users in parallel
+        const [prodRes, usersRes] = await Promise.all([
+          productsAPI.getAll(),
+          api.get("/auth/users"),
         ]);
 
-        const productData = await productRes.json();
-        const userData = await userRes.json();
-        const orderData = await orderRes.json();
+        const productData = (prodRes.data as any)?.products || [];
+        const usersData = (usersRes.data as any)?.users || [];
 
-        setStats({
-          users: userData?.users?.length || 0,
-          products: productData?.products?.length || 0,
-          orders: orderData?.orders?.length || 0,
-          activeSessions: Math.floor(Math.random() * 200), // temporary random online users
-        });
+        setStats((s) => ({
+          ...s,
+          products: productData.length,
+          users: usersData.length,
+          activeSessions: Math.floor(Math.random() * 200),
+        }));
       } catch (error) {
         console.error("Dashboard data fetch failed", error);
       }

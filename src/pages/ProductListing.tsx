@@ -4,26 +4,37 @@ import { motion } from "framer-motion";
 import { Filter, SlidersHorizontal } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 
 const API_BASE = "http://localhost:5000";
 
-// ✅ Category options (same as Admin)
+// ✅ Category list with slug + label mapping
 const categoryData = [
-  "All", "Cricket", "Badminton", "Tennis", "Kabaddi", "Football",
-  "Volleyball", "Basketball", "Other Sports", "Indoor Games",
-  "Gym & Fitness", "Trophies"
+  { slug: "all", label: "All" },
+  { slug: "cricket", label: "Cricket" },
+  { slug: "badminton", label: "Badminton" },
+  { slug: "tennis", label: "Tennis" },
+  { slug: "kabaddi", label: "Kabaddi" },
+  { slug: "football", label: "Football" },
+  { slug: "volleyball", label: "Volleyball" },
+  { slug: "basketball", label: "Basketball" },
+  { slug: "other-sports", label: "Other Sports" },
+  { slug: "indoor-games", label: "Indoor Games" },
+  { slug: "gym-fitness", label: "Gym & Fitness" },
+  { slug: "trophies", label: "Trophies" },
+  { slug: "t-shirts-apparel", label: "T-Shirts & Apparel" }, // ✅ fixed
 ];
+
+const normalize = (str: string) =>
+  str?.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const ProductListing = () => {
   const [searchParams] = useSearchParams();
-  const categoryParam = searchParams.get("category");
+  const categorySlug = searchParams.get("category") || "all";
 
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(categorySlug);
   const [wishlist, setWishlist] = useState<string[]>([]);
-
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [appliedRange, setAppliedRange] = useState<{ min?: number; max?: number }>({});
@@ -42,9 +53,10 @@ const ProductListing = () => {
     loadProducts();
   }, []);
 
+  // ✅ Update selected tab from URL
   useEffect(() => {
-    if (categoryParam) setSelectedCategory(categoryParam);
-  }, [categoryParam]);
+    setSelectedCategory(categorySlug);
+  }, [categorySlug]);
 
   const applyPriceRange = () => {
     setAppliedRange({
@@ -59,9 +71,16 @@ const ProductListing = () => {
     );
   };
 
-  // ✅ Filter products
+  const currentCategoryLabel =
+    categoryData.find(c => c.slug === selectedCategory)?.label || "All";
+
+  // ✅ Final product filter
   const filteredProducts = products
-    .filter((p) => selectedCategory === "All" || p.category?.toLowerCase() === selectedCategory.toLowerCase())
+    .filter((p) =>
+      selectedCategory === "all"
+        ? true
+        : normalize(p.category) === normalize(currentCategoryLabel)
+    )
     .filter((p) => {
       if (appliedRange.min && p.price < appliedRange.min) return false;
       if (appliedRange.max && p.price > appliedRange.max) return false;
@@ -72,14 +91,16 @@ const ProductListing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* ✅ Banner */}
+      {/* Banner */}
       <section className="py-10 text-center bg-primary text-white">
         <h1 className="text-2xl sm:text-4xl font-bold">Jaihind Sportify</h1>
-        <p className="text-white/90 mt-2 text-sm sm:text-base">Premium Sports Gear For Champions</p>
+        <p className="text-white/90 mt-2 text-sm sm:text-base">
+          Premium Sports Gear For Champions
+        </p>
       </section>
 
       <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
-
+        
         {/* Sidebar */}
         <motion.aside
           initial={{ opacity: 0, x: -20 }}
@@ -93,17 +114,20 @@ const ProductListing = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
             {categoryData.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`py-2 px-2 rounded text-sm border hover:bg-primary hover:text-white transition ${
-                  selectedCategory === cat ? "bg-primary text-white" : "bg-muted"
+                key={cat.slug}
+                onClick={() => setSelectedCategory(cat.slug)}
+                className={`py-2 px-2 rounded text-sm border transition ${
+                  selectedCategory === cat.slug
+                    ? "bg-primary text-white"
+                    : "bg-muted hover:bg-primary hover:text-white"
                 }`}
               >
-                {cat}
+                {cat.label}
               </button>
             ))}
           </div>
 
+          {/* Price Filter */}
           <h3 className="mt-6 mb-2 font-semibold flex items-center">
             <SlidersHorizontal className="w-5 h-5 mr-2" /> Price Range
           </h3>
@@ -124,17 +148,17 @@ const ProductListing = () => {
             onChange={(e) => setMaxPrice(e.target.value)}
           />
 
-          <Button className="w-full" onClick={applyPriceRange}>Apply</Button>
+          <Button className="w-full" onClick={applyPriceRange}>
+            Apply
+          </Button>
         </motion.aside>
 
-        {/* Products */}
+        {/* Product Grid */}
         <div className="flex-1">
-          {/* ✅ Only product count - sorting removed */}
           <div className="mb-4 text-sm text-muted-foreground">
             {filteredProducts.length} products found
           </div>
 
-          {/* ✅ Always Grid View */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -148,7 +172,7 @@ const ProductListing = () => {
                   name: p.name,
                   price: p.price,
                   image: p.image?.startsWith("http") ? p.image : `${API_BASE}${p.image}`,
-                  category: p.category
+                  category: p.category,
                 }}
                 wishlist={wishlist.includes(p._id)}
                 onWishlistToggle={() => toggleWishlist(p._id)}
@@ -158,7 +182,6 @@ const ProductListing = () => {
           </motion.div>
         </div>
       </div>
-
     </div>
   );
 };
