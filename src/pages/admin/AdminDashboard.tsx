@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit3, Trash2, Search } from "lucide-react";
+import { Plus, Edit3, Trash2, Search, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,28 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+const API_BASE = "http://localhost:5000";
+
+const CATEGORIES = [
+  "Cricket",
+  "Badminton",
+  "Tennis",
+  "Kabaddi",
+  "Football",
+  "Volleyball",
+  "Basketball",
+  "Other Sports",
+  "Indoor Games",
+  "Gym & Fitness",
+  "Trophies"
+] as const;
+
 const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<any[]>([]);
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
-  const [editProductId, setEditProductId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
@@ -29,205 +44,220 @@ const AdminDashboard = () => {
     imageUrl: ""
   });
 
-  // ✅ Load products from DB
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    category: "",
+    description: "",
+    price: "",
+    stock: "",
+    imageFile: null as File | null,
+    imageUrl: ""
+  });
+
+  const resolveImageSrc = (image?: string) => {
+    if (!image) return "";
+    return image.startsWith("http") ? image : `${API_BASE}${image}`;
+  };
+
   useEffect(() => {
-    fetchProducts();
+    async function load() {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/products`);
+      const data = await res.json();
+      if (data.success) setProducts(data.products);
+      setLoading(false);
+    }
+    load();
   }, []);
 
-  const fetchProducts = async () => {
-    const res = await fetch("http://localhost:5000/api/products");
-    const data = await res.json();
-    if (data.success) setProducts(data.products);
-  };
-
-  // ✅ Add product
   const handleAddProduct = async (e: any) => {
     e.preventDefault();
+    if (!newProduct.name || !newProduct.category || !newProduct.price) return alert("Fill all fields");
 
-    const formData = new FormData();
-    Object.entries(newProduct).forEach(([key, value]) => {
-      if (value) formData.append(key, value as string | Blob);
+    const fd = new FormData();
+    Object.entries(newProduct).forEach(([k, v]) => {
+      if (v) fd.append(k, v as any);
     });
 
-    const res = await fetch("http://localhost:5000/api/products", {
-      method: "POST",
-      body: formData
-    });
-
+    const res = await fetch(`${API_BASE}/api/products`, { method: "POST", body: fd });
     const data = await res.json();
     if (data.success) {
-      fetchProducts();
+      setProducts([data.product, ...products]);
       setIsAddProductOpen(false);
-      resetForm();
-    } else alert(data.message);
-  };
-
-  // ✅ Delete product from DB
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
-
-    const res = await fetch(`http://localhost:5000/api/products/${id}`, {
-      method: "DELETE"
-    });
-
-    if (res.ok) {
-      setProducts(products.filter((p) => p._id !== id));
+      setNewProduct({ name: "", category: "", description: "", price: "", stock: "", imageFile: null, imageUrl: "" });
     }
   };
 
-  // ✅ Open Edit Modal
-  const openEditModal = (product: any) => {
-    setEditProductId(product._id);
-    setNewProduct({
-      name: product.name,
-      category: product.category,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
+  const openEdit = (p: any) => {
+    setEditingProduct(p);
+    setEditForm({
+      name: p.name,
+      category: p.category,
+      description: p.description,
+      price: p.price,
+      stock: p.stock,
       imageFile: null,
-      imageUrl: product.image
+      imageUrl: p.image?.startsWith("http") ? p.image : ""
     });
-    setIsEditProductOpen(true);
+    setIsEditOpen(true);
   };
 
-  // ✅ Save Edit
-  const handleEditProduct = async (e: any) => {
+  const handleUpdateProduct = async (e: any) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(newProduct).forEach(([key, value]) => {
-      if (value) formData.append(key, value as string | Blob);
+
+    const fd = new FormData();
+    Object.entries(editForm).forEach(([k, v]) => {
+      if (v) fd.append(k, v as any);
     });
 
-    const res = await fetch(`http://localhost:5000/api/products/${editProductId}`, {
-      method: "PUT",
-      body: formData
-    });
-
+    const res = await fetch(`${API_BASE}/api/products/${editingProduct._id}`, { method: "PUT", body: fd });
     const data = await res.json();
 
     if (data.success) {
-      fetchProducts();
-      setIsEditProductOpen(false);
-      resetForm();
-    } else {
-      alert(data.message);
+      setProducts(p => p.map(x => x._id === editingProduct._id ? data.product : x));
+      setIsEditOpen(false);
     }
   };
 
-  const resetForm = () => {
-    setNewProduct({ name: "", category: "", description: "", price: "", stock: "", imageFile: null, imageUrl: "" });
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this product?")) return;
+    await fetch(`${API_BASE}/api/products/${id}`, { method: "DELETE" });
+    setProducts(p => p.filter(x => x._id !== id));
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-          
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+      <main className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+
+          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 w-4 h-4" /> Add Product</Button>
+            </DialogTrigger>
+
+            <DialogContent className="max-w-xl">
+              <DialogHeader><DialogTitle>Add Product</DialogTitle></DialogHeader>
+              <form onSubmit={handleAddProduct} className="space-y-4">
+
+                <Input placeholder="Product Name"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} />
+
+                <Select value={newProduct.category}
+                  onValueChange={(v) => setNewProduct({ ...newProduct, category: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+
+                <Textarea placeholder="Description"
+                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} />
+
+                <Input type="number" placeholder="Price"
+                  onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} />
+
+                <Input type="number" placeholder="Stock"
+                  onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} />
+
+                <Input type="file"
+                  onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })} />
+
+                <Button type="submit" className="w-full">Save</Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Product List */}
+        <Card>
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle>Products</CardTitle>
+            <div className="relative w-64">
+              <Search className="w-4 h-4 absolute left-3 top-2.5" />
+              <Input placeholder="Search..." className="pl-9"
+                onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
+          </CardHeader>
 
-            <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-              <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" /> Add Product</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader><DialogTitle>Add Product</DialogTitle></DialogHeader>
+          <CardContent className="space-y-3">
+            {loading ? "Loading..." : products
+              .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+              .map((p) => (
+                <div key={p._id} className="flex justify-between items-center p-3 border rounded-md">
 
-                {/* ✅ ADD FORM */}
-                <form onSubmit={handleAddProduct} className="space-y-4">
-                  <Input placeholder="Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}/>
-                  <Select value={newProduct.category} onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}>
-                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cricket">Cricket</SelectItem>
-                      <SelectItem value="football">Football</SelectItem>
-                      <SelectItem value="badminton">Badminton</SelectItem>
-                      <SelectItem value="fitness">Fitness</SelectItem>
-                      <SelectItem value="accessories">Accessories</SelectItem>
-                      <SelectItem value="shoes">Shoes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Textarea placeholder="Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}/>
-                  <Input type="number" placeholder="Price" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}/>
-                  <Input type="number" placeholder="Stock" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}/>
-                  <Input type="file" onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })}/>
-                  <Input placeholder="Or Image URL" value={newProduct.imageUrl} onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}/>
-
-                  <Button type="submit">Save</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* ✅ List Products */}
-          <Tabs defaultValue="products">
-            <TabsContent value="products">
-              <Card>
-                <CardHeader><CardTitle>Products</CardTitle></CardHeader>
-                <CardContent>
-                  {products.map((product) => (
-                    <div key={product._id} className="flex items-center justify-between border p-3 rounded-lg mb-2">
-                      <div className="flex gap-4 items-center">
-                        <img src={`http://localhost:5000${product.image}`} className="w-16 h-16 rounded" />
-                        <div>
-                          <p className="font-semibold">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.category} | Stock: {product.stock}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => openEditModal(product)}>
-                          <Edit3 size={16} />
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(product._id)}>
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
+                  {/* ✅ FIXED IMAGE STYLING */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center p-1">
+                      <img src={resolveImageSrc(p.image)}
+                        className="w-full h-full object-contain" />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
+
+                    <div>
+                      <p className="font-semibold">{p.name}</p>
+                      <p className="text-xs text-gray-500">{p.category}</p>
+                      <p>₹{p.price}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => openEdit(p)}>
+                      <Edit3 className="w-4 h-4 mr-1" /> Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </CardContent>
+        </Card>
       </main>
 
-      <Footer />
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <Button variant="ghost" size="icon" onClick={() => setIsEditOpen(false)}>
+              <X />
+            </Button>
+          </DialogHeader>
 
-      {/* ✅ EDIT PRODUCT MODAL */}
-      <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+          <form onSubmit={handleUpdateProduct} className="space-y-4">
 
-          <form onSubmit={handleEditProduct} className="space-y-4">
-            <Input placeholder="Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}/>
-            <Select value={newProduct.category} onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+
+            <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
+              <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="cricket">Cricket</SelectItem>
-                <SelectItem value="football">Football</SelectItem>
-                <SelectItem value="badminton">Badminton</SelectItem>
-                <SelectItem value="fitness">Fitness</SelectItem>
-                <SelectItem value="accessories">Accessories</SelectItem>
-                <SelectItem value="shoes">Shoes</SelectItem>
+                {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Textarea placeholder="Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}/>
-            <Input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}/>
-            <Input type="number" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}/>
-            <Input type="file" onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files?.[0] || null })}/>
-            <Input placeholder="Or Image URL" value={newProduct.imageUrl} onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}/>
 
-            <Button type="submit">Update</Button>
+            <Textarea value={editForm.description}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+
+            <Input type="number" value={editForm.price}
+              onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+
+            <Input type="number" value={editForm.stock}
+              onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} />
+
+            <Input type="file"
+              onChange={(e) => setEditForm({ ...editForm, imageFile: e.target.files?.[0] || null })} />
+
+            <Button type="submit" className="w-full">Save Changes</Button>
           </form>
-
         </DialogContent>
       </Dialog>
+
+      <Footer />
     </div>
   );
 };
