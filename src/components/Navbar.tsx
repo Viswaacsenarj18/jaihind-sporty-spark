@@ -1,25 +1,14 @@
 import { useState, useEffect } from "react";
 import {
-  Search,
-  ShoppingCart,
-  User,
-  Menu,
-  X,
-  LogOut,
-  Settings,
-  Heart,
+  Search, ShoppingCart, User, Menu, X, LogOut, Settings, Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
 
@@ -27,21 +16,18 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ detects route change
   const { cartCount } = useCart();
 
-  // ✅ Check login whenever route changes
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
-  }, [location.pathname]); // refresh login status on every route change
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setIsLoggedIn(false);
+    setIsMenuOpen(false);
     navigate("/login");
   };
 
@@ -58,95 +44,82 @@ const Navbar = () => {
     <motion.nav
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b shadow-sm"
+      className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b shadow-sm"
     >
       <div className="container mx-auto px-4">
-
-        {/* Main Navbar */}
         <div className="flex items-center justify-between h-16 lg:h-20">
-          
-          {/* LOGO */}
+
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <img src="/logo1.png" className="w-12 h-12" alt="logo" />
-            <span className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+            <img src="/logo1.png" className="w-12 h-12" />
+            <span className="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
               JAIHIND SPORTS
             </span>
           </Link>
 
-          {/* LINKS */}
-          <div className="hidden lg:flex space-x-8 font-medium">
-            {navLinks.map((l) => (
-              <Link key={l.name} to={l.href} className="hover:text-primary">
-                {l.name}
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex gap-8 font-medium">
+            {navLinks.map(link => (
+              <Link key={link.href} to={link.href} className="hover:text-primary">
+                {link.name}
               </Link>
             ))}
           </div>
 
-          {/* RIGHT ICONS */}
-          <div className="flex items-center space-x-3">
+          {/* Right Side */}
+          <div className="flex items-center gap-3">
 
-            {/* SEARCH (Desktop) */}
+            {/* ✅ ALWAYS show hamburger on mobile */}
+            <Button variant="ghost" size="sm" className="lg:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X /> : <Menu />}
+            </Button>
+
+            {/* Desktop Search */}
             <div className="hidden lg:flex relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
+              <Search className="absolute left-3 top-2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-64 rounded-full border-2"
+                className="pl-10 w-64 rounded-full"
               />
             </div>
 
-            {/* Wishlist */}
             <Link to="/wishlist">
-              <Button variant="ghost">
-                <Heart className="w-5 h-5" />
-              </Button>
+              <Button variant="ghost" size="sm"><Heart /></Button>
             </Link>
 
-            {/* Cart */}
             <Link to="/cart" className="relative">
-              <Button variant="ghost">
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
+              <Button variant="ghost" size="sm"><ShoppingCart /></Button>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex justify-center items-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
 
-            {/* USER MENU */}
+            {/* Login / Account */}
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost">
-                    <User className="w-5 h-5" />
-                  </Button>
+                  <Button variant="ghost" size="sm"><User /></Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="w-4 h-4 mr-2" /> Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
-                    <Settings className="w-4 h-4 mr-2" /> Settings
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}><User className="mr-2" /> Profile</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}><Settings className="mr-2" /> Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" /> Logout
+                    <LogOut className="mr-2" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/login">
-                <Button variant="outline" size="sm">Login</Button>
-              </Link>
+              <Button variant="outline" onClick={() => navigate("/login")}>Login</Button>
             )}
 
-            {/* MOBILE MENU BTN */}
-            <Button variant="ghost" className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X /> : <Menu />}
-            </Button>
           </div>
         </div>
       </div>
@@ -155,29 +128,31 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
-            className="lg:hidden bg-background border-t px-4 pb-4"
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            className="lg:hidden bg-white border-t shadow"
           >
-            {navLinks.map((link) => (
-              <Link key={link.name} onClick={() => setIsMenuOpen(false)} to={link.href} className="block py-2">
-                {link.name}
-              </Link>
-            ))}
+            <div className="p-4 space-y-3">
+              {navLinks.map(link => (
+                <Link key={link.href} to={link.href} onClick={() => setIsMenuOpen(false)} className="block py-2">
+                  {link.name}
+                </Link>
+              ))}
 
-            {isLoggedIn ? (
-              <>
-                <Button onClick={() => navigate("/profile")} className="w-full mt-3">Profile</Button>
-                <Button variant="destructive" onClick={handleLogout} className="w-full mt-2">Logout</Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login"><Button className="w-full mt-3">Login</Button></Link>
-                <Link to="/signup"><Button variant="outline" className="w-full mt-2">Sign Up</Button></Link>
-              </>
-            )}
+              {!isLoggedIn ? (
+                <>
+                  <Button className="w-full" onClick={() => { navigate("/login"); setIsMenuOpen(false); }}>Login</Button>
+                  <Button variant="outline" className="w-full" onClick={() => { navigate("/signup"); setIsMenuOpen(false); }}>Sign Up</Button>
+                </>
+              ) : (
+                <Button variant="destructive" className="w-full" onClick={handleLogout}>Logout</Button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </motion.nav>
   );
 };

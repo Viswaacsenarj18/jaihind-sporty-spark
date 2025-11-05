@@ -9,11 +9,13 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
+  Menu, // ✅ Menu icon added
 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { productsAPI, adminAPI } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { productsAPI } from "@/lib/api";
 import api from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -23,17 +25,18 @@ export default function Dashboard() {
     activeSessions: 0,
   });
 
+  const [sidebarOpen, setSidebarOpen] = useState(false); // ✅ sidebar toggle state
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch products and users in parallel
         const [prodRes, usersRes] = await Promise.all([
           productsAPI.getAll(),
           api.get("/auth/users"),
         ]);
 
-        const productData = (prodRes.data as any)?.products || [];
-        const usersData = (usersRes.data as any)?.users || [];
+        const productData = prodRes.data?.products || [];
+        const usersData = usersRes.data?.users || [];
 
         setStats((s) => ({
           ...s,
@@ -85,16 +88,28 @@ export default function Dashboard() {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout sidebarOpen={sidebarOpen}>
       <div className="space-y-6">
 
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Live stats based on database
-          </p>
+        {/* ✅ Header Top Bar */}
+        <div className="flex items-center justify-between">
+          {/* Menu Button — Visible on Desktop + Mobile */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="lg:flex hidden" // ✅ Show only on Desktop
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Live stats based on database</p>
+          </div>
         </div>
 
+        {/* ✅ Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((stat, index) => (
             <motion.div
