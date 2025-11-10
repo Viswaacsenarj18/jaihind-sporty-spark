@@ -11,13 +11,17 @@ import {
   DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";       
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
   const { cartCount } = useCart();
+  const { wishlist } = useWishlist();
+  const wishlistCount = wishlist.length;
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
@@ -69,14 +73,14 @@ const Navbar = () => {
           {/* Right Side */}
           <div className="flex items-center gap-3">
 
-            {/* ✅ ALWAYS show hamburger on mobile */}
+            {/* Mobile Menu Button */}
             <Button variant="ghost" size="sm" className="lg:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X /> : <Menu />}
             </Button>
 
-            {/* Desktop Search */}
+            {/* Search Bar (Desktop) */}
             <div className="hidden lg:flex relative">
               <Search className="absolute left-3 top-2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -87,10 +91,20 @@ const Navbar = () => {
               />
             </div>
 
-            <Link to="/wishlist">
-              <Button variant="ghost" size="sm"><Heart /></Button>
+            {/* ✅ Wishlist (Blue Notification Badge) */}
+            <Link to="/wishlist" className="relative">
+              <Button variant="ghost" size="sm">
+                <Heart />
+              </Button>
+
+              {wishlistCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex justify-center items-center">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
 
+            {/* ✅ Cart (Blue Notification Badge) */}
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="sm"><ShoppingCart /></Button>
               {cartCount > 0 && (
@@ -100,7 +114,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Login / Account */}
+            {/* Login / User Menu */}
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -108,23 +122,33 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => navigate("/profile")}><User className="mr-2" /> Profile</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}><Settings className="mr-2" /> Settings</DropdownMenuItem>
+
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2" /> Profile
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="mr-2" /> Settings
+                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
+
                   <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
                     <LogOut className="mr-2" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" onClick={() => navigate("/login")}>Login</Button>
+              <Button variant="outline" onClick={() => navigate("/login")}>
+                Login
+              </Button>
             )}
 
           </div>
         </div>
       </div>
 
-      {/* ✅ Mobile Menu */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -135,18 +159,33 @@ const Navbar = () => {
           >
             <div className="p-4 space-y-3">
               {navLinks.map(link => (
-                <Link key={link.href} to={link.href} onClick={() => setIsMenuOpen(false)} className="block py-2">
+                <Link key={link.href} to={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2"
+                >
                   {link.name}
                 </Link>
               ))}
 
               {!isLoggedIn ? (
                 <>
-                  <Button className="w-full" onClick={() => { navigate("/login"); setIsMenuOpen(false); }}>Login</Button>
-                  <Button variant="outline" className="w-full" onClick={() => { navigate("/signup"); setIsMenuOpen(false); }}>Sign Up</Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => { navigate("/login"); setIsMenuOpen(false); }}
+                  >
+                    Login
+                  </Button>
+
+                  <Button variant="outline" className="w-full"
+                    onClick={() => { navigate("/signup"); setIsMenuOpen(false); }}
+                  >
+                    Sign Up
+                  </Button>
                 </>
               ) : (
-                <Button variant="destructive" className="w-full" onClick={handleLogout}>Logout</Button>
+                <Button variant="destructive" className="w-full" onClick={handleLogout}>
+                  Logout
+                </Button>
               )}
             </div>
           </motion.div>

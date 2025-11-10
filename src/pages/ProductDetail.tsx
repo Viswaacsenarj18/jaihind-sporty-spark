@@ -9,18 +9,22 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";   // ✅ ADDED
 import { useToast } from "@/hooks/use-toast";
 
 const API_BASE = "http://localhost:5000";
 
 const ProductDetail = () => {
   const { id } = useParams();
+
   const { addToCart } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist(); // ✅ ADDED
   const { toast } = useToast();
 
   const [product, setProduct] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const isWishlisted = wishlist.some((item) => item.id === id || item._id === id); // ✅ FIX
 
   useEffect(() => {
     const getProduct = async () => {
@@ -40,7 +44,8 @@ const ProductDetail = () => {
     getProduct();
   }, [id]);
 
-  if (!product) return <div className="p-10 text-center text-lg">Loading product...</div>;
+  if (!product)
+    return <div className="p-10 text-center text-lg">Loading product...</div>;
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, prev + delta));
@@ -66,12 +71,27 @@ const ProductDetail = () => {
     setQuantity(1);
   };
 
+  const handleWishlist = () => {
+    if (isWishlisted) {
+      removeFromWishlist(product._id);
+      toast({ title: "Removed from Wishlist", description: product.name });
+    } else {
+      addToWishlist({
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        category: product.category,
+      });
+      toast({ title: "Added to Wishlist", description: product.name });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       <main className="container mx-auto px-4 py-6">
-
         {/* Back link */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -87,8 +107,7 @@ const ProductDetail = () => {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
-
-          {/* ✅ Product Image (FIXED) */}
+          {/* ✅ Product Image */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="rounded-lg border bg-white flex items-center justify-center aspect-square p-4">
               <img
@@ -104,49 +123,67 @@ const ProductDetail = () => {
           </motion.div>
 
           {/* ✅ Product Info */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
             <Badge className="mb-1 text-xs">{product.category}</Badge>
+
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
 
-            {/* Price */}
             <div className="flex items-center gap-2 mb-3 text-lg">
               <span className="font-bold text-primary">₹{product.price}</span>
             </div>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              {product.description}
+            </p>
 
             <Separator />
 
-            {/* Quantity */}
+            {/* ✅ Quantity */}
             <div className="mt-3 flex items-center gap-3 text-sm">
               <span className="font-medium">Quantity:</span>
               <div className="flex items-center gap-1 border rounded p-1">
-                <Button variant="ghost" size="sm" onClick={() => handleQuantityChange(-1)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleQuantityChange(-1)}
+                >
                   <Minus className="w-4 h-4" />
                 </Button>
                 <span className="w-8 text-center">{quantity}</span>
-                <Button variant="ghost" size="sm" onClick={() => handleQuantityChange(1)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleQuantityChange(1)}
+                >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* ✅ Buttons */}
             <div className="flex gap-2 mt-4">
               <Button className="flex-1 text-sm" onClick={handleAddToCart}>
                 <ShoppingCart className="w-4 h-4 mr-1" /> Add to Cart
               </Button>
+
               <Button
                 variant="outline"
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className={isWishlisted ? "text-red-500 border-red-500" : ""}
+                onClick={handleWishlist}
+                className={
+                  isWishlisted ? "text-red-500 border-red-500" : ""
+                }
               >
-                <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+                <Heart
+                  className={`w-4 h-4 ${
+                    isWishlisted ? "fill-current text-red-500" : ""
+                  }`}
+                />
               </Button>
             </div>
-
           </motion.div>
         </div>
       </main>

@@ -9,7 +9,6 @@ const Categories = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -25,7 +24,6 @@ const Categories = () => {
     fetchProducts();
   }, []);
 
-  // ✅ Extract categories dynamically & remove duplicates
   const categories = Array.from(new Set(products.map((p) => p.category))).map((cat) => {
     const catProduct = products.find((p) => p.category === cat);
     const img = catProduct?.image
@@ -42,9 +40,8 @@ const Categories = () => {
     };
   });
 
-  // ✅ Recently added products
   const recentProducts = [...products]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
 
   if (loading)
@@ -55,48 +52,77 @@ const Categories = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
-        
-        {/* Header */}
+
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-2">Shop by Category</h1>
-          <p className="text-muted-foreground">
-            Explore our wide range of sports equipment and apparel
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+            Shop by <span className="text-primary">Category</span>
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Explore premium sports gear & categories
           </p>
         </div>
 
-        {/* ✅ Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-14">
+        {/* ✅ Categories Grid with better mobile size */}
+        <div
+          className="
+            grid 
+            grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 
+            gap-4 sm:gap-6 mb-14
+          "
+        >
           {categories.map((cat) => (
             <Link key={cat.name} to={`/products?category=${cat.slug}`}>
-              <Card className="overflow-hidden hover:shadow-lg transition hover:scale-105 cursor-pointer">
-
-                <div className="relative w-full h-48 bg-white flex items-center justify-center p-3">
+              <Card
+                className="
+                  overflow-hidden rounded-xl shadow-sm 
+                  hover:shadow-lg hover:scale-[1.03] 
+                  transition-all cursor-pointer 
+                  flex flex-col
+                  h-[260px] sm:h-[260px] md:h-[260px] lg:h-[270px]
+                "
+              >
+                <div className="w-full h-[65%] sm:h-[60%] bg-white flex items-center justify-center overflow-hidden">
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="max-w-full max-h-full object-contain transition-transform duration-300 hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   />
                 </div>
 
-                <div className="p-3 text-center">
-                  <h3 className="text-lg font-bold">{cat.name}</h3>
-                  <p className="text-sm text-muted-foreground">{cat.products} products</p>
+                <div className="p-3 text-center flex flex-col justify-center h-[35%]">
+                  <h3 className="text-[13px] sm:text-sm md:text-base font-semibold line-clamp-1">
+                    {cat.name}
+                  </h3>
+                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground line-clamp-1">
+                    {cat.products} products
+                  </p>
                 </div>
               </Card>
             </Link>
           ))}
         </div>
 
-        {/* ✅ Recently Added Products */}
+        {/* ✅ Recently Added */}
         <section>
-          <h2 className="text-2xl font-bold mb-6">Recently Added</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-6">Recently Added</h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div
+            className="
+              grid 
+              grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 
+              gap-4 sm:gap-6
+            "
+          >
             {recentProducts.map((product) => (
               <Link key={product._id} to={`/product/${product._id}`}>
-                <Card className="overflow-hidden hover:shadow-lg transition hover:scale-105 cursor-pointer">
-
-                  <div className="relative w-full h-40 bg-white flex items-center justify-center p-2">
+                <Card
+                  className="
+                    overflow-hidden h-[230px] sm:h-[250px] 
+                    rounded-xl hover:shadow-lg hover:scale-[1.03] 
+                    transition-all cursor-pointer flex flex-col
+                  "
+                >
+                  <div className="w-full h-[65%] bg-white flex items-center justify-center overflow-hidden">
                     <img
                       src={
                         product.image?.startsWith("http")
@@ -104,13 +130,15 @@ const Categories = () => {
                           : `${API_BASE}${product.image}`
                       }
                       alt={product.name}
-                      className="max-w-full max-h-full object-contain transition-transform duration-300 hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                     />
                   </div>
 
-                  <div className="p-3">
-                    <h4 className="font-medium text-sm line-clamp-1">{product.name}</h4>
-                    <p className="text-primary font-bold text-sm">₹{product.price}</p>
+                  <div className="p-3 flex flex-col justify-between h-[35%]">
+                    <h4 className="font-medium text-xs sm:text-sm line-clamp-1">{product.name}</h4>
+                    <p className="text-primary font-bold text-xs sm:text-sm">
+                      ₹{product.price}
+                    </p>
                   </div>
                 </Card>
               </Link>
