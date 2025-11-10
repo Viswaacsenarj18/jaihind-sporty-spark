@@ -4,10 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.PROD
     ? "https://jaihind-sporty-spark-backend.onrender.com/api"
     : "http://localhost:5000/api",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true, // ✅ required for cookies & login sessions
 });
 
 export default api;

@@ -11,10 +11,10 @@ import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
-// Load .env
+// Load environment variables
 dotenv.config();
 
-// Fix ES module paths
+// ES module path fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -23,7 +23,7 @@ const app = express();
 // Connect Database
 connectDB();
 
-// ✅ ✅ ONLY ONE CORS BLOCK — CLEAN
+// ✅ ✅ CLEAN CORS (Mobile + Vercel + Render)
 app.use(
   cors({
     origin: [
@@ -32,14 +32,17 @@ app.use(
       "http://localhost:8080",
       "http://127.0.0.1:5173",
 
-      // ✅ Vercel frontend
+      // ✅ Your Vercel frontend
       "https://jaihind-sporty-spark.vercel.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Required for cookies
+app.set("trust proxy", 1);
 
 // Middleware
 app.use(express.json());
@@ -48,13 +51,13 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// API ROUTES
+// ✅ API ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Root Test API
+// Root API test
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -63,7 +66,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 Handler
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -71,17 +74,17 @@ app.use((req, res) => {
   });
 });
 
-// Global Error Handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("SERVER ERROR:", err);
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || "Internal Server Error"
+    message: err.message || "Internal Server Error",
   });
 });
 
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port: ${PORT}`);
+  console.log(`✅ Server running on port: ${PORT}`);
 });
