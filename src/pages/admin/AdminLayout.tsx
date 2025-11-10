@@ -1,39 +1,34 @@
-import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Box, Receipt } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export function AdminLayout({ children }: { children: ReactNode }) {
-  const location = useLocation();
-
-  const navLinks = [
-    { name: "Dashboard", path: "/admin" },
-    { name: "Users", path: "/admin/users" },
-    { name: "Settings", path: "/admin/settings" },
-  ];
-
+export function AdminLayout({ children }) {
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="flex min-h-screen">
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg p-4 space-y-4">
-        <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
+      <aside className="w-64 bg-gray-900 text-white p-4">
+        <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
+
         <nav className="space-y-2">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`block px-4 py-2 rounded-lg ${
-                location.pathname === link.path
-                  ? "bg-primary text-white"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+          <Link to="/admin" className="flex items-center gap-2">
+            <LayoutDashboard size={18} /> Dashboard
+          </Link>
+
+          <Link to="/admin/products" className="flex items-center gap-2">
+            <Box size={18} /> Products
+          </Link>
+
+          <Link to="/admin/orders" className="flex items-center gap-2">
+            <Receipt size={18} /> Orders
+          </Link>
         </nav>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+      <main className="flex-1 p-6 bg-gray-100">
+        {children}
+      </main>
+
     </div>
   );
 }

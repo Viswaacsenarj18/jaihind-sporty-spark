@@ -3,9 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
 
 // Context Providers
+import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
@@ -22,7 +22,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Offers from "./pages/Offers";
 import Categories from "./pages/Categories";
-import Wishlist from "./pages/Wishlist";   // ✅ added
+import Wishlist from "./pages/Wishlist";
 
 // Info Pages
 import AboutUs from "./pages/AboutUs";
@@ -40,6 +40,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import AdminSettings from "./pages/admin/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ProductManagement from "./pages/admin/ProductManagement";
+import AdminOrders from "./pages/admin/AdminOrders";
 
 // Misc
 import NotFound from "./pages/NotFound";
@@ -50,30 +51,27 @@ const queryClient = new QueryClient();
 const AppRoutes = () => {
   const location = useLocation();
 
+  // Hide footer for all admin pages + login/signup
   const hideFooterPaths = [
     "/login",
     "/signup",
-    "/admin",
-    "/admin/users",
-    "/admin/products",
-    "/admin/settings",
-    "/admin/dashboard"
+    "/admin"
   ];
 
-  const shouldHideFooter = hideFooterPaths.some(path =>
+  const shouldHideFooter = hideFooterPaths.some((path) =>
     location.pathname.startsWith(path)
   );
 
   return (
     <>
       <Routes>
-        {/* User Routes */}
+        {/* ---------- USER ROUTES ---------- */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/wishlist" element={<Wishlist />} /> {/* ✅ added */}
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -82,7 +80,7 @@ const AppRoutes = () => {
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
 
-        {/* Info Pages */}
+        {/* ---------- INFO PAGES ---------- */}
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/shipping" element={<Shipping />} />
@@ -92,17 +90,21 @@ const AppRoutes = () => {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
 
-        {/* Admin */}
+        {/* ---------- ADMIN ROUTES ---------- */}
         <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/products" element={<ProductManagement />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
-        {/* Catch-all */}
+        {/* ✅ ADDED: ADMIN ORDERS PAGE */}
+        <Route path="/admin/orders" element={<AdminOrders />} />
+
+        {/* ---------- 404 PAGE ---------- */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
+      {/* Hide footer on admin pages */}
       {!shouldHideFooter && <Footer />}
     </>
   );
@@ -114,9 +116,10 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+
         <AuthProvider>
           <CartProvider>
-            <WishlistProvider> {/* ✅ added */}
+            <WishlistProvider>
               <BrowserRouter>
                 <AppRoutes />
               </BrowserRouter>

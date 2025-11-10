@@ -9,12 +9,13 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Menu, // ✅ Menu icon added
+  Menu,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { productsAPI } from "@/lib/api";
 import api from "@/lib/api";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
@@ -25,25 +26,27 @@ export default function Dashboard() {
     activeSessions: 0,
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(false); // ✅ sidebar toggle state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [prodRes, usersRes] = await Promise.all([
-          productsAPI.getAll(),
-          api.get("/auth/users"),
+        const [prodRes, usersRes, ordersRes] = await Promise.all([
+          productsAPI.getAll(),           // ✅ Fetch products
+          api.get("/auth/users"),         // ✅ Fetch users
+          axios.get("http://localhost:5000/api/orders"), // ✅ Fetch orders
         ]);
 
         const productData = prodRes.data?.products || [];
         const usersData = usersRes.data?.users || [];
+        const ordersData = ordersRes.data?.orders || [];
 
-        setStats((s) => ({
-          ...s,
+        setStats({
           products: productData.length,
           users: usersData.length,
+          orders: ordersData.length,      // ✅ SET ORDER COUNT
           activeSessions: Math.floor(Math.random() * 200),
-        }));
+        });
       } catch (error) {
         console.error("Dashboard data fetch failed", error);
       }
@@ -73,13 +76,13 @@ export default function Dashboard() {
       title: "Total Products",
       value: stats.products,
       icon: Package,
-      change: stats.products === 0 ? "0%" : "+2.1%",
-      trend: stats.products > 0 ? "up" : "down",
+      change: "+2.1%",
+      trend: "up",
       description: "in inventory",
     },
     {
       title: "Total Orders",
-      value: stats.orders,
+      value: stats.orders,   // ✅ SHOW ORDER COUNT HERE
       icon: ShoppingCart,
       change: "+23.1%",
       trend: "up",
@@ -91,13 +94,12 @@ export default function Dashboard() {
     <AdminLayout sidebarOpen={sidebarOpen}>
       <div className="space-y-6">
 
-        {/* ✅ Header Top Bar */}
+        {/* Top Header */}
         <div className="flex items-center justify-between">
-          {/* Menu Button — Visible on Desktop + Mobile */}
           <Button
             variant="outline"
             size="icon"
-            className="lg:flex hidden" // ✅ Show only on Desktop
+            className="lg:flex hidden"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <Menu className="w-5 h-5" />
@@ -105,11 +107,13 @@ export default function Dashboard() {
 
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Live stats based on database</p>
+            <p className="text-muted-foreground">
+              Live stats based on database
+            </p>
           </div>
         </div>
 
-        {/* ✅ Stats Cards */}
+        {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((stat, index) => (
             <motion.div
@@ -128,15 +132,19 @@ export default function Dashboard() {
                       <ArrowDownRight className="w-4 h-4 text-red-600" />
                     )}
                   </div>
+
                   <div className="mt-4">
                     <p className="text-sm text-muted-foreground">
                       {stat.title}
                     </p>
                     <p className="text-2xl font-bold">{stat.value}</p>
+
                     <div className="flex items-center gap-2 mt-1">
                       <span
                         className={`text-sm font-medium ${
-                          stat.trend === "up" ? "text-green-600" : "text-red-600"
+                          stat.trend === "up"
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
                         {stat.change}
