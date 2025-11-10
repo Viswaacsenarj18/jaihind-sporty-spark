@@ -3,7 +3,7 @@ import {
   Search, ShoppingCart, User, Menu, X, LogOut, Settings, Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,27 +11,32 @@ import {
   DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";       
+import { useWishlist } from "@/context/WishlistContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
+
   const wishlistCount = wishlist.length;
 
+  // ✅ Check login status on every page load & route change
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
-  }, []);
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [location.pathname]);
 
+  // ✅ Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setIsLoggedIn(false);
-    setIsMenuOpen(false);
     navigate("/login");
   };
 
@@ -53,15 +58,15 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
 
-          {/* Logo */}
+          {/* ✅ Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <img src="/logo1.png" className="w-12 h-12" />
+            <img src="/logo1.png" alt="logo" className="w-12 h-12" />
             <span className="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
               JAIHIND SPORTS
             </span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* ✅ Desktop Navigation */}
           <div className="hidden lg:flex gap-8 font-medium">
             {navLinks.map(link => (
               <Link key={link.href} to={link.href} className="hover:text-primary">
@@ -70,17 +75,20 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Right Side */}
-          <div className="flex items-center gap-3">
+          {/* ✅ Right Section */}
+          <div className="flex items-center gap-2">
 
-            {/* Mobile Menu Button */}
-            <Button variant="ghost" size="sm" className="lg:hidden"
+            {/* ✅ Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X /> : <Menu />}
             </Button>
 
-            {/* Search Bar (Desktop) */}
+            {/* ✅ Search Bar (Desktop) */}
             <div className="hidden lg:flex relative">
               <Search className="absolute left-3 top-2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -91,12 +99,9 @@ const Navbar = () => {
               />
             </div>
 
-            {/* ✅ Wishlist (Blue Notification Badge) */}
+            {/* ✅ Wishlist */}
             <Link to="/wishlist" className="relative">
-              <Button variant="ghost" size="sm">
-                <Heart />
-              </Button>
-
+              <Button variant="ghost" size="sm"><Heart /></Button>
               {wishlistCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex justify-center items-center">
                   {wishlistCount}
@@ -104,7 +109,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* ✅ Cart (Blue Notification Badge) */}
+            {/* ✅ Cart */}
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="sm"><ShoppingCart /></Button>
               {cartCount > 0 && (
@@ -114,12 +119,13 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Login / User Menu */}
+            {/* ✅ Login / User Dropdown */}
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm"><User /></Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
 
@@ -133,7 +139,7 @@ const Navbar = () => {
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="mr-2" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -148,7 +154,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ✅ Mobile Collapsible Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -159,7 +165,9 @@ const Navbar = () => {
           >
             <div className="p-4 space-y-3">
               {navLinks.map(link => (
-                <Link key={link.href} to={link.href}
+                <Link
+                  key={link.href}
+                  to={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-2"
                 >
@@ -168,20 +176,16 @@ const Navbar = () => {
               ))}
 
               {!isLoggedIn ? (
-                <>
-                  <Button
-                    className="w-full"
-                    onClick={() => { navigate("/login"); setIsMenuOpen(false); }}
-                  >
+                <div className="space-y-2">
+                  <Button className="w-full" onClick={() => { navigate("/login"); setIsMenuOpen(false); }}>
                     Login
                   </Button>
 
                   <Button variant="outline" className="w-full"
-                    onClick={() => { navigate("/signup"); setIsMenuOpen(false); }}
-                  >
+                    onClick={() => { navigate("/signup"); setIsMenuOpen(false); }}>
                     Sign Up
                   </Button>
-                </>
+                </div>
               ) : (
                 <Button variant="destructive" className="w-full" onClick={handleLogout}>
                   Logout
