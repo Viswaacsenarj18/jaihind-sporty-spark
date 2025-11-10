@@ -23,7 +23,7 @@ const app = express();
 // Connect Database
 connectDB();
 
-// CORS (Local + Vercel)
+// ✅ ✅ ONLY ONE CORS BLOCK — CLEAN
 app.use(
   cors({
     origin: [
@@ -32,7 +32,7 @@ app.use(
       "http://localhost:8080",
       "http://127.0.0.1:5173",
 
-      // ✅ ADD YOUR VERCEL FRONTEND DOMAIN
+      // ✅ Vercel frontend
       "https://jaihind-sporty-spark.vercel.app"
     ],
     credentials: true,
@@ -45,7 +45,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve image uploads
+// Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // API ROUTES
@@ -54,7 +54,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Root API Test
+// Root Test API
 app.get("/", (req, res) => {
   res.json({
     success: true,
