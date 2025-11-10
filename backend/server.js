@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 
 // ROUTES
@@ -14,7 +15,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 // Load environment variables
 dotenv.config();
 
-// ES module path fix
+// Fix ES module paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -23,32 +24,27 @@ const app = express();
 // Connect Database
 connectDB();
 
-// ✅ ✅ CLEAN CORS (Mobile + Vercel + Render)
+// ✅ Required for cookies on Render/Vercel + Mobile browsers
+app.set("trust proxy", 1);
+
+// ✅ ✅ CLEAN CORS (ONLY ONE ORIGIN — AS YOU REQUESTED)
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "http://localhost:8080",
-      "http://127.0.0.1:5173",
-
-      // ✅ Your Vercel frontend
-      "https://jaihind-sporty-spark.vercel.app"
-    ],
+    origin: "https://jaihind-sporty-spark.vercel.app", // ✅ Only one allowed origin
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Required for cookies
-app.set("trust proxy", 1);
+// ✅ Cookie parser (important for admin login cookies)
+app.use(cookieParser());
 
-// Middleware
+// ✅ Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded images
+// ✅ Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ API ROUTES
@@ -57,24 +53,24 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Root API test
+// ✅ Root API test
 app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "Jaihind Sports API running successfully",
-    version: "2.0.0"
+    version: "2.0.0",
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// ✅ 404 handler
+app.use((req, res) =>
   res.status(404).json({
     success: false,
-    message: "Route not found"
-  });
-});
+    message: "Route not found",
+  })
+);
 
-// Global error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("SERVER ERROR:", err);
   res.status(err.status || 500).json({
@@ -83,7 +79,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port: ${PORT}`);
