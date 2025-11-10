@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, Truck, ShoppingBag } from "lucide-react";
@@ -12,11 +12,18 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api"; // Axios instance with baseURL=http://localhost:5000/api
+import api from "@/lib/api";
 
 type ShippingInfo = {
-  firstName: string; lastName: string; email: string; phone: string;
-  address: string; city: string; state: string; pincode: string; country: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
 };
 
 const Checkout = () => {
@@ -25,30 +32,52 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
-    firstName: "", lastName: "", email: "", phone: "",
-    address: "", city: "", state: "", pincode: "", country: "India",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
   });
+
   const [loading, setLoading] = useState(false);
 
-  // COD only
+  // ✅ Flipkart-style: If user is logged in, prefill from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      const u = JSON.parse(savedUser);
+      setShippingInfo((prev) => ({
+        ...prev,
+        firstName: u.name || "",
+        email: u.email || "",
+      }));
+    }
+  }, []);
+
+  // ✅ COD only
   const paymentMethod = "Cash on Delivery";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingInfo((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  // prices (no GST)
+  // ✅ Price calculations
   const subtotal = useMemo(
     () => cartItems.reduce((s, it) => s + it.price * it.quantity, 0),
     [cartItems]
   );
+
   const shipping = subtotal > 5000 ? 0 : 99;
   const total = subtotal + shipping;
 
+  // ✅ Backend Payload
   const placeOrder = async () => {
-    // map cart items to the shape backend expects
     const items = cartItems.map((it) => ({
-      productId: it.id ?? it._id,       // ensure an id is sent
+      productId: it.id ?? it._id,
       name: it.name,
       image: it.image,
       price: it.price,
@@ -63,9 +92,24 @@ const Checkout = () => {
     });
   };
 
+  // ✅ Handle Place Order (Flipkart-style)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const token = localStorage.getItem("token");
+
+    // ✅ Block checkout if user is not logged in
+    if (!token) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to place your order.",
+        variant: "destructive",
+      });
+
+      return navigate("/login?redirect=checkout");
+    }
+
+    // ✅ Validate details AFTER login
     if (!shippingInfo.firstName || !shippingInfo.email || !shippingInfo.phone) {
       toast({
         title: "Missing Information",
@@ -74,21 +118,30 @@ const Checkout = () => {
       });
       return;
     }
+
     if (cartItems.length === 0) {
-      toast({ title: "Cart is empty", variant: "destructive" });
+      toast({
+        title: "Cart Empty",
+        description: "Add some items before placing an order.",
+        variant: "destructive",
+      });
       return;
     }
 
     setLoading(true);
+
     try {
       const res = await placeOrder();
+
       if (res.data?.success) {
         clearCart();
+
         toast({
           title: "Order Placed Successfully",
           description: `Thank you ${shippingInfo.firstName}!`,
         });
-        navigate("/"); // or navigate(`/order/${res.data.order._id}`)
+
+        navigate("/");
       } else {
         throw new Error(res.data?.message || "Unknown error");
       }
@@ -99,11 +152,12 @@ const Checkout = () => {
         description: err?.response?.data?.message || "Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
+  // ✅ Empty Cart Screen
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
@@ -129,9 +183,11 @@ const Checkout = () => {
     );
   }
 
+  // ✅ Main Checkout UI
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
       <main className="container mx-auto px-4 py-8">
         <Link to="/cart" className="flex items-center gap-2 text-muted-foreground mb-8">
           <ArrowLeft className="w-4 h-4" /> Back to Cart
@@ -140,7 +196,7 @@ const Checkout = () => {
         <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left: Shipping + Payment */}
+          {/* Left */}
           <div className="lg:col-span-2 space-y-8">
             <Card>
               <CardHeader>
@@ -148,69 +204,75 @@ const Checkout = () => {
                   <Truck className="w-5 h-5" /> Shipping Information
                 </CardTitle>
               </CardHeader>
+
               <CardContent className="space-y-4">
+                {/* Name */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  {(["firstName", "lastName"] as const).map((field) => (
+                  {["firstName", "lastName"].map((field) => (
                     <div key={field} className="space-y-2">
-                      <Label htmlFor={field}>{field === "firstName" ? "First Name" : "Last Name"}</Label>
-                      <Input id={field} name={field} value={shippingInfo[field]} onChange={handleInputChange} required />
+                      <Label htmlFor={field}>
+                        {field === "firstName" ? "First Name" : "Last Name"}
+                      </Label>
+                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
                     </div>
                   ))}
                 </div>
 
+                {/* Email + Phone */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  {(["email", "phone"] as const).map((field) => (
+                  {["email", "phone"].map((field) => (
                     <div key={field} className="space-y-2">
                       <Label htmlFor={field}>{field === "email" ? "Email" : "Phone"}</Label>
-                      <Input id={field} name={field} value={shippingInfo[field]} onChange={handleInputChange} required />
+                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
                     </div>
                   ))}
                 </div>
 
+                {/* Address */}
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={shippingInfo.address} onChange={handleInputChange} required />
+                  <Input id="address" name="address" value={shippingInfo.address} onChange={handleInputChange} />
                 </div>
 
+                {/* City, State, Pincode */}
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" name="city" value={shippingInfo.city} onChange={handleInputChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="state">State</Label>
-                    <Input id="state" name="state" value={shippingInfo.state} onChange={handleInputChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="pincode">Pincode</Label>
-                    <Input id="pincode" name="pincode" value={shippingInfo.pincode} onChange={handleInputChange} required />
-                  </div>
+                  {["city", "state", "pincode"].map((field) => (
+                    <div key={field}>
+                      <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Payment */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5" /> Payment Method
                 </CardTitle>
               </CardHeader>
+
               <CardContent>
                 <RadioGroup value="cod">
                   <div className="flex items-center gap-3 p-4 border rounded-lg">
                     <RadioGroupItem id="cod" value="cod" checked />
-                    <Label htmlFor="cod" className="flex-1">Cash on Delivery (COD)</Label>
+                    <Label htmlFor="cod" className="flex-1">
+                      Cash on Delivery (COD)
+                    </Label>
                   </div>
                 </RadioGroup>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right: Summary */}
+          {/* Right Summary */}
           <Card className="h-fit sticky top-5">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 {cartItems.map((item) => (
@@ -232,11 +294,14 @@ const Checkout = () => {
                   <span>Subtotal</span>
                   <span>₹{subtotal}</span>
                 </div>
+
                 <div className="flex justify-between">
                   <span>Shipping</span>
                   <span>{shipping === 0 ? "Free" : `₹${shipping}`}</span>
                 </div>
+
                 <Separator />
+
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span className="text-primary">₹{total}</span>

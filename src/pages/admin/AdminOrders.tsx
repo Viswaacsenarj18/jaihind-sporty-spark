@@ -13,35 +13,32 @@ import {
 
 import { Button } from "@/components/ui/button";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import "@/pdf-fonts"; // ✅ Unicode font loaded
+
 const API = "http://localhost:5000/api/orders";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [openModal, setOpenModal] = useState(false);
 
-  // ✅ Fetch all orders
   useEffect(() => {
     axios
       .get(API)
       .then((res) => {
-        if (res.data.success) {
-          setOrders(res.data.orders);
-        }
+        if (res.data.success) setOrders(res.data.orders);
       })
-      .catch((err) => {
-        console.error("❌ Cannot fetch orders:", err);
-      });
+      .catch((err) => console.error("❌ Failed to fetch orders:", err));
   }, []);
 
-  // ✅ Search filter
-  const filtered = orders.filter((order) => {
-    const query = search.toLowerCase();
+  const filtered = orders.filter((o) => {
+    const q = search.toLowerCase();
     return (
-      order.customer.firstName.toLowerCase().includes(query) ||
-      order.customer.email.toLowerCase().includes(query)
+      o.customer.firstName.toLowerCase().includes(q) ||
+      o.customer.email.toLowerCase().includes(q)
     );
   });
 
@@ -50,12 +47,150 @@ export default function AdminOrders() {
     setOpenModal(true);
   };
 
+  const handleShareOrder = () => {
+    const link = `${window.location.origin}/admin/order/${selectedOrder._id}`;
+    navigator.clipboard.writeText(link);
+    alert("✅ Link Copied:\n" + link);
+  };
+
+  // ✅ PROFESSIONAL PDF GENERATOR
+  const downloadInvoice = async () => {
+    try {
+      if (!selectedOrder) {
+        alert("No order selected to download.");
+        return;
+      }
+
+      const o = selectedOrder;
+      const pdf = new jsPDF({ unit: "mm", format: "a4" });
+
+    pdf.setFont("NotoSans", "normal");
+
+    // ✅ Logo
+    const logo = new Image();
+    logo.src = "/logo.png";
+
+    await new Promise((resolve) => {
+      logo.onload = resolve;
+      logo.onerror = resolve;
+    });
+
+    pdf.addImage(logo, "PNG", 90, 10, 30, 25);
+
+    pdf.setFont("NotoSans", "bold");
+    pdf.setFontSize(18);
+    pdf.text("JAIHIND SPORTS", 105, 45, { align: "center" });
+
+    pdf.setFont("NotoSans", "normal");
+    pdf.setFontSize(11);
+    pdf.text("Premium sports gear — built for champions.", 105, 52, {
+      align: "center",
+    });
+
+    pdf.line(10, 60, 200, 60);
+
+    // ✅ Contact
+    pdf.setFontSize(10);
+    pdf.text("Phone: 86374 50696 / 80568 91366", 15, 70);
+    pdf.text("Email: sethupathi51469@gmail.com", 15, 75);
+    pdf.text(
+      "Address: Near Bus Stand, Thuraiyur Rd, Mettupalayam – 621210",
+      15,
+      80
+    );
+
+    pdf.line(10, 88, 200, 88);
+
+    // ✅ Invoice Top
+    pdf.setFont("NotoSans", "bold");
+    pdf.setFontSize(16);
+    pdf.text("INVOICE", 15, 100);
+
+    pdf.setFont("NotoSans", "normal");
+    pdf.setFontSize(12);
+    pdf.text(`Invoice ID: ${o._id}`, 15, 110);
+    pdf.text(`Date: ${new Date(o.createdAt).toLocaleString()}`, 15, 116);
+
+    // ✅ Customer
+    pdf.setFont("NotoSans", "bold");
+    pdf.setFontSize(14);
+    pdf.text("Customer Details", 15, 132);
+
+    pdf.setFont("NotoSans", "normal");
+    pdf.setFontSize(12);
+    pdf.text(`Name: ${o.customer.firstName} ${o.customer.lastName}`, 15, 142);
+    pdf.text(`Email: ${o.customer.email}`, 15, 148);
+    pdf.text(`Phone: ${o.customer.phone}`, 15, 154);
+    pdf.text(`Address: ${o.customer.address}, ${o.customer.city}`, 15, 160);
+    pdf.text(`${o.customer.state} - ${o.customer.pincode}`, 15, 166);
+
+    // ✅ Table
+    const rows = o.items.map((item) => [
+      item.name,
+      `\u20B9${item.price}`,
+      `${item.quantity}`,
+      `\u20B9${item.price * item.quantity}`,
+    ]);
+
+    autoTable(pdf, {
+      startY: 180,
+      head: [["Product", "Price", "Qty", "Total"]],
+      body: rows,
+      theme: "grid",
+      styles: {
+        font: "NotoSans",
+        fontSize: 11,
+        halign: "center",
+      },
+      headStyles: {
+        font: "NotoSans",
+        fontStyle: "bold",
+        fillColor: [0, 80, 200],
+        textColor: 255,
+      },
+    });
+
+    const endY = (pdf as any).lastAutoTable.finalY + 12;
+
+    // ✅ Summary
+    pdf.setFont("NotoSans", "bold");
+    pdf.setFontSize(14);
+    pdf.text("Order Summary", 15, endY);
+
+    pdf.setFont("NotoSans", "normal");
+    pdf.setFontSize(12);
+  pdf.text(`Subtotal: \u20B9${o.summary.subtotal}`, 15, endY + 10);
+  pdf.text(`Shipping: \u20B9${o.summary.shipping}`, 15, endY + 17);
+
+    pdf.setFont("NotoSans", "bold");
+  pdf.text(`Total: \u20B9${o.summary.total}`, 15, endY + 32);
+
+    // ✅ Footer
+    pdf.setFont("NotoSans", "normal");
+    pdf.setFontSize(10);
+    pdf.text(
+      "Thank you for shopping with JAIHIND SPORTS!",
+      105,
+      285,
+      { align: "center" }
+    );
+    pdf.text("No return/refund without original bill.", 105, 292, {
+      align: "center",
+    });
+
+    
+    pdf.save(`JAIHIND_SPORTS_INVOICE_${o._id}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF invoice:", err);
+      alert("Failed to generate PDF. Check console for details.");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Orders</h1>
 
-        {/* ✅ Search */}
         <div className="relative w-72 mb-6">
           <Search className="absolute left-3 top-2 text-gray-400 h-5" />
           <input
@@ -66,39 +201,31 @@ export default function AdminOrders() {
           />
         </div>
 
-        {/* ✅ Orders List */}
         <Card>
           <CardContent className="space-y-4 pt-4">
             {filtered.length === 0 ? (
-              <p className="text-center text-gray-500 py-10">
-                No orders found.
-              </p>
+              <p className="text-center text-gray-500 py-10">No orders found.</p>
             ) : (
               filtered.map((order) => (
                 <div
                   key={order._id}
                   className="border rounded-lg p-4 flex justify-between items-center"
                 >
-                  {/* LEFT SIDE */}
                   <div>
                     <p className="font-semibold text-lg">
                       {order.customer.firstName} {order.customer.lastName}
                     </p>
-
                     <p className="text-sm text-gray-600">
-                      📧 {order.customer.email}
+                      {order.customer.email}
                     </p>
-
                     <p className="text-sm text-gray-600">
-                      📦 {order.items.length} Items
+                      {order.items.length} Items
                     </p>
-
                     <p className="text-primary font-bold text-lg mt-1">
-                      ₹{order.summary.total}
+                      {'\u20B9'}{order.summary.total}
                     </p>
                   </div>
 
-                  {/* RIGHT SIDE */}
                   <div className="text-right">
                     <p className="text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleString()}
@@ -118,7 +245,6 @@ export default function AdminOrders() {
           </CardContent>
         </Card>
 
-        {/* ✅ ORDER DETAILS MODAL */}
         <Dialog open={openModal} onOpenChange={setOpenModal}>
           <DialogContent className="max-w-xl">
             <DialogHeader>
@@ -127,66 +253,45 @@ export default function AdminOrders() {
 
             {selectedOrder && (
               <div className="space-y-6">
-                {/* CUSTOMER INFO */}
-                <div>
-                  <h2 className="font-bold text-lg mb-2">Customer Info</h2>
-                  <p>
-                    <strong>Name:</strong>{" "}
-                    {selectedOrder.customer.firstName}{" "}
-                    {selectedOrder.customer.lastName}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {selectedOrder.customer.email}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {selectedOrder.customer.phone}
-                  </p>
-                  <p>
-                    <strong>Address:</strong>{" "}
-                    {selectedOrder.customer.address},{" "}
-                    {selectedOrder.customer.city},{" "}
-                    {selectedOrder.customer.state} -
-                    {selectedOrder.customer.pincode}
-                  </p>
-                </div>
+                <h2 className="font-bold text-lg">Customer Info</h2>
+                <p>
+                  {selectedOrder.customer.firstName}{" "}
+                  {selectedOrder.customer.lastName}
+                </p>
+                <p>{selectedOrder.customer.email}</p>
+                <p>{selectedOrder.customer.phone}</p>
 
-                {/* ITEMS */}
-                <div>
-                  <h2 className="font-bold text-lg mb-2">Items</h2>
+                <h2 className="font-bold text-lg">Items</h2>
 
-                  {selectedOrder.items.map((item: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex gap-4 mb-3 border rounded p-2"
-                    >
-                      <img
-                        src={item.image}
-                        className="w-16 h-16 rounded object-cover"
-                      />
-                      <div>
-                        <p className="font-semibold">{item.name}</p>
-                        <p>Price: ₹{item.price}</p>
-                        <p>Quantity: {item.quantity}</p>
-                      </div>
+                {selectedOrder.items.map((item: any, i: number) => (
+                  <div key={i} className="border p-2 flex gap-3">
+                    <img src={item.image} alt={item.name || 'product image'} className="w-16 h-16 rounded" />
+                    <div>
+                      <p className="font-semibold">{item.name}</p>
+                      <p>Price: {'\u20B9'}{item.price}</p>
+                      <p>Qty: {item.quantity}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
 
-                {/* SUMMARY */}
-                <div>
-                  <h2 className="font-bold text-lg mb-2">Order Summary</h2>
-                  <p>
-                    <strong>Subtotal:</strong> ₹
-                    {selectedOrder.summary.subtotal}
-                  </p>
-                  <p>
-                    <strong>Shipping:</strong> ₹
-                    {selectedOrder.summary.shipping}
-                  </p>
-                  <p>
-                    <strong>Total:</strong> ₹{selectedOrder.summary.total}
-                  </p>
-                </div>
+                <h2 className="font-bold text-lg">Summary</h2>
+                <p>Subtotal: {'\u20B9'}{selectedOrder.summary.subtotal}</p>
+                <p>Shipping: {'\u20B9'}{selectedOrder.summary.shipping}</p>
+                <p>Total: {'\u20B9'}{selectedOrder.summary.total}</p>
+
+                <Button
+                  className="w-full bg-blue-600 text-white"
+                  onClick={handleShareOrder}
+                >
+                  Share Order Link
+                </Button>
+
+                <Button
+                  className="w-full bg-green-600 text-white"
+                  onClick={downloadInvoice}
+                >
+                  Download PDF Invoice
+                </Button>
               </div>
             )}
           </DialogContent>
