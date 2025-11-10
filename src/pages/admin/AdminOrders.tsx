@@ -4,13 +4,25 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import axios from "axios";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import { Button } from "@/components/ui/button";
+
 const API = "http://localhost:5000/api/orders";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
 
-  // ✅ Fetch orders from backend
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  // ✅ Fetch orders
   useEffect(() => {
     axios
       .get(API)
@@ -24,7 +36,7 @@ export default function AdminOrders() {
       });
   }, []);
 
-  // ✅ Search by customer name or email
+  // ✅ Search logic
   const filtered = orders.filter((order) => {
     return (
       order.customer.firstName.toLowerCase().includes(search.toLowerCase()) ||
@@ -32,12 +44,18 @@ export default function AdminOrders() {
     );
   });
 
+  // ✅ Open modal
+  const viewDetails = (order) => {
+    setSelectedOrder(order);
+    setOpenModal(true);
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Orders</h1>
 
-        {/* ✅ Search box */}
+        {/* ✅ Search Box */}
         <div className="relative w-72 mb-6">
           <Search className="absolute left-3 top-2 text-gray-400 h-5" />
           <input
@@ -48,53 +66,98 @@ export default function AdminOrders() {
           />
         </div>
 
-        {/* ✅ Order List */}
+        {/* ✅ Orders List */}
         <Card>
           <CardContent className="space-y-4 pt-4">
             {filtered.length === 0 ? (
-              <p className="text-center text-gray-500 py-10">
-                No orders found.
-              </p>
+              <p className="text-center text-gray-500 py-10">No orders found.</p>
             ) : (
               filtered.map((order) => (
                 <div
                   key={order._id}
                   className="border rounded-lg p-4 flex justify-between items-center"
                 >
-                  {/* Left Side */}
+                  {/* LEFT */}
                   <div>
                     <p className="font-semibold text-lg">
                       {order.customer.firstName} {order.customer.lastName}
                     </p>
-
-                    <p className="text-sm text-gray-600">
-                      📧 {order.customer.email}
-                    </p>
-
-                    <p className="text-sm text-gray-600">
-                      📦 {order.items.length} Items
-                    </p>
-
+                    <p className="text-sm text-gray-600">📧 {order.customer.email}</p>
+                    <p className="text-sm text-gray-600">📦 {order.items.length} Items</p>
                     <p className="text-primary font-bold text-lg mt-1">
                       ₹{order.summary.total}
                     </p>
                   </div>
 
-                  {/* Right Side */}
+                  {/* RIGHT */}
                   <div className="text-right">
                     <p className="text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleString()}
                     </p>
 
-                    <span className="px-3 py-1 text-sm rounded bg-yellow-100">
+                    <span className="px-3 py-1 text-sm rounded bg-yellow-100 block mb-2">
                       {order.status}
                     </span>
+
+                    {/* ✅ VIEW DETAILS BUTTON */}
+                    <Button size="sm" onClick={() => viewDetails(order)}>
+                      View Details
+                    </Button>
                   </div>
                 </div>
               ))
             )}
           </CardContent>
         </Card>
+
+        {/* ✅ DETAILS MODAL */}
+        <Dialog open={openModal} onOpenChange={setOpenModal}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Order Details</DialogTitle>
+            </DialogHeader>
+
+            {selectedOrder && (
+              <div className="space-y-4">
+                {/* CUSTOMER INFO */}
+                <div>
+                  <h2 className="font-bold text-lg mb-2">Customer Info</h2>
+                  <p><strong>Name:</strong> {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}</p>
+                  <p><strong>Email:</strong> {selectedOrder.customer.email}</p>
+                  <p><strong>Phone:</strong> {selectedOrder.customer.phone}</p>
+                  <p><strong>Address:</strong> {selectedOrder.customer.address}, {selectedOrder.customer.city}, {selectedOrder.customer.state} - {selectedOrder.customer.pincode}</p>
+                </div>
+
+                {/* ITEMS */}
+                <div>
+                  <h2 className="font-bold text-lg mb-2">Items</h2>
+
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="flex gap-4 mb-3 border rounded p-2">
+                      <img
+                        src={item.image}
+                        className="w-16 h-16 rounded object-cover"
+                      />
+                      <div>
+                        <p className="font-semibold">{item.name}</p>
+                        <p>Price: ₹{item.price}</p>
+                        <p>Qty: {item.quantity}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* SUMMARY */}
+                <div>
+                  <h2 className="font-bold text-lg mb-2">Order Summary</h2>
+                  <p><strong>Subtotal:</strong> ₹{selectedOrder.summary.subtotal}</p>
+                  <p><strong>Shipping:</strong> ₹{selectedOrder.summary.shipping}</p>
+                  <p><strong>Total:</strong> ₹{selectedOrder.summary.total}</p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
