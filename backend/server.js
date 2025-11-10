@@ -5,32 +5,35 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 
-// ✅ Import Routes
+// ROUTES
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";  // ✅ IMPORTANT
+import orderRoutes from "./routes/orderRoutes.js";
 
-// ✅ Load environment variables
+// Load .env
 dotenv.config();
 
-// ✅ Fix ES module paths
+// Fix ES module paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ✅ Connect to MongoDB Atlas
+// Connect Database
 connectDB();
 
-// ✅ CORS Setup
+// CORS (Local + Vercel)
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
       "http://localhost:8080",
-      "http://127.0.0.1:5173"
+      "http://127.0.0.1:5173",
+
+      // ✅ ADD YOUR VERCEL FRONTEND DOMAIN
+      "https://jaihind-sporty-spark.vercel.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -38,29 +41,29 @@ app.use(
   })
 );
 
-// ✅ Middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Serve uploaded images
+// Serve image uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ API ROUTES
+// API ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);   // ✅ Checkout FIXED
+app.use("/api/orders", orderRoutes);
 
-// ✅ Root Test Route
+// Root API Test
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "🏏 Jaihind Sports API running successfully!",
+    message: "Jaihind Sports API running successfully",
     version: "2.0.0"
   });
 });
 
-// ✅ 404 Handler
+// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -68,17 +71,17 @@ app.use((req, res) => {
   });
 });
 
-// ✅ Global Server Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("🔥 Server Error:", err);
+  console.error("SERVER ERROR:", err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error"
   });
 });
 
-// ✅ Start Server
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port: ${PORT}`);
+  console.log(`Server running on port: ${PORT}`);
 });
