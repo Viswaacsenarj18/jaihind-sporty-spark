@@ -2,46 +2,27 @@ import express from "express";
 import {
   createOrder,
   getAllOrders,
-  getUserOrders
+  getUserOrders,
+  deleteOrder,
+  updateOrderStatus
 } from "../controllers/orderController.js";
 
 const router = express.Router();
 
-/**
- * ===========================
- * ✅ PUBLIC: CREATE ORDER
- * ===========================
- * POST /api/orders/create
- */
+// ✅ Create order
 router.post("/create", createOrder);
 
-
-/**
- * ===========================
- * ✅ ADMIN: GET ALL ORDERS
- * ===========================
- * GET /api/orders/all
- */
+// ✅ Admin get all orders
+router.get("/", getAllOrders);
 router.get("/all", getAllOrders);
 
-
-/**
- * ===========================
- * ✅ ADMIN & USER: LIST ORDERS
- * ===========================
- * GET /api/orders
- * (Used by AdminOrders.tsx)
- */
-router.get("/", getAllOrders);
-
-
-/**
- * ===========================
- * ✅ USER: GET USER'S ORDERS
- * ===========================
- * GET /api/orders/user/:id
- */
+// ✅ User orders
 router.get("/user/:id", getUserOrders);
 
+// ✅ Admin delete order
+router.delete("/:id", deleteOrder);
+
+// ✅ Admin update order status
+router.put("/:id/status", updateOrderStatus);
 
 export default router;

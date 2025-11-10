@@ -35,11 +35,11 @@ import RefundPolicy from "./pages/RefundPolicy";
 import CookiePolicy from "./pages/CookiePolicy";
 
 // Admin Pages
-import Dashboard from "./pages/admin/Dashboard";
-import UserManagement from "./pages/admin/UserManagement";
-import AdminSettings from "./pages/admin/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import Dashboard from "./pages/admin/Dashboard"; // OLD dashboard (index)
+import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
+import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/AdminOrders";
 
 // Misc
@@ -51,12 +51,8 @@ const queryClient = new QueryClient();
 const AppRoutes = () => {
   const location = useLocation();
 
-  // Hide footer for all admin pages + login/signup
-  const hideFooterPaths = [
-    "/login",
-    "/signup",
-    "/admin"
-  ];
+  // Hide footer on login, signup, admin
+  const hideFooterPaths = ["/login", "/signup", "/admin"];
 
   const shouldHideFooter = hideFooterPaths.some((path) =>
     location.pathname.startsWith(path)
@@ -68,11 +64,16 @@ const AppRoutes = () => {
         {/* ---------- USER ROUTES ---------- */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
+
+        {/* ✅ Checkout added */}
         <Route path="/checkout" element={<Checkout />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<Profile />} />
@@ -95,16 +96,13 @@ const AppRoutes = () => {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/products" element={<ProductManagement />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
-        {/* ✅ ADDED: ADMIN ORDERS PAGE */}
-        <Route path="/admin/orders" element={<AdminOrders />} />
-
-        {/* ---------- 404 PAGE ---------- */}
+        {/* ---------- NOT FOUND ---------- */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* Hide footer on admin pages */}
       {!shouldHideFooter && <Footer />}
     </>
   );
@@ -116,7 +114,6 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
