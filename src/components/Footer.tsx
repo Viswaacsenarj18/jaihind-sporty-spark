@@ -66,7 +66,7 @@ const Footer = () => {
             </div>
 
             <p className="text-xs md:text-sm text-primary-foreground/80 leading-snug">
-              Premium sports gear — built for champions.
+              Premium sports wear — built for champions.
             </p>
 
             <div className="text-xs md:text-sm space-y-1">

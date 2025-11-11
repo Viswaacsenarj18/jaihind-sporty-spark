@@ -134,7 +134,7 @@ const Categories = () => {
             Shop by Category
           </h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Explore premium sports gear & categories
+            Explore premium sports wear & categories
           </p>
         </motion.div>
 
