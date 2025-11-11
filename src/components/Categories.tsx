@@ -130,9 +130,10 @@ const Categories = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-10"
         >
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Shop by Category
-          </h2>
+          <h2 className="text-3xl font-bold text-blue-600">
+  Shop by Category
+</h2>
+
           <p className="text-sm text-muted-foreground mt-2">
             Explore premium sports wear & categories
           </p>
