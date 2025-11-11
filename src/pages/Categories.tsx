@@ -75,11 +75,11 @@ const Categories = () => {
 
         {/* ✅ Title */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-            Shop by <span className="text-primary">Category</span>
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Explore premium sports wear & categories
+        <h2 className="text-3xl font-bold text-blue-600">
+            Shop by Category
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Explore premium sports wear across categories
           </p>
         </div>
 
