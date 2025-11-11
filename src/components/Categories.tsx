@@ -10,18 +10,17 @@ import {
   Gamepad2,
   Dumbbell,
   Trophy,
-  Basketball 
+  Basketball
 } from "lucide-react";
 
-// ✅ Category data
+// ✅ Category List
 const categories = [
   {
     id: 1,
     name: "T-Shirts & Apparel",
     icon: Shirt,
     description: "Sports jerseys, shorts & activewear.",
-    image:
-      "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&q=80",
     slug: "t-shirts-apparel",
     gradient: "from-blue-500 to-blue-600",
   },
@@ -29,9 +28,8 @@ const categories = [
     id: 2,
     name: "Cricket",
     icon: Circle,
-    description: "Bats, pads, balls & gear.",
-    image:
-      "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80",
+    description: "Bats, pads, balls & wear.",
+    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80",
     slug: "cricket",
     gradient: "from-green-500 to-green-600",
   },
@@ -39,9 +37,8 @@ const categories = [
     id: 3,
     name: "Badminton",
     icon: Wind,
-    description: "Rackets, shuttlecocks & kits.",
-    image:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600&q=80",
+    description: "Rackets, shuttlecocks & wear.",
+    image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600&q=80",
     slug: "badminton",
     gradient: "from-yellow-500 to-yellow-600",
   },
@@ -50,8 +47,7 @@ const categories = [
     name: "Kabaddi",
     icon: Users,
     description: "Kabaddi mats & shoes.",
-    image:
-      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=600&q=80",
     slug: "kabaddi",
     gradient: "from-orange-500 to-orange-600",
   },
@@ -59,9 +55,8 @@ const categories = [
     id: 5,
     name: "Football",
     icon: Target,
-    description: "Football boots & balls.",
-    image:
-      "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600&q=80",
+    description: "Football boots, balls & wear.",
+    image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600&q=80",
     slug: "football",
     gradient: "from-red-500 to-red-600",
   },
@@ -69,9 +64,8 @@ const categories = [
     id: 6,
     name: "Volleyball",
     icon: Volleyball,
-    description: "Volleyballs & nets.",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80",
+    description: "Volleyballs, nets & wear.",
+    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80",
     slug: "volleyball",
     gradient: "from-purple-500 to-purple-600",
   },
@@ -79,9 +73,8 @@ const categories = [
     id: 7,
     name: "Basketball",
     icon: Basketball,
-    description: "Basketballs & court gear.",
-    image:
-      "https://images.unsplash.com/photo-1521417531039-5a88fb2446f0?w=600&q=80",
+    description: "Basketballs, court wear & gear.",
+    image: "https://images.unsplash.com/photo-1521417531039-5a88fb2446f0?w=600&q=80",
     slug: "basketball",
     gradient: "from-orange-600 to-orange-800",
   },
@@ -89,9 +82,8 @@ const categories = [
     id: 8,
     name: "Indoor Games",
     icon: Gamepad2,
-    description: "Carrom, chess, ludo boards.",
-    image:
-      "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=600&q=80",
+    description: "Carrom, chess & other indoor games.",
+    image: "https://images.unsplash.com/photo-1611891487183-17d959f29e4e?w=600&q=80",
     slug: "indoor-games",
     gradient: "from-indigo-500 to-indigo-600",
   },
@@ -99,9 +91,8 @@ const categories = [
     id: 9,
     name: "Gym & Fitness",
     icon: Dumbbell,
-    description: "Dumbbells & gym wear.",
-    image:
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80",
+    description: "Dumbbells, gym wear & accessories.",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80",
     slug: "gym-fitness",
     gradient: "from-pink-500 to-pink-600",
   },
@@ -110,8 +101,7 @@ const categories = [
     name: "Trophies",
     icon: Trophy,
     description: "Awards, cups & medals.",
-    image:
-      "https://images.unsplash.com/photo-1607922506368-8c472a06380c?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1607922506368-8c472a06380c?w=600&q=80",
     slug: "trophies",
     gradient: "from-yellow-500 to-yellow-700",
   },
@@ -119,19 +109,18 @@ const categories = [
     id: 11,
     name: "Other Sports",
     icon: Trophy,
-    description: "All other sports accessories.",
-    image:
-      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80",
+    description: "All other sports wear & accessories.",
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80",
     slug: "other-sports",
     gradient: "from-teal-500 to-teal-600",
-  },
+  }
 ];
 
 const Categories = () => {
   return (
     <section className="py-12 px-4 bg-muted/20">
       <div className="container mx-auto">
-        
+
         {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -144,7 +133,7 @@ const Categories = () => {
           </h2>
 
           <p className="text-sm text-muted-foreground mt-2">
-            Explore premium sports wear & categories
+            Explore premium sports wear across categories
           </p>
         </motion.div>
 
@@ -162,7 +151,7 @@ const Categories = () => {
               >
                 <Link to={`/products?category=${category.slug}`}>
                   <div className="group overflow-hidden rounded-lg shadow bg-card hover:shadow-xl transition cursor-pointer">
-                    
+
                     {/* Image */}
                     <div className="relative h-44 w-full overflow-hidden">
                       <img
@@ -171,9 +160,7 @@ const Categories = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                       />
 
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-50`}
-                      />
+                      <div className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-50`} />
 
                       <div className="absolute top-2 right-2 bg-white/30 backdrop-blur-md w-8 h-8 rounded-full flex items-center justify-center">
                         <Icon className="text-white w-4 h-4" />
