@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { 
-  Shirt, 
+import {
+  Shirt,
   Circle,
   Wind,
   Users,
@@ -10,8 +10,9 @@ import {
   Gamepad2,
   Dumbbell,
   Trophy,
-  Volleyball as Basketball  // ✅ Temporary basketball icon
+  BallBasketball
 } from "lucide-react";
+
 
 
 // ✅ Category data
