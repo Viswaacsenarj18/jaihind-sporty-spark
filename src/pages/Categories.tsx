@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 
-// ✅ Auto-switch API base depending on environment
 const API_BASE = import.meta.env.PROD
   ? "https://jaihind-sporty-spark-backend.onrender.com"
   : "http://localhost:5000";
@@ -13,109 +12,71 @@ const Categories = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const load = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/products`);
-        const data = await res.json();
-
-        if (data.success) {
-          setProducts(data.products);
-        }
-      } catch (err) {
-        console.error("Error loading products:", err);
+        const r = await fetch(`${API_BASE}/api/products`);
+        const d = await r.json();
+        if (d.success) setProducts(d.products);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProducts();
+    load();
   }, []);
 
-  // ✅ Build category list from product categories
-  const categories = Array.from(new Set(products.map((p) => p.category))).map(
-    (cat) => {
-      const catProduct = products.find((p) => p.category === cat);
+  const categories = Array.from(new Set(products.map(p => p.category))).map(cat => {
+    const item = products.find(p => p.category === cat);
 
-      const img = catProduct?.image
-        ? catProduct.image.startsWith("http")
-          ? catProduct.image
-          : `${API_BASE}${catProduct.image}`
-        : "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600";
+    const img = item?.image?.startsWith("http")
+      ? item.image
+      : `${API_BASE}${item?.image || ""}`;
 
-      return {
-        name: cat,
-        slug: cat.toLowerCase().replace(/ /g, "-"),
-        products: products.filter((p) => p.category === cat).length,
-        image: img,
-      };
-    }
-  );
+    return {
+      name: cat,
+      slug: cat.toLowerCase().replace(/ /g, "-"),
+      count: products.filter(p => p.category === cat).length,
+      image: img,
+    };
+  });
 
-  // ✅ Recently added
-  const recentProducts = [...products]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
+  const recent = [...products]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
 
-  if (loading) {
-    return (
-      <div className="text-center p-10 text-xl font-bold">
-        Loading...
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center py-10 text-xl font-bold">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8">
+      {/* ✅ Fast & Full-Width Blue Banner */}
+      <div className="w-full bg-blue-600 py-12 text-center mb-10">
+        <h2 className="text-3xl sm:text-4xl font-bold text-white">
+          Shop by Category
+        </h2>
+        <p className="text-white/90 text-sm sm:text-base mt-2">
+          Explore premium sports wear across categories
+        </p>
+      </div>
 
-        {/* ✅ Title */}
-        <div className="text-center mb-10">
-        <h2 className="text-3xl font-bold text-blue-600">
-            Shop by Category
-          </h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            Explore premium sports wear across categories
-          </p>
-        </div>
+      <main className="container mx-auto px-4">
 
         {/* ✅ Categories Grid */}
-        <div
-          className="
-            grid 
-            grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 
-            gap-4 sm:gap-6 mb-14
-          "
-        >
-          {categories.map((cat) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-14">
+          {categories.map(cat => (
             <Link key={cat.name} to={`/products?category=${cat.slug}`}>
-              <Card
-                className="
-                  overflow-hidden rounded-xl shadow-sm 
-                  hover:shadow-lg hover:scale-[1.03] 
-                  transition-all cursor-pointer 
-                  flex flex-col
-                  h-[260px] sm:h-[260px] md:h-[260px] lg:h-[270px]
-                "
-              >
-                <div className="w-full h-[65%] bg-white flex items-center justify-center overflow-hidden">
+              <Card className="overflow-hidden rounded-xl shadow-sm hover:shadow-lg hover:scale-[1.03] transition-all cursor-pointer">
+                <div className="w-full h-[160px] bg-white overflow-hidden flex items-center justify-center">
                   <img
                     src={cat.image}
                     alt={cat.name}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   />
                 </div>
-
-                <div className="p-3 text-center flex flex-col justify-center h-[35%]">
-                  <h3 className="text-[13px] sm:text-sm md:text-base font-semibold line-clamp-1">
-                    {cat.name}
-                  </h3>
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground line-clamp-1">
-                    {cat.products} products
+                <div className="p-3 text-center">
+                  <h3 className="text-sm font-semibold">{cat.name}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {cat.count} products
                   </p>
                 </div>
               </Card>
@@ -125,27 +86,13 @@ const Categories = () => {
 
         {/* ✅ Recently Added */}
         <section>
-          <h2 className="text-xl sm:text-2xl font-bold mb-6">
-            Recently Added
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-6">Recently Added</h2>
 
-          <div
-            className="
-              grid 
-              grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 
-              gap-4 sm:gap-6
-            "
-          >
-            {recentProducts.map((product) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {recent.map(product => (
               <Link key={product._id} to={`/product/${product._id}`}>
-                <Card
-                  className="
-                    overflow-hidden h-[230px] sm:h-[250px] 
-                    rounded-xl hover:shadow-lg hover:scale-[1.03] 
-                    transition-all cursor-pointer flex flex-col
-                  "
-                >
-                  <div className="w-full h-[65%] bg-white flex items-center justify-center overflow-hidden">
+                <Card className="overflow-hidden rounded-xl hover:shadow-lg hover:scale-[1.03] transition-all cursor-pointer">
+                  <div className="w-full h-[160px] bg-white overflow-hidden">
                     <img
                       src={
                         product.image?.startsWith("http")
@@ -156,14 +103,9 @@ const Categories = () => {
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                     />
                   </div>
-
-                  <div className="p-3 flex flex-col justify-between h-[35%]">
-                    <h4 className="font-medium text-xs sm:text-sm line-clamp-1">
-                      {product.name}
-                    </h4>
-                    <p className="text-primary font-bold text-xs sm:text-sm">
-                      ₹{product.price}
-                    </p>
+                  <div className="p-3">
+                    <h4 className="text-sm font-medium line-clamp-1">{product.name}</h4>
+                    <p className="text-primary font-bold">₹{product.price}</p>
                   </div>
                 </Card>
               </Link>
