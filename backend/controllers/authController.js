@@ -52,3 +52,48 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: 'Error logging in', error: err.message });
   }
 };
+
+// ✅ DELETE USER (Admin function)
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'User deleted successfully',
+      data: { deletedUserId: user._id }
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Error deleting user', 
+      error: err.message 
+    });
+  }
+};
+
+// ✅ GET ALL USERS (Admin function)
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
+    return res.json({
+      success: true,
+      totalUsers: users.length,
+      users
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Error fetching users', 
+      error: err.message 
+    });
+  }
+};

@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { deleteUser, getAllUsers } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -65,14 +66,9 @@ router.post("/login", async (req, res) => {
 });
 
 /* ✅ GET ALL USERS (Admin Only Access Later) */
-router.get("/users", async (req, res) => {
-  try {
-    const users = await User.find().select("-password");
-    res.json({ success: true, users });
-  } catch (error) {
-    console.error("Fetch Users Error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
+router.get("/users", getAllUsers);
+
+/* ✅ DELETE USER (Admin function) */
+router.delete("/users/:id", deleteUser);
 
 export default router;

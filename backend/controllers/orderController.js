@@ -84,3 +84,29 @@ export const updateOrderStatus = async (req, res) => {
     });
   }
 };
+
+// ✅ DELETE ORDER (Admin function)
+export const deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findByIdAndDelete(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Order deleted successfully",
+      data: { deletedOrderId: order._id }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete order",
+    });
+  }
+};
