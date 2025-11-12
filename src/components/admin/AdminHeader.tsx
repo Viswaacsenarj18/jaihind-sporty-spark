@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ORDER_ROUTES } from "@/config/api";
 
 interface AdminHeaderProps {
   onMenuToggle: () => void;
@@ -26,7 +27,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   // ✅ Fetch notifications
   useEffect(() => {
     const loadOrders = async () => {
-      const res = await axios.get("http://localhost:5000/api/orders");
+      const res = await axios.get(ORDER_ROUTES.GET_ALL);
 
       if (res.data.success) {
         const pending = res.data.orders.filter(
@@ -45,7 +46,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   const deleteNotification = async (id: string) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/orders/status/${id}`,
+        ORDER_ROUTES.UPDATE_STATUS(id),
         { status: "Seen" }
       );
 

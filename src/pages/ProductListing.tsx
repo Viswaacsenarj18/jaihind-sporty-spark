@@ -5,8 +5,7 @@ import { Filter, SlidersHorizontal } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
-
-const API_BASE = "http://localhost:5000";
+import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
 // ✅ Category list with slug + label mapping
 const categoryData = [
@@ -43,7 +42,7 @@ const ProductListing = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/products`);
+        const res = await fetch(PRODUCT_ROUTES.GET_ALL);
         const data = await res.json();
         if (data.success) setProducts(data.products);
       } catch (err) {
@@ -171,11 +170,9 @@ const ProductListing = () => {
                   id: p._id,
                   name: p.name,
                   price: p.price,
-                  image: p.image?.startsWith("http") ? p.image : `${API_BASE}${p.image}`,
+                  image: p.image?.startsWith("http") ? p.image : `${API_BASE_URL}${p.image}`,
                   category: p.category,
                 }}
-                wishlist={wishlist.includes(p._id)}
-                onWishlistToggle={() => toggleWishlist(p._id)}
                 index={index}
               />
             ))}

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
+import { ORDER_ROUTES } from "@/config/api";
 
 export default function SingleOrderPage() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/orders/${id}`)
+    axios.get(ORDER_ROUTES.GET_USER(id || ""))
       .then(res => setOrder(res.data.order))
       .catch(err => console.error(err));
   }, [id]);

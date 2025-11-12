@@ -12,8 +12,7 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = "http://localhost:5000";
+import { API_BASE_URL } from "@/config/api";
 
 const CATEGORY_OPTIONS = [
   "T-Shirts & Apparel", "Cricket", "Badminton", "Kabaddi", "Football",
@@ -54,7 +53,7 @@ export default function ProductManagement() {
   useEffect(() => { fetchProducts(); }, []);
 
   const resolveImage = (img: string) =>
-    img?.startsWith("http") ? img : `${API_BASE}${img}`;
+    img?.startsWith("http") ? img : `${API_BASE_URL}${img}`;
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();

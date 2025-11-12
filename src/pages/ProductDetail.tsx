@@ -11,8 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";   // ✅ ADDED
 import { useToast } from "@/hooks/use-toast";
-
-const API_BASE = "http://localhost:5000";
+import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -29,7 +28,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const getProduct = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/products`);
+        const res = await fetch(PRODUCT_ROUTES.GET_ALL);
         const data = await res.json();
 
         if (data.success) {
@@ -58,7 +57,7 @@ const ProductDetail = () => {
       price: product.price,
       image: product.image?.startsWith("http")
         ? product.image
-        : `${API_BASE}${product.image}`,
+        : `${API_BASE_URL}${product.image}`,
       quantity,
       category: product.category,
     });
@@ -114,7 +113,7 @@ const ProductDetail = () => {
                 src={
                   product.image?.startsWith("http")
                     ? product.image
-                    : `${API_BASE}${product.image}`
+                    : `${API_BASE_URL}${product.image}`
                 }
                 alt={product.name}
                 className="max-w-full max-h-full object-contain transition-transform duration-300 hover:scale-105"

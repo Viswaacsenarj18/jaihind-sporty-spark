@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
-
-const API_BASE = "http://localhost:5000";
+import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
 const ProductGrid = () => {
   const [latestProducts, setLatestProducts] = useState<any[]>([]);
@@ -11,7 +10,7 @@ const ProductGrid = () => {
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/products`);
+        const res = await fetch(PRODUCT_ROUTES.GET_ALL);
         const data = await res.json();
 
         if (data.success) {
@@ -59,7 +58,7 @@ const ProductGrid = () => {
                 id: p._id,
                 name: p.name,
                 price: p.price,
-                image: p.image?.startsWith("http") ? p.image : `${API_BASE}${p.image}`,
+                image: p.image?.startsWith("http") ? p.image : `${API_BASE_URL}${p.image}`,
                 category: p.category,
               }}
               index={index}

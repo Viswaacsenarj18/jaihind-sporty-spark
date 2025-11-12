@@ -11,8 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
-
-const API_BASE = "http://localhost:5000";
+import { API_BASE_URL } from "@/config/api";
 
 const CATEGORIES = [
   "Cricket","Badminton","Tennis","Kabaddi","Football","Volleyball",
@@ -21,7 +20,7 @@ const CATEGORIES = [
 ];
 
 const resolveImg = (img?: string) =>
-  !img ? "" : img.startsWith("http") ? img : `${API_BASE}${img}`;
+  !img ? "" : img.startsWith("http") ? img : `${API_BASE_URL}${img}`;
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
@@ -45,7 +44,7 @@ export default function AdminDashboard() {
   // ✅ Fetch products
   useEffect(() => {
     (async () => {
-      const res = await fetch(`${API_BASE}/api/products`);
+      const res = await fetch(`${API_BASE_URL}/api/products`);
       const data = await res.json();
       if (data.success) setProducts(data.products);
     })();
@@ -57,7 +56,7 @@ export default function AdminDashboard() {
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => v && fd.append(k, v));
 
-    const res = await fetch(`${API_BASE}/api/products`, { method: "POST", body: fd });
+    const res = await fetch(`${API_BASE_URL}/api/products`, { method: "POST", body: fd });
     const data = await res.json();
 
     if (data.success) {
@@ -90,7 +89,7 @@ export default function AdminDashboard() {
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => v && fd.append(k, v));
 
-    const res = await fetch(`${API_BASE}/api/products/${editing._id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/products/${editing._id}`, {
       method: "PUT",
       body: fd
     });
@@ -108,7 +107,7 @@ export default function AdminDashboard() {
   // ✅ Delete Product
   const del = async (id: string) => {
     if (!confirm("Delete this product?")) return;
-    await fetch(`${API_BASE}/api/products/${id}`, { method: "DELETE" });
+    await fetch(`${API_BASE_URL}/api/products/${id}`, { method: "DELETE" });
     setProducts(prev => prev.filter(p => p._id !== id));
   };
 

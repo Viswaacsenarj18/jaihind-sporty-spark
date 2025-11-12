@@ -1,0 +1,164 @@
+### JAIHIND SPORTS - API REST CLIENT TEST FILE
+### Backend: https://jaihind-sporty-spark-1.onrender.com
+### Use VS Code REST Client extension to test these endpoints
+
+@baseUrl = https://jaihind-sporty-spark-1.onrender.com
+@apiBase = /api
+
+# ============================================
+# AUTH ROUTES (POST /api/auth/*)
+# ============================================
+
+### 1. USER REGISTRATION
+POST {{baseUrl}}{{apiBase}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Tferferr",
+  "email": "tesdfeftusffeeer@jaihind.com",
+  "password": "Tevdfvst@123456"
+}
+
+### 2. USER LOGIN
+POST {{baseUrl}}{{apiBase}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@jaihind.com",
+  "password": "Test@123456"
+}
+
+### 3. GET ALL USERS
+GET {{baseUrl}}{{apiBase}}/auth/users
+
+# ============================================
+# ADMIN ROUTES (POST /api/admin/*)
+# ============================================
+
+### 4. ADMIN LOGIN
+POST {{baseUrl}}{{apiBase}}/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@jaihind.com",
+  "password": "admin123"
+}
+
+### 5. GET ADMIN PROFILE (requires token from login)
+GET {{baseUrl}}{{apiBase}}/admin/profile
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+# ============================================
+# PRODUCT ROUTES (GET/POST /api/products/*)
+# ============================================
+
+### 6. GET ALL PRODUCTS
+GET {{baseUrl}}{{apiBase}}/products
+
+### 7. ADD NEW PRODUCT (with image upload)
+### Note: Use Postman/insomnia for file upload or test JSON structure first
+POST {{baseUrl}}{{apiBase}}/products
+Content-Type: application/json
+
+{
+  "name": "Test Product",
+  "price": 999,
+  "description": "This is a test product",
+  "category": "Sports",
+  "stock": 50
+}
+
+### 8. UPDATE PRODUCT (replace PRODUCT_ID with actual ID)
+PUT {{baseUrl}}{{apiBase}}/products/PRODUCT_ID
+Content-Type: application/json
+
+{
+  "name": "Updated Product Name",
+  "price": 1299,
+  "description": "Updated description",
+  "category": "Sports",
+  "stock": 75
+}
+
+### 9. DELETE PRODUCT (replace PRODUCT_ID with actual ID)
+DELETE {{baseUrl}}{{apiBase}}/products/PRODUCT_ID
+
+# ============================================
+# ORDER ROUTES (POST/GET/PATCH /api/orders/*)
+# ============================================
+
+### 10. GET ALL ORDERS
+GET {{baseUrl}}{{apiBase}}/orders
+
+### 11. CREATE NEW ORDER
+POST {{baseUrl}}{{apiBase}}/orders/create
+Content-Type: application/json
+
+{
+  "customer": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "phone": "9876543210",
+    "address": "123 Main St",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600001"
+  },
+  "items": [
+    {
+      "productId": "PRODUCT_ID_HERE",
+      "name": "Product Name",
+      "price": 500,
+      "quantity": 2,
+      "image": "image_url"
+    }
+  ],
+  "summary": {
+    "subtotal": 1000,
+    "shipping": 150,
+    "total": 1150
+  },
+  "status": "pending"
+}
+
+### 12. GET USER ORDERS (replace USER_ID with actual ID)
+GET {{baseUrl}}{{apiBase}}/orders/user/USER_ID_HERE
+
+### 13. UPDATE ORDER STATUS (replace ORDER_ID with actual ID)
+PATCH {{baseUrl}}{{apiBase}}/orders/status/ORDER_ID_HERE
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+# ============================================
+# QUICK TEST SEQUENCE (Run in this order)
+# ============================================
+# ✅ STATUS: Server is ONLINE
+# 
+# TEST ORDER:
+# 1. Request #6 → GET all products (check if any exist)
+# 2. Request #1 → Register new user (creates test user)
+# 3. Request #2 → Login (gets JWT token)
+# 4. Request #10 → Get all orders (check existing orders)
+# 5. Request #4 → Admin login (get admin token)
+# 6. Request #11 → Create order (test order creation)
+#
+# EXPECTED RESULTS:
+# - Auth endpoints should return 200 + token
+# - Products should return 200 + product list
+# - Orders should return 200 + order list
+# - If you get 401/403, token might be invalid
+
+# ============================================
+# NOTES FOR TESTING
+# ============================================
+# - Replace YOUR_ADMIN_TOKEN_HERE with actual token from admin login response
+# - Replace PRODUCT_ID, USER_ID, ORDER_ID with real IDs from your database
+# - For file uploads (products with images), use Postman instead of REST Client
+# - If endpoints return CORS errors, check backend CORS config
+# - If auth fails, verify JWT_SECRET matches in backend .env
+# - Check browser console for detailed error messages if requests fail
+

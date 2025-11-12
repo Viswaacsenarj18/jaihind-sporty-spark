@@ -34,7 +34,7 @@ export default function Dashboard() {
         const [prodRes, usersRes, ordersRes] = await Promise.all([
           productsAPI.getAll(),           // ✅ Fetch products
           api.get("/auth/users"),         // ✅ Fetch users
-          axios.get("http://localhost:5000/api/orders"), // ✅ Fetch orders
+          axios.get("https://jaihind-sporty-spark-1.onrender.com/api/orders"), // ✅ Fetch orders
         ]);
 
         const productData = prodRes.data?.products || [];

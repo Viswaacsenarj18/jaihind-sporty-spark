@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import axios from "axios";
+import { ORDER_ROUTES } from "@/config/api";
 
 import {
   Dialog,
@@ -17,8 +18,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "@/pdf-fonts"; // ✅ Unicode font loaded
 
-const API = "http://localhost:5000/api/orders";
-
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -27,7 +26,7 @@ export default function AdminOrders() {
 
   useEffect(() => {
     axios
-      .get(API)
+      .get(ORDER_ROUTES.GET_ALL)
       .then((res) => {
         if (res.data.success) setOrders(res.data.orders);
       })

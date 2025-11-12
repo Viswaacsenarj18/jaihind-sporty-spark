@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { ORDER_ROUTES } from "@/config/api";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
   // ✅ Fetch total number of orders
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/orders")
+      .get(ORDER_ROUTES.GET_ALL)
       .then((res) => {
         if (res.data.success) {
           setOrderCount(res.data.orders.length);

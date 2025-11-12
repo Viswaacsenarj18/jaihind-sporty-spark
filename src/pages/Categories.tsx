@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
-
-const API_BASE = import.meta.env.PROD
-  ? "https://jaihind-sporty-spark-backend.onrender.com"
-  : "http://localhost:5000";
+import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
 const Categories = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -14,7 +11,7 @@ const Categories = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const r = await fetch(`${API_BASE}/api/products`);
+        const r = await fetch(PRODUCT_ROUTES.GET_ALL);
         const d = await r.json();
         if (d.success) setProducts(d.products);
       } finally {
@@ -29,7 +26,7 @@ const Categories = () => {
 
     const img = item?.image?.startsWith("http")
       ? item.image
-      : `${API_BASE}${item?.image || ""}`;
+      : `${API_BASE_URL}${item?.image || ""}`;
 
     return {
       name: cat,
@@ -97,7 +94,7 @@ const Categories = () => {
                       src={
                         product.image?.startsWith("http")
                           ? product.image
-                          : `${API_BASE}${product.image}`
+                          : `${API_BASE_URL}${product.image}`
                       }
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"

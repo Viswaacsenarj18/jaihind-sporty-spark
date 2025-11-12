@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AUTH_ROUTES, ADMIN_ROUTES } from "@/config/api";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,9 +30,7 @@ const Login = () => {
     // ✅ Auto detect admin email (change to your admin domain or list)
     const isAdmin = email.endsWith("@jaihind-sports.com");
 
-    const endpoint = isAdmin
-      ? "http://localhost:5000/api/admin/login"
-      : "http://localhost:5000/api/auth/login";
+    const endpoint = isAdmin ? ADMIN_ROUTES.LOGIN : AUTH_ROUTES.LOGIN;
 
     try {
       const res = await fetch(endpoint, {
