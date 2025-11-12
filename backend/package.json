@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "create-admin": "node scripts/createDefaultAdmin.js",
+    "create-admin": "node scripts/CreateDefaultAdmin.js",
     "test": "echo \"No tests configured\""
   },
   "keywords": [
