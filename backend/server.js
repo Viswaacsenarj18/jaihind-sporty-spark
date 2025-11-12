@@ -28,9 +28,13 @@ connectDB();
 app.set("trust proxy", 1);
 
 // ✅ CORS Configuration - Allow all Vercel deployments
+// This CORS config accepts:
+// - All *.vercel.app domains (production + preview)
+// - localhost:5173 (local development)
+// - Rejects other origins for security
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow any Vercel deployment
+    // Allow any Vercel deployment + localhost
     if (!origin || origin.includes("vercel.app") || origin === "http://localhost:5173") {
       callback(null, true);
     } else {
