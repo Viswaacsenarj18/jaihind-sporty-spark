@@ -1,10 +1,10 @@
 import axios from "axios";
+import { API_BASE_URL } from "@/config/api";
 
 const api = axios.create({
-  baseURL: import.meta.env.PROD
-    ? "https://jaihind-sporty-spark-backend.onrender.com/api"
-    : "http://localhost:5000/api",
+  baseURL: `${API_BASE_URL}/api`,
   withCredentials: true,
 });
 
 export default api;
+

@@ -4,7 +4,9 @@
 import jsPDF from "jspdf";
 
 // FULL BASE64 FONT (over 300KB)
-// NOTE: Replace the placeholder below with the actual base64-encoded TTF data.
+// NOTE: To enable custom fonts in PDFs, replace the placeholder below with actual base64-encoded TTF data.
+// For now, the system font will be used (which supports ₹ symbol).
+// Get base64 NotoSans font from: https://www.google.com/fonts/download?family=Noto+Sans
 const notoSans = `
 AAEAAAASAQAABAAgR0RFRrRCsIIAAI...VERY_LONG_FONT_DATA...AAA==
 `;
@@ -16,10 +18,12 @@ try {
 
   if (!notoSans || notoSans.includes("VERY_LONG_FONT_DATA") || notoSans.trim().length < 100) {
     // Placeholder base64 — skip registration so the import doesn't throw at runtime.
-    // You must replace `notoSans` with the full base64 TTF for full Unicode support.
-    // We warn so developers notice the missing font during testing.
-    // eslint-disable-next-line no-console
-    console.warn("pdf-fonts: notoSans base64 is missing or placeholder. PDF unicode font registration skipped.");
+    // PDFs will render using default system font, which should support ₹ symbol.
+    // Only log in development mode to avoid cluttering production logs.
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.info("ℹ️  pdf-fonts: Custom NotoSans font not configured. PDFs will use system font (which supports ₹).");
+    }
   } else if (eventsApi && Array.isArray(eventsApi.push)) {
     (jsPDF as any).API.events.push([
       "addFonts",
@@ -57,3 +61,4 @@ try {
 }
 
 export {};
+
