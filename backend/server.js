@@ -27,15 +27,22 @@ connectDB();
 // ✅ REQUIRED for Cookies (MUST BE BEFORE CORS)
 app.set("trust proxy", 1);
 
-// ✅ CORS Configuration - Allow all Vercel deployments
+// ✅ CORS Configuration - Allow all Vercel deployments + localhost
 // This CORS config accepts:
 // - All *.vercel.app domains (production + preview)
-// - localhost:5173 (local development)
+// - localhost:5173 (local frontend development)
+// - localhost:3000 (alternative frontend port)
+// - Any localhost origin (for local dev)
 // - Rejects other origins for security
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow any Vercel deployment + localhost
-    if (!origin || origin.includes("vercel.app") || origin === "http://localhost:5173") {
+    // Allow Vercel + localhost (any port)
+    if (
+      !origin || 
+      origin.includes("vercel.app") || 
+      origin.includes("localhost") || 
+      origin.includes("127.0.0.1")
+    ) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));

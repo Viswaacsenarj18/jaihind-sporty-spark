@@ -1,19 +1,22 @@
 /**
- * Centralized API Configuration
- * Change API_BASE_URL to switch between localhost and production
+ * 🌐 Centralized API Configuration
+ * Automatically switches between localhost (development) and Render (production)
  */
 
-// ✅ Production API (Render)
-export const API_BASE_URL = "https://jaihind-sporty-spark-1.onrender.com";
+// Detect environment based on the browser origin
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
 
-// 🔄 Uncomment below for local development
-// export const API_BASE_URL = "http://localhost:5000";
+// ✅ Use Render backend in production
+export const API_BASE_URL = isLocalhost
+  ? "http://localhost:5000" // Local development
+  : "https://jaihind-sporty-spark-1.onrender.com"; // Render backend
 
 /**
- * API Endpoints
- * Usage: import { AUTH_ROUTES, PRODUCT_ROUTES, ORDER_ROUTES, ADMIN_ROUTES } from "@/config/api"
+ * ✅ API Endpoints
  */
-
 export const AUTH_ROUTES = {
   REGISTER: `${API_BASE_URL}/api/auth/register`,
   LOGIN: `${API_BASE_URL}/api/auth/login`,
@@ -36,22 +39,21 @@ export const ORDER_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/orders`,
   CREATE: `${API_BASE_URL}/api/orders/create`,
   GET_USER: (userId: string) => `${API_BASE_URL}/api/orders/user/${userId}`,
-  UPDATE_STATUS: (orderId: string) => `${API_BASE_URL}/api/orders/status/${orderId}`,
+  UPDATE_STATUS: (orderId: string) =>
+    `${API_BASE_URL}/api/orders/status/${orderId}`,
 };
 
 /**
- * Helper function for API requests with error handling
+ * 🧩 Helper for API requests with proper error handling
  */
-export const apiCall = async (
-  url: string,
-  options?: RequestInit
-): Promise<any> => {
+export const apiCall = async (url: string, options?: RequestInit): Promise<any> => {
   try {
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
       },
+      credentials: "include", // ✅ Include cookies for authentication
       ...options,
     });
 
