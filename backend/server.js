@@ -27,15 +27,22 @@ connectDB();
 // ✅ REQUIRED for Cookies (MUST BE BEFORE CORS)
 app.set("trust proxy", 1);
 
-// ✅ ✅ PERFECT CORS (ONLY ONE!)
-app.use(
-  cors({
-    origin: "https://jaihind-sporty-spark.vercel.app",  // ✅ Vercel frontend ONLY
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// ✅ CORS Configuration - Allow all Vercel deployments
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow any Vercel deployment
+    if (!origin || origin.includes("vercel.app") || origin === "http://localhost:5173") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 
 // ✅ Cookie Parser
 app.use(cookieParser());

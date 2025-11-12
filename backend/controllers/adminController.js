@@ -36,17 +36,7 @@ export const loginAdmin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // ✅ MOBILE + RENDER + VERCEL FIX
-    res.cookie("adminToken", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      domain: "jaihind-sporty-spark.vercel.app",  // ✅ REQUIRED for mobile
-      path: "/",                                   // ✅ REQUIRED
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    // ✅ Return success WITH TOKEN
+    // ✅ Return success WITH TOKEN (frontend stores in localStorage)
     return res.status(200).json({
       success: true,
       message: "Login successful",
