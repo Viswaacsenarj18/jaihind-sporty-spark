@@ -69,6 +69,16 @@ app.get("/", (req, res) => {
   });
 });
 
+// 🔍 Status check route
+app.get("/status", (req, res) => {
+  res.json({
+    success: true,
+    message: "Backend is running",
+    timestamp: new Date().toISOString(),
+    version: "2.0.0"
+  });
+});
+
 // ✅ 404 Handler
 app.use((req, res) =>
   res.status(404).json({ success: false, message: "Route not found" })
