@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import axios from "axios";
 import { ORDER_ROUTES } from "@/config/api";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -44,6 +45,20 @@ export default function AdminOrders() {
   const viewDetails = (order: any) => {
     setSelectedOrder(order);
     setOpenModal(true);
+  };
+
+  const handleDeleteOrder = async (orderId: string, customerName: string) => {
+    if (!confirm(`Delete order from ${customerName}? This cannot be undone.`)) return;
+    try {
+      await axios.delete(`${ORDER_ROUTES.GET_ALL}/${orderId}`);
+      setOrders(orders.filter(o => o._id !== orderId));
+      if (orderId === selectedOrder?._id) setOpenModal(false);
+      toast.success(`✅ Order deleted successfully`);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to delete order";
+      toast.error(`❌ ${errorMsg}`);
+      console.error("Delete error:", err);
+    }
   };
 
   const handleShareOrder = () => {
@@ -234,9 +249,18 @@ export default function AdminOrders() {
                       {order.status}
                     </span>
 
-                    <Button size="sm" onClick={() => viewDetails(order)}>
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => viewDetails(order)}>
+                        View Details
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteOrder(order._id, `${order.customer.firstName} ${order.customer.lastName}`)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -290,6 +314,14 @@ export default function AdminOrders() {
                   onClick={downloadInvoice}
                 >
                   Download PDF Invoice
+                </Button>
+
+                <Button
+                  className="w-full bg-red-600 text-white"
+                  variant="destructive"
+                  onClick={() => handleDeleteOrder(selectedOrder._id, `${selectedOrder.customer.firstName} ${selectedOrder.customer.lastName}`)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete Order
                 </Button>
               </div>
             )}

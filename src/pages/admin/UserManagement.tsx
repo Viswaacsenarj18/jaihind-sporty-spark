@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Shield, Mail, Calendar } from "lucide-react";
+import { Plus, Search, Shield, Mail, Calendar, Trash2 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,19 @@ export default function UserManagement() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Delete user ${userName}? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/auth/users/${userId}`);
+      setUsers(users.filter(u => u._id !== userId));
+      toast.success(`✅ User ${userName} deleted successfully`);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to delete user";
+      toast.error(`❌ ${errorMsg}`);
+      console.error("Delete error:", err);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6 p-2 sm:p-4">
@@ -106,6 +120,7 @@ export default function UserManagement() {
                   <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -136,6 +151,16 @@ export default function UserManagement() {
                       <Badge className={getStatusBadgeColor("active")}>
                         Active
                       </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteUser(u._id, u.name)}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" /> Delete
+                      </Button>
                     </TableCell>
 
                   </TableRow>
