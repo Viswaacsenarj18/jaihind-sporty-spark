@@ -37,16 +37,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const response = await authAPI.login(email, password);
-      const responseData = (response.data as any).data;
-      const token = (response.data as any).data?.token || (response.data as any).token;
+      const data = response.data;
       
-      if (!token || !responseData) {
+      // Backend returns: { success: true, token: "...", user: { id, name, email, role } }
+      if (!data.token || !data.user) {
         throw new Error('Invalid response format from server');
       }
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(responseData));
-      setUser(responseData);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
       toast.success('Logged in successfully!');
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Login failed';
@@ -58,17 +58,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, phone?: string) => {
     try {
       const response = await authAPI.register({ name, email, password, phone });
-      const responseData = (response.data as any).data;
-      const token = (response.data as any).data?.token || (response.data as any).token;
+      const data = response.data as any;
       
-      if (!token || !responseData) {
-        throw new Error('Invalid response format from server');
+      if (!data.success) {
+        throw new Error(data.message || 'Registration failed');
       }
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(responseData));
-      setUser(responseData);
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! Please log in.');
+      // Don't auto-login after register - let user manually login
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed';
       toast.error(errorMsg);
@@ -79,16 +76,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const adminLogin = async (email: string, password: string) => {
     try {
       const response = await adminAPI.login(email, password);
-      const token = (response.data as any).token || (response.data as any).data?.token;
-      const responseData = (response.data as any).data;
+      const data = response.data as any;
       
-      if (!token || !responseData) {
+      // Admin login returns: { success: true, token: "...", data: { id, name, email, role } }
+      if (!data.token || !data.data) {
         throw new Error('Invalid response format from server');
       }
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(responseData));
-      setUser(responseData);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.data));
+      setUser(data.data);
       toast.success('Admin logged in successfully!');
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Admin login failed';
