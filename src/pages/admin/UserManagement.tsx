@@ -111,100 +111,114 @@ export default function UserManagement() {
         {/* Users Table */}
         <Card>
           <CardHeader><CardTitle className="text-lg sm:text-xl">Users</CardTitle></CardHeader>
-          <CardContent className="overflow-x-auto">
-            {/* Desktop Table */}
-            <div className="hidden sm:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs sm:text-sm">Name</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Email</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Role</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Joined</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <CardContent>
+            {users.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">No users found</p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table - Hidden on mobile */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Email</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Role</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Joined</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
 
-                <TableBody>
+                    <TableBody>
+                      {users.map((u) => (
+                        <TableRow key={u._id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{u.name}</TableCell>
+
+                          <TableCell className="flex items-center gap-1 text-xs sm:text-sm">
+                            <Mail className="w-3 h-3 hidden sm:inline" /> {u.email}
+                          </TableCell>
+
+                          <TableCell>
+                            <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs`}>
+                              <Shield className="w-3 h-3 mr-1" /> {u.role || "user"}
+                            </Badge>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-xs sm:text-sm">
+                              <Calendar className="w-3 h-3 hidden sm:inline" />
+                              {formatDate(u.createdAt)}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <Badge className={`${getStatusBadgeColor("active")} text-xs`}>
+                              Active
+                            </Badge>
+                          </TableCell>
+
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="text-xs"
+                              onClick={() => handleDeleteUser(u._id, u.name)}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" /> Delete
+                            </Button>
+                          </TableCell>
+
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View - Visible only on small screens */}
+                <div className="block sm:hidden space-y-3">
                   {users.map((u) => (
-                    <TableRow key={u._id}>
-                      <TableCell className="font-medium text-xs sm:text-sm">{u.name}</TableCell>
-
-                      <TableCell className="flex items-center gap-1 text-xs sm:text-sm">
-                        <Mail className="w-3 h-3 hidden sm:inline" /> {u.email}
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs`}>
-                          <Shield className="w-3 h-3 mr-1" /> {u.role || "user"}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-xs sm:text-sm">
-                          <Calendar className="w-3 h-3 hidden sm:inline" />
-                          {formatDate(u.createdAt)}
+                    <div key={u._id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                      {/* Header: Name + Delete Button */}
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-sm text-gray-900 truncate">{u.name}</h3>
+                          <p className="text-xs text-gray-500 truncate mt-0.5">{u.email}</p>
                         </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge className={`${getStatusBadgeColor("active")} text-xs`}>
-                          Active
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell>
                         <Button
                           size="sm"
                           variant="destructive"
-                          className="text-xs"
+                          className="text-xs px-2 py-1 h-8 flex-shrink-0"
                           onClick={() => handleDeleteUser(u._id, u.name)}
+                          title="Delete user"
                         >
-                          <Trash2 className="w-3 h-3 mr-1" /> Delete
+                          <Trash2 className="w-3 h-3" />
                         </Button>
-                      </TableCell>
+                      </div>
 
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      {/* Role and Status Badges */}
+                      <div className="flex gap-2 flex-wrap mb-3">
+                        <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs py-0.5`}>
+                          {u.role || "user"}
+                        </Badge>
+                        <Badge className={`${getStatusBadgeColor("active")} text-xs py-0.5`}>
+                          Active
+                        </Badge>
+                      </div>
 
-            {/* Mobile Card View */}
-            <div className="sm:hidden space-y-3">
-              {users.map((u) => (
-                <div key={u._id} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm">{u.name}</p>
-                      <p className="text-xs text-gray-600">{u.email}</p>
+                      {/* Joined Date */}
+                      <div className="pt-2 border-t border-gray-100">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">Joined:</span> {formatDate(u.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="text-xs px-2"
-                      onClick={() => handleDeleteUser(u._id, u.name)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-
-                  <div className="flex gap-2 flex-wrap">
-                    <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs`}>
-                      {u.role || "user"}
-                    </Badge>
-                    <Badge className={`${getStatusBadgeColor("active")} text-xs`}>
-                      Active
-                    </Badge>
-                  </div>
-
-                  <p className="text-xs text-gray-500">
-                    Joined: {formatDate(u.createdAt)}
-                  </p>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
