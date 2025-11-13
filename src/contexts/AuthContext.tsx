@@ -37,18 +37,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const response = await authAPI.login(email, password);
-      const data = response.data;
+      const data = response.data as any;
       
-      // Backend returns: { success: true, token: "...", user: { id, name, email, role } }
-      if (!data.token || !data.user) {
-        throw new Error('Invalid response format from server');
+      // Debug: Log the actual response structure
+      console.log('Login Response:', JSON.stringify(data, null, 2));
+      
+      // Handle different response formats from backend
+      let token = data.token;
+      let user = data.user;
+      
+      // If user is inside data.data, extract it
+      if (!user && data.data && typeof data.data === 'object') {
+        user = data.data;
       }
       
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
+      // Ensure user object has required fields
+      if (!user || !user.id || !user.email) {
+        console.error('Invalid user object:', user);
+        throw new Error('Invalid user data from server');
+      }
+      
+      if (!token) {
+        console.error('No token found in response:', data);
+        throw new Error('No authentication token received');
+      }
+      
+      // Map backend fields to our User interface
+      const userData = {
+        id: user.id || user._id,
+        name: user.name || 'User',
+        email: user.email,
+        role: user.role || 'user'
+      };
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       toast.success('Logged in successfully!');
     } catch (error: any) {
+      console.error('Login error:', error);
       const errorMsg = error.response?.data?.message || error.message || 'Login failed';
       toast.error(errorMsg);
       throw error;
@@ -78,16 +105,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await adminAPI.login(email, password);
       const data = response.data as any;
       
-      // Admin login returns: { success: true, token: "...", data: { id, name, email, role } }
-      if (!data.token || !data.data) {
-        throw new Error('Invalid response format from server');
+      // Debug: Log the actual response structure
+      console.log('Admin Login Response:', JSON.stringify(data, null, 2));
+      
+      // Handle different response formats from backend
+      let token = data.token;
+      let user = data.data || data.user;
+      
+      // Ensure user object has required fields
+      if (!user || !user.id || !user.email) {
+        console.error('Invalid user object:', user);
+        throw new Error('Invalid user data from server');
       }
       
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.data));
-      setUser(data.data);
+      if (!token) {
+        console.error('No token found in response:', data);
+        throw new Error('No authentication token received');
+      }
+      
+      // Map backend fields to our User interface
+      const userData = {
+        id: user.id || user._id,
+        name: user.name || 'Admin',
+        email: user.email,
+        role: user.role || 'admin'
+      };
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       toast.success('Admin logged in successfully!');
     } catch (error: any) {
+      console.error('Admin login error:', error);
       const errorMsg = error.response?.data?.message || error.message || 'Admin login failed';
       toast.error(errorMsg);
       throw error;
