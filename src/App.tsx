@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // User Pages
 import Index from "./pages/Index";
@@ -76,8 +77,22 @@ const AppRoutes = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
 
@@ -91,13 +106,55 @@ const AppRoutes = () => {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
 
-        {/* ---------- ADMIN ROUTES ---------- */}
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/products" element={<ProductManagement />} />
-        <Route path="/admin/orders" element={<AdminOrders />} />
-        <Route path="/admin/settings" element={<AdminSettings />} />
+        {/* ---------- ADMIN ROUTES (PROTECTED) ---------- */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute requireAdmin>
+              <ProductManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ---------- NOT FOUND ---------- */}
         <Route path="*" element={<NotFound />} />
