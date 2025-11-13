@@ -75,13 +75,13 @@ export default function UserManagement() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 p-2 sm:p-4">
+      <div className="space-y-6 p-2 sm:p-4 md:p-6 lg:p-8">
         
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold">User Management</h1>
-            <p className="text-sm text-muted-foreground">Manage users from database</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">User Management</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Manage users from database</p>
           </div>
 
           <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
@@ -95,14 +95,14 @@ export default function UserManagement() {
 
         {/* Search */}
         <Card>
-          <CardContent className="p-3 sm:p-6">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm sm:text-base"
               />
             </div>
           </CardContent>
@@ -110,63 +110,101 @@ export default function UserManagement() {
 
         {/* Users Table */}
         <Card>
-          <CardHeader><CardTitle>Users</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {users.map((u) => (
-                  <TableRow key={u._id}>
-                    <TableCell className="font-medium">{u.name}</TableCell>
-
-                    <TableCell className="flex items-center gap-1">
-                      <Mail className="w-3 h-3" /> {u.email}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge className={getRoleBadgeColor(u.role || "user")}>
-                        <Shield className="w-3 h-3 mr-1" /> {u.role || "user"}
-                      </Badge>
-                    </TableCell>
-
-                    {/* ✅ Safe date */}
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(u.createdAt)}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge className={getStatusBadgeColor("active")}>
-                        Active
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteUser(u._id, u.name)}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" /> Delete
-                      </Button>
-                    </TableCell>
-
+          <CardHeader><CardTitle className="text-lg sm:text-xl">Users</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Email</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Role</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Joined</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u._id}>
+                      <TableCell className="font-medium text-xs sm:text-sm">{u.name}</TableCell>
+
+                      <TableCell className="flex items-center gap-1 text-xs sm:text-sm">
+                        <Mail className="w-3 h-3 hidden sm:inline" /> {u.email}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs`}>
+                          <Shield className="w-3 h-3 mr-1" /> {u.role || "user"}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-xs sm:text-sm">
+                          <Calendar className="w-3 h-3 hidden sm:inline" />
+                          {formatDate(u.createdAt)}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge className={`${getStatusBadgeColor("active")} text-xs`}>
+                          Active
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="text-xs"
+                          onClick={() => handleDeleteUser(u._id, u.name)}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" /> Delete
+                        </Button>
+                      </TableCell>
+
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="sm:hidden space-y-3">
+              {users.map((u) => (
+                <div key={u._id} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{u.name}</p>
+                      <p className="text-xs text-gray-600">{u.email}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="text-xs px-2"
+                      onClick={() => handleDeleteUser(u._id, u.name)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge className={`${getRoleBadgeColor(u.role || "user")} text-xs`}>
+                      {u.role || "user"}
+                    </Badge>
+                    <Badge className={`${getStatusBadgeColor("active")} text-xs`}>
+                      Active
+                    </Badge>
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    Joined: {formatDate(u.createdAt)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
