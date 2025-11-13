@@ -8,7 +8,7 @@ import {
   ShoppingCart,
   Settings,
   Menu,
-  X
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -25,7 +25,6 @@ export function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
   const location = useLocation();
   const [orderCount, setOrderCount] = useState(0);
 
-  // ✅ Fetch total number of orders
   useEffect(() => {
     axios
       .get(ORDER_ROUTES.GET_ALL)
@@ -37,72 +36,82 @@ export function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
       .catch(() => setOrderCount(0));
   }, []);
 
-  // ✅ Menu with dynamic orders count
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },  // FIXED
     { icon: Users, label: "Users", path: "/admin/users" },
     { icon: Package, label: "Products", path: "/admin/products" },
     {
       icon: ShoppingCart,
-      label: `Orders (${orderCount})`,   // ✅ SHOW COUNT
-      path: "/admin/orders"
+      label: `Orders (${orderCount})`,
+      path: "/admin/orders",
     },
-    { icon: Settings, label: "Settings", path: "/admin/settings" }
+    { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 
   return (
     <>
-      {/* ✅ Mobile backdrop */}
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onToggle}
         />
       )}
 
-      {/* ✅ Sidebar */}
       <motion.aside
-        initial={{ x: -280 }}
-        animate={{ x: isOpen ? 0 : -280 }}
+        initial={{ x: -260 }}
+        animate={{ x: isOpen ? 0 : -260 }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
         className={cn(
-          "fixed left-0 top-0 h-full w-64 bg-card border-r z-50 lg:sticky lg:translate-x-0",
-          !isOpen && "lg:w-20"
+          "fixed left-0 top-0 h-full w-64 bg-white shadow-xl border-r z-50",
+          "lg:translate-x-0 lg:sticky"
         )}
       >
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          {isOpen && <h2 className="font-bold text-lg">Admin Panel</h2>}
-          <Button variant="ghost" size="sm" onClick={onToggle} className="ml-auto">
-            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {isOpen && (
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo1.png"
+                alt="Logo"
+                className="w-10 h-10 object-contain"
+              />
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">
+                  Jaihind Sports
+                </h1>
+                <p className="text-xs text-gray-500">Admin Panel</p>
+              </div>
+            </div>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="ml-auto text-gray-700 hover:bg-gray-200 lg:hidden"
+          >
+            {isOpen ? <X /> : <Menu />}
           </Button>
         </div>
 
-        {/* ✅ Sidebar Links */}
-        <nav className="p-4 space-y-2">
+        {/* Menu */}
+        <nav className="p-4 space-y-3">
           {menuItems.map((item) => {
-            const isActive =
-              location.pathname === item.path ||
-              location.pathname.startsWith(item.path);
+            const isActive = location.pathname === item.path;
 
             return (
               <Link key={item.path} to={item.path}>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <div
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
                   )}
                 >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-
-                  {/* ✅ Show text only when menu is expanded */}
+                  <item.icon className="w-5 h-5" />
                   {isOpen && <span className="font-medium">{item.label}</span>}
-                </motion.div>
+                </div>
               </Link>
             );
           })}

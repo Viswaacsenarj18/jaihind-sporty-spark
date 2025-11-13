@@ -13,6 +13,7 @@ import { Pencil, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 const CATEGORY_OPTIONS = [
   "T-Shirts & Apparel", "Cricket", "Badminton", "Kabaddi", "Football",
@@ -110,7 +111,8 @@ export default function ProductManagement() {
   if (loading) return <div className="p-6 text-center">Loading...</div>;
 
   return (
-    <div className="p-4 md:p-8 space-y-5">
+    <AdminLayout>
+      <div className="p-4 md:p-8 space-y-5">
 
       {/* ✅ Back Button */}
       <div className="flex items-center gap-3">
@@ -138,7 +140,7 @@ export default function ProductManagement() {
 
             <Input name="name" placeholder="Product Name" defaultValue={editingProduct?.name} required />
 
-            <select name="category" className="border rounded-md p-2 w-full"
+            <select name="category" aria-label="Category" className="border rounded-md p-2 w-full"
               defaultValue={editingProduct?.category || ""} required>
               <option value="">Select Category</option>
               {CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
@@ -164,6 +166,7 @@ export default function ProductManagement() {
               {(imageFile || imageUrl) && (
                 <img
                   src={imageFile ? URL.createObjectURL(imageFile) : resolveImage(imageUrl)}
+                  alt={editingProduct?.name || "product image"}
                   className="h-32 w-full object-contain rounded border"
                 />
               )}
@@ -195,7 +198,7 @@ export default function ProductManagement() {
               <TableBody>
                 {products.map(p => (
                   <TableRow key={p._id}>
-                    <TableCell><img src={resolveImage(p.image)} className="h-14 w-14 rounded object-contain border" /></TableCell>
+                    <TableCell><img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-14 w-14 rounded object-contain border" /></TableCell>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.category}</TableCell>
                     <TableCell>₹{p.price}</TableCell>
@@ -214,7 +217,7 @@ export default function ProductManagement() {
           <div className="md:hidden grid gap-3 mt-3">
             {products.map(p => (
               <div key={p._id} className="border rounded-lg p-3 flex gap-3 items-center">
-                <img src={resolveImage(p.image)} className="h-16 w-16 rounded border object-contain" />
+                <img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-16 w-16 rounded border object-contain" />
                 <div className="flex-1">
                   <h4 className="font-semibold text-sm">{p.name}</h4>
                   <p className="text-xs text-gray-500">{p.category}</p>
@@ -230,6 +233,7 @@ export default function ProductManagement() {
 
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
