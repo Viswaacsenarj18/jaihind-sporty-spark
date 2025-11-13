@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, Eye, Heart } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
@@ -20,6 +20,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist(); // ✅
   const { toast } = useToast();
@@ -52,6 +53,12 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
     });
   };
 
+  const handleBuyNow = () => {
+    handleAddToCart();
+    // Navigate to checkout page
+    navigate("/checkout");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -65,6 +72,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         {/* ✅ Wishlist Button */}
         <button
           onClick={handleWishlist}
+          title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
           className="absolute top-2 right-2 bg-white shadow-md rounded-full p-2 z-10 hover:scale-110 transition"
         >
           <Heart
@@ -103,10 +111,19 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           <div className="mt-3 flex flex-col gap-1">
             <Button
               size="sm"
+              className="py-2 text-xs bg-green-600 hover:bg-green-700"
+              onClick={handleBuyNow}
+            >
+              <ShoppingCart className="w-4 h-4 mr-1" /> Buy Now
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
               className="py-2 text-xs"
               onClick={handleAddToCart}
             >
-              <ShoppingCart className="w-4 h-4 mr-1" /> Add
+              <ShoppingCart className="w-4 h-4 mr-1" /> Add to Cart
             </Button>
 
             <Link to={`/product/${product.id}`}>

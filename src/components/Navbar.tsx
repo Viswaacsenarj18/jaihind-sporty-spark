@@ -40,6 +40,21 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  // ✅ Handle search
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/products" },
@@ -90,11 +105,12 @@ const Navbar = () => {
 
             {/* ✅ Search Bar (Desktop) */}
             <div className="hidden lg:flex relative">
-              <Search className="absolute left-3 top-2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-2 w-4 h-4 text-muted-foreground cursor-pointer" onClick={handleSearchClick} />
               <Input
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
                 className="pl-10 w-64 rounded-full"
               />
             </div>

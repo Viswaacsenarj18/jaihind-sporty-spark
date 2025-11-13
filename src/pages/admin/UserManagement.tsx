@@ -36,6 +36,15 @@ export default function UserManagement() {
       .catch((err) => console.error("Failed to fetch users", err));
   }, []);
 
+  // ✅ Filter users based on search term
+  const filteredUsers = users.filter((u) => {
+    const query = searchTerm.toLowerCase();
+    return (
+      u.name.toLowerCase().includes(query) ||
+      u.email.toLowerCase().includes(query)
+    );
+  });
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin": return "bg-red-100 text-red-800";
@@ -110,11 +119,11 @@ export default function UserManagement() {
 
         {/* Users Table */}
         <Card>
-          <CardHeader><CardTitle className="text-lg sm:text-xl">Users</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg sm:text-xl">Users ({filteredUsers.length})</CardTitle></CardHeader>
           <CardContent>
-            {users.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">No users found</p>
+                <p className="text-gray-500 text-sm">{searchTerm ? "No users matching your search" : "No users found"}</p>
               </div>
             ) : (
               <>
@@ -133,7 +142,7 @@ export default function UserManagement() {
                     </TableHeader>
 
                     <TableBody>
-                      {users.map((u) => (
+                      {filteredUsers.map((u) => (
                         <TableRow key={u._id}>
                           <TableCell className="font-medium text-xs sm:text-sm">{u.name}</TableCell>
 
@@ -179,7 +188,7 @@ export default function UserManagement() {
 
                 {/* Mobile Card View - Visible only on small screens */}
                 <div className="block sm:hidden space-y-3">
-                  {users.map((u) => (
+                  {filteredUsers.map((u) => (
                     <div key={u._id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                       {/* Header: Name + Delete Button */}
                       <div className="flex justify-between items-start gap-2 mb-3">
