@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Truck, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Shield, Truck, ShoppingBag, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ type ShippingInfo = {
   country: string;
 };
 
+type FieldErrors = Partial<Record<keyof ShippingInfo, string>>;
+
 const Checkout = () => {
   const { cartItems, clearCart } = useCart();
   const { toast } = useToast();
@@ -43,26 +45,96 @@ const Checkout = () => {
     country: "India",
   });
 
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
 
-  // ✅ Flipkart-style: If user is logged in, prefill from localStorage
+  // ✅ Validation Functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone.replace(/[\s-]/g, ''));
+  };
+
+  const validatePincode = (pincode: string): boolean => {
+    const pincodeRegex = /^[0-9]{6}$/;
+    return pincodeRegex.test(pincode);
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: FieldErrors = {};
+
+    // Required fields
+    if (!shippingInfo.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+    if (!shippingInfo.email.trim()) {
+      newErrors.email = "Email is required";
+    }
+    if (!shippingInfo.phone.trim()) {
+      newErrors.phone = "Phone is required";
+    }
+    if (!shippingInfo.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+    if (!shippingInfo.city.trim()) {
+      newErrors.city = "City is required";
+    }
+    if (!shippingInfo.state.trim()) {
+      newErrors.state = "State is required";
+    }
+    if (!shippingInfo.pincode.trim()) {
+      newErrors.pincode = "Pincode is required";
+    }
+
+    // Format validation
+    if (shippingInfo.email && !validateEmail(shippingInfo.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    if (shippingInfo.phone && !validatePhone(shippingInfo.phone)) {
+      newErrors.phone = "Phone must be 10 digits (India format)";
+    }
+    if (shippingInfo.pincode && !validatePincode(shippingInfo.pincode)) {
+      newErrors.pincode = "Pincode must be 6 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ✅ Load user data from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
-      const u = JSON.parse(savedUser);
-      setShippingInfo((prev) => ({
-        ...prev,
-        firstName: u.name || "",
-        email: u.email || "",
-      }));
+      try {
+        const u = JSON.parse(savedUser);
+        setShippingInfo((prev) => ({
+          ...prev,
+          firstName: u.name?.split(" ")[0] || "",
+          lastName: u.name?.split(" ").slice(1).join(" ") || "",
+          email: u.email || "",
+        }));
+      } catch (err) {
+        console.error("Failed to parse user data:", err);
+      }
     }
   }, []);
 
   // ✅ COD only
   const paymentMethod = "Cash on Delivery";
 
+  // ✅ Real-time validation on input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShippingInfo((s) => ({ ...s, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setShippingInfo((s) => ({ ...s, [name]: value }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof FieldErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   // ✅ Price calculations
@@ -92,7 +164,7 @@ const Checkout = () => {
     });
   };
 
-  // ✅ Handle Place Order (Flipkart-style)
+  // ✅ Handle Place Order
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -105,15 +177,14 @@ const Checkout = () => {
         description: "Please log in to place your order.",
         variant: "destructive",
       });
-
       return navigate("/login?redirect=checkout");
     }
 
-    // ✅ Validate details AFTER login
-    if (!shippingInfo.firstName || !shippingInfo.email || !shippingInfo.phone) {
+    // ✅ Validate all fields
+    if (!validateForm()) {
       toast({
-        title: "Missing Information",
-        description: "Please fill all required fields.",
+        title: "Validation Error",
+        description: "Please fix the errors below before placing order.",
         variant: "destructive",
       });
       return;
@@ -211,9 +282,22 @@ const Checkout = () => {
                   {["firstName", "lastName"].map((field) => (
                     <div key={field} className="space-y-2">
                       <Label htmlFor={field}>
-                        {field === "firstName" ? "First Name" : "Last Name"}
+                        {field === "firstName" ? "First Name *" : "Last Name"}
                       </Label>
-                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
+                      <Input 
+                        id={field} 
+                        name={field} 
+                        value={shippingInfo[field as keyof ShippingInfo]} 
+                        onChange={handleInputChange}
+                        className={errors[field as keyof FieldErrors] ? "border-red-500" : ""}
+                        placeholder={field === "firstName" ? "Enter first name" : "Enter last name"}
+                      />
+                      {errors[field as keyof FieldErrors] && (
+                        <div className="flex items-center gap-1 text-red-500 text-xs">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors[field as keyof FieldErrors]}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -222,24 +306,69 @@ const Checkout = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   {["email", "phone"].map((field) => (
                     <div key={field} className="space-y-2">
-                      <Label htmlFor={field}>{field === "email" ? "Email" : "Phone"}</Label>
-                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
+                      <Label htmlFor={field}>
+                        {field === "email" ? "Email *" : "Phone *"}
+                      </Label>
+                      <Input 
+                        id={field} 
+                        name={field} 
+                        type={field === "email" ? "email" : "tel"}
+                        value={shippingInfo[field as keyof ShippingInfo]} 
+                        onChange={handleInputChange}
+                        className={errors[field as keyof FieldErrors] ? "border-red-500" : ""}
+                        placeholder={field === "email" ? "Enter email address" : "Enter 10-digit phone number"}
+                      />
+                      {errors[field as keyof FieldErrors] && (
+                        <div className="flex items-center gap-1 text-red-500 text-xs">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors[field as keyof FieldErrors]}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
 
                 {/* Address */}
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={shippingInfo.address} onChange={handleInputChange} />
+                  <Label htmlFor="address">Address *</Label>
+                  <Input 
+                    id="address" 
+                    name="address" 
+                    value={shippingInfo.address} 
+                    onChange={handleInputChange}
+                    className={errors.address ? "border-red-500" : ""}
+                    placeholder="Enter street address"
+                  />
+                  {errors.address && (
+                    <div className="flex items-center gap-1 text-red-500 text-xs">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.address}
+                    </div>
+                  )}
                 </div>
 
                 {/* City, State, Pincode */}
                 <div className="grid md:grid-cols-3 gap-4">
                   {["city", "state", "pincode"].map((field) => (
-                    <div key={field}>
-                      <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
-                      <Input id={field} name={field} value={shippingInfo[field as keyof ShippingInfo]} onChange={handleInputChange} />
+                    <div key={field} className="space-y-2">
+                      <Label htmlFor={field}>
+                        {field.charAt(0).toUpperCase() + field.slice(1)} *
+                      </Label>
+                      <Input 
+                        id={field} 
+                        name={field} 
+                        value={shippingInfo[field as keyof ShippingInfo]} 
+                        onChange={handleInputChange}
+                        className={errors[field as keyof FieldErrors] ? "border-red-500" : ""}
+                        placeholder={field === "pincode" ? "6 digits" : "Enter " + field}
+                        maxLength={field === "pincode" ? 6 : undefined}
+                      />
+                      {errors[field as keyof FieldErrors] && (
+                        <div className="flex items-center gap-1 text-red-500 text-xs">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors[field as keyof FieldErrors]}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -277,7 +406,7 @@ const Checkout = () => {
               <div className="space-y-3">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    <img src={item.image} className="w-16 h-16 rounded object-cover" />
+                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
                     <div>
                       <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
