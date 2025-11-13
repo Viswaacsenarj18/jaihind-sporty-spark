@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { AUTH_ROUTES, ADMIN_ROUTES } from "@/config/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +15,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, adminLogin } = useAuth();
 
   const handleInputChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,34 +28,21 @@ const Login = () => {
 
     const { email, password } = formData;
 
-    // ✅ Auto detect admin email (change to your admin domain or list)
+    // ✅ Auto detect admin email
     const isAdmin = email.endsWith("@jaihind-sports.com");
 
-    const endpoint = isAdmin ? ADMIN_ROUTES.LOGIN : AUTH_ROUTES.LOGIN;
-
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      if (!data.success) {
-        setError(data.message || "Invalid email or password");
-        setLoading(false);
-        return;
+      if (isAdmin) {
+        // ✅ Use adminLogin for admin accounts
+        await adminLogin(email, password);
+        navigate("/admin/dashboard");
+      } else {
+        // ✅ Use login for regular users
+        await login(email, password);
+        navigate("/");
       }
-
-      // ✅ Save token & role
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", isAdmin ? "admin" : "user");
-
-      // ✅ Redirect
-      navigate(isAdmin ? "/admin/dashboard" : "/");
-    } catch (err) {
-      console.error(err);
-      setError("Server error, please try again.");
+    } catch (err: any) {
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
