@@ -1,21 +1,20 @@
 /**
- * 🌐 Centralized API Configuration
+ * 🌐 Centralized API Configuration (Fixed Version)
  * Automatically switches between localhost (development) and Render (production)
  */
 
-// Detect environment based on the browser origin
 const isLocalhost =
   typeof window !== "undefined" &&
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1");
 
-// ✅ Use Render backend in production
+// 🔥 IMPORTANT: Your REAL backend URL on Render
 export const API_BASE_URL = isLocalhost
   ? "http://localhost:5000" // Local development
-  : "https://jaihind-sporty-spark-1.onrender.com"; // Render backend
+  : "https://jaihind-sporty-spark-backend.onrender.com"; // Production backend
 
 /**
- * ✅ API Endpoints
+ * 🛡 Auth Routes
  */
 export const AUTH_ROUTES = {
   REGISTER: `${API_BASE_URL}/api/auth/register`,
@@ -23,11 +22,17 @@ export const AUTH_ROUTES = {
   GET_USERS: `${API_BASE_URL}/api/auth/users`,
 };
 
+/**
+ * 👨‍💼 Admin Routes
+ */
 export const ADMIN_ROUTES = {
   LOGIN: `${API_BASE_URL}/api/admin/login`,
   PROFILE: `${API_BASE_URL}/api/admin/profile`,
 };
 
+/**
+ * 🛒 Product Routes
+ */
 export const PRODUCT_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/products`,
   ADD: `${API_BASE_URL}/api/products`,
@@ -35,37 +40,46 @@ export const PRODUCT_ROUTES = {
   DELETE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
 };
 
+/**
+ * 📦 Order Routes
+ * (fixed: /api/orders/create was wrong for your backend)
+ */
 export const ORDER_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/orders`,
-  CREATE: `${API_BASE_URL}/api/orders/create`,
+  CREATE: `${API_BASE_URL}/api/orders`, // FIXED (POST /api/orders)
   GET_USER: (userId: string) => `${API_BASE_URL}/api/orders/user/${userId}`,
   UPDATE_STATUS: (orderId: string) =>
     `${API_BASE_URL}/api/orders/status/${orderId}`,
 };
 
 /**
- * 🧩 Helper for API requests with proper error handling
+ * 🧩 Helper API caller with full error handling
  */
-export const apiCall = async (url: string, options?: RequestInit): Promise<any> => {
+export const apiCall = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<any> => {
   try {
     const response = await fetch(url, {
+      method: options.method || "GET",
       headers: {
         "Content-Type": "application/json",
-        ...options?.headers,
+        ...(options.headers || {}),
       },
-      credentials: "include", // ✅ Include cookies for authentication
-      ...options,
+      credentials: "include", // Allows cookies/JWT
+      body: options.body || null,
     });
 
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `API Error: ${response.status}`);
+      throw new Error(data?.message || `API Error ${response.status}`);
     }
 
-    return await response.json();
-  } catch (error) {
-    console.error("API Call Error:", error);
-    throw error;
+    return data;
+  } catch (err) {
+    console.error("API Error:", err);
+    throw err;
   }
 };
 
