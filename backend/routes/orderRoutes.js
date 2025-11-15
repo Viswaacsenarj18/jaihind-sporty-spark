@@ -5,23 +5,35 @@ import {
   getUserOrders,
   cancelOrder,
   updateOrderStatus,
-  deleteOrder,
-  debugToken,
   getOrderDetails,
 } from "../controllers/orderController.js";
 
 const router = express.Router();
 
-// ========== USER ROUTES ==========
+/* ----------------------- USER ROUTES ----------------------- */
+
+// Create order
 router.post("/create", createOrder);
-router.get("/debug/token", debugToken); // DEV: debug incoming Authorization header
+
+// Get user's orders
 router.get("/user/my-orders", getUserOrders);
-router.patch("/cancel/:orderId", cancelOrder);
+
+// Get order details
 router.get("/details/:orderId", getOrderDetails);
 
-// ========== ADMIN ROUTES ==========
-router.get("/", getAllOrders); // Already requires admin check in controller
-router.patch("/status/:orderId", updateOrderStatus); // Already requires admin check
-router.delete("/:orderId", deleteOrder); // Already requires admin check
+// Cancel order
+router.patch("/cancel/:orderId", cancelOrder);
+
+
+/* ----------------------- ADMIN ROUTES ----------------------- */
+
+// Get all orders
+router.get("/", getAllOrders);
+
+// Update order status
+router.patch("/status/:orderId", updateOrderStatus);
+
+// ❌ deleteOrder removed (not exported anymore)
+
 
 export default router;
