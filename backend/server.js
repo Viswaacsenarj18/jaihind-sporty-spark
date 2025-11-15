@@ -11,9 +11,14 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 // Load environment variables
 dotenv.config();
+
+// ✅ Log JWT Secret (ONLY for debugging - REMOVE in production!)
+console.log("🔐 JWT_SECRET from .env:", process.env.JWT_SECRET || "NOT FOUND - Using fallback");
+console.log("🔐 NODE_ENV:", process.env.NODE_ENV || "development");
 
 // Fix ES module paths
 const __filename = fileURLToPath(import.meta.url);
@@ -70,6 +75,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ✅ Test route
 app.get("/", (req, res) => {
@@ -86,7 +92,8 @@ app.get("/status", (req, res) => {
     success: true,
     message: "Backend is running",
     timestamp: new Date().toISOString(),
-    version: "2.0.0"
+    version: "2.0.0",
+    jwtSecret: process.env.JWT_SECRET || "NOT SET - Using fallback"
   });
 });
 

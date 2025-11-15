@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -124,6 +125,9 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+
+            {/* ✅ Notifications */}
+            {isLoggedIn && <NotificationBell />}
 
             {/* ✅ Cart */}
             <Link to="/cart" className="relative">

@@ -113,9 +113,9 @@ const Checkout = () => {
         const u = JSON.parse(savedUser);
         setShippingInfo((prev) => ({
           ...prev,
-          firstName: u.name?.split(" ")[0] || "",
-          lastName: u.name?.split(" ").slice(1).join(" ") || "",
-          email: u.email || "",
+          firstName: u.name?.split(" ")[0] || prev.firstName || "",
+          lastName: u.name?.split(" ").slice(1).join(" ") || prev.lastName || "",
+          email: u.email || prev.email || "",
         }));
       } catch (err) {
         console.error("Failed to parse user data:", err);
@@ -157,9 +157,8 @@ const Checkout = () => {
     }));
 
     return api.post("/orders/create", {
-      customer: shippingInfo,
       items,
-      paymentMethod,
+      shippingInfo,
       summary: { subtotal, shipping, total },
     });
   };
@@ -169,9 +168,18 @@ const Checkout = () => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+
+    console.log("🔍 Checkout Debug:", {
+      hasToken: !!token,
+      tokenLength: token?.length,
+      hasUser: !!user,
+      token: token ? token.substring(0, 30) + "..." : null,
+      cartItems: cartItems.length,
+    });
 
     // ✅ Block checkout if user is not logged in
-    if (!token) {
+    if (!token || !user) {
       toast({
         title: "Login Required",
         description: "Please log in to place your order.",
@@ -202,30 +210,61 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      console.log("📦 Placing order with:", {
+        itemsCount: cartItems.length,
+        total: subtotal + shipping,
+        shippingInfo: shippingInfo,
+      });
+
       const res = await placeOrder();
 
-      if (res.data?.success) {
+      console.log("✅ Order response:", res.data);
+
+      // ✅ Check for success indicators
+      if (res.status === 201 || (res.data as any)?.order || (res.data as any)?.message) {
         clearCart();
 
         toast({
-          title: "Order Placed Successfully",
-          description: `Thank you ${shippingInfo.firstName}!`,
+          title: "Order Placed Successfully! 🎉",
+          description: `Thank you ${shippingInfo.firstName}! Your order has been created.`,
         });
 
-        navigate("/");
+        // Navigate after a brief delay to let user see the success message
+        setTimeout(() => {
+          navigate("/my-orders");
+        }, 1500);
       } else {
-        throw new Error(res.data?.message || "Unknown error");
+        throw new Error((res.data as any)?.error || "Unknown error");
       }
     } catch (err: any) {
-      console.error(err?.response?.data || err);
+      console.error("❌ Order Error:", {
+        status: err?.response?.status,
+        statusText: err?.response?.statusText,
+        data: err?.response?.data,
+        message: err?.message,
+        fullError: err,
+      });
+
+      // More specific error messages
+      let errorMsg = "Failed to place order. Please try again.";
+      if (err?.response?.status === 401) {
+        errorMsg = "Authentication failed. Please log in again.";
+      } else if (err?.response?.status === 400) {
+        errorMsg = err?.response?.data?.error || "Invalid order details. Please check and try again.";
+      } else if (err?.response?.status === 404) {
+        errorMsg = "One or more products not found. Please refresh and try again.";
+      } else if (err?.message === "Network Error") {
+        errorMsg = "Network error. Please check your connection and try again.";
+      }
+
       toast({
         title: "Order Failed",
-        description: err?.response?.data?.message || "Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // ✅ Empty Cart Screen

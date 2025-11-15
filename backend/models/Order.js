@@ -1,34 +1,94 @@
 import mongoose from "mongoose";
 
-const ItemSchema = new mongoose.Schema({
-  productId: { type: mongoose.Schema.Types.Mixed, required: true }, // string or ObjectId
-  name: String,
-  image: String,
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-});
-
-const OrderSchema = new mongoose.Schema({
-  customer: {
-    userId: { type: String }, // optional if you allow guest checkout
-    firstName: String,
-    lastName: String,
-    email: String,
-    phone: String,
-    address: String,
-    city: String,
-    state: String,
-    pincode: String,
-    country: String,
+const orderSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    items: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        image: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+    shippingInfo: {
+      firstName: {
+        type: String,
+        required: true,
+      },
+      lastName: {
+        type: String,
+        default: "",
+      },
+      email: {
+        type: String,
+        required: true,
+      },
+      phone: {
+        type: String,
+        required: true,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      pincode: {
+        type: String,
+        required: true,
+      },
+    },
+    summary: {
+      subtotal: {
+        type: Number,
+        required: true,
+      },
+      shipping: {
+        type: Number,
+        default: 0,
+      },
+      total: {
+        type: Number,
+        required: true,
+      },
+    },
+    status: {
+      type: String,
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+      default: "Pending",
+    },
   },
-  items: [ItemSchema],
-  paymentMethod: { type: String, default: "Cash on Delivery" },
-  summary: {
-    subtotal: Number,
-    shipping: Number,
-    total: Number,
-  },
-  status: { type: String, default: "Pending" },
-}, { timestamps: true });
+  {
+    timestamps: true,
+  }
+);
 
-export default mongoose.model("Order", OrderSchema);
+export default mongoose.models.Order || mongoose.model("Order", orderSchema);

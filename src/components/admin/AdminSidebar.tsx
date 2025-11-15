@@ -26,14 +26,28 @@ export function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
   const [orderCount, setOrderCount] = useState(0);
 
   useEffect(() => {
-    axios
-      .get(ORDER_ROUTES.GET_ALL)
-      .then((res) => {
-        if (res.data.success) {
-          setOrderCount(res.data.orders.length);
+    const fetchOrderCount = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(ORDER_ROUTES.GET_ALL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if ((response.data as any).success && (response.data as any).orders) {
+          setOrderCount((response.data as any).orders.length);
         }
-      })
-      .catch(() => setOrderCount(0));
+      } catch (err) {
+        console.error("Error fetching order count:", err);
+        setOrderCount(0);
+      }
+    };
+
+    fetchOrderCount();
+    
+    // Polling: refresh order count every 30 seconds
+    const interval = setInterval(fetchOrderCount, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const menuItems = [

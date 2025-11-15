@@ -17,6 +17,7 @@ import ProductListing from "./pages/ProductListing";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import MyOrders from "./pages/MyOrders";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
@@ -74,6 +75,16 @@ const AppRoutes = () => {
 
         {/* ✅ Checkout added */}
         <Route path="/checkout" element={<Checkout />} />
+
+        {/* ✅ My Orders - User can view and manage their orders */}
+        <Route
+          path="/my-orders"
+          element={
+            <ProtectedRoute>
+              <MyOrders />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

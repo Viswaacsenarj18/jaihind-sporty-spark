@@ -31,7 +31,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "blocked"],
       default: "active",
-    }
+    },
+
+    pastOrders: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+      },
+    ],
   },
   { 
     timestamps: true // ✅ Auto adds createdAt & updatedAt

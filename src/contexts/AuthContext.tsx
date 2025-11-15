@@ -26,11 +26,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Force fresh login - clear any old tokens that were signed with different secret
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setLoading(false);
   }, []);
 
@@ -43,13 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Login Response:', JSON.stringify(data, null, 2));
       
       // Handle different response formats from backend
-      let token = data.token;
-      let user = data.user;
-      
-      // If user is inside data.data, extract it
-      if (!user && data.data && typeof data.data === 'object') {
-        user = data.data;
-      }
+      // Auth returns: { message, data: { id, name, email, role, token } }
+      let token = data.data?.token || data.token;
+      let user = data.data || data.user;
       
       // Ensure user object has required fields
       if (!user || !user.id || !user.email) {
@@ -109,8 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Admin Login Response:', JSON.stringify(data, null, 2));
       
       // Handle different response formats from backend
+      // Admin returns: { success, message, token, data: { id, name, email, role } }
       let token = data.token;
-      let user = data.data || data.user;
+      let user = data.data;
       
       // Ensure user object has required fields
       if (!user || !user.id || !user.email) {

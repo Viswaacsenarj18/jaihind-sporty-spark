@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ORDER_ROUTES } from "@/config/api";
 
 interface AdminHeaderProps {
   onMenuToggle: () => void;
@@ -24,37 +23,64 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   const [notifications, setNotifications] = useState([]);
   const [count, setCount] = useState(0);
 
-  // ✅ Fetch notifications
+  // ✅ Fetch admin notifications (unread notifications from all users)
   useEffect(() => {
-    const loadOrders = async () => {
-      const res = await axios.get(ORDER_ROUTES.GET_ALL);
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.log("No token found for notifications");
+          return;
+        }
 
-      if (res.data.success) {
-        const pending = res.data.orders.filter(
-          (o) => o.status === "Pending"
-        );
+        console.log("Fetching admin notifications with token:", token.substring(0, 20) + "...");
+        const res = await axios.get("/api/notifications/admin/all", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        setNotifications(pending);
-        setCount(pending.length);
+        console.log("Admin notifications response:", res.data);
+        if (res.data.success) {
+          setNotifications(res.data.notifications || []);
+          setCount(res.data.unreadCount || 0);
+        } else {
+          console.log("No success flag in response");
+        }
+      } catch (err) {
+        console.error("Error fetching admin notifications:", err);
+        setNotifications([]);
+        setCount(0);
       }
     };
 
-    loadOrders();
+    fetchNotifications();
+    
+    // Polling: refresh every 10 seconds
+    const interval = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // ✅ Delete notification
-  const deleteNotification = async (id: string) => {
+  // ✅ Mark notification as read and remove from list
+  const handleMarkAsRead = async (notificationId: string) => {
     try {
+      const token = localStorage.getItem("token");
       await axios.patch(
-        ORDER_ROUTES.UPDATE_STATUS(id),
-        { status: "Seen" }
+        `/api/notifications/${notificationId}/read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      const updated = notifications.filter((n: any) => n._id !== id);
+      // Remove from local state
+      const updated = notifications.filter((n: any) => n._id !== notificationId);
       setNotifications(updated);
       setCount(updated.length);
     } catch (err) {
-      console.error("Delete notification error:", err);
+      console.error("Error marking notification as read:", err);
     }
   };
 
@@ -95,28 +121,32 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
             <DropdownMenuSeparator />
 
             {notifications.length === 0 ? (
-              <DropdownMenuItem disabled>No new orders</DropdownMenuItem>
+              <DropdownMenuItem disabled>No new notifications</DropdownMenuItem>
             ) : (
-              notifications.map((order: any) => (
+              notifications.map((notification: any) => (
                 <DropdownMenuItem
-                  key={order._id}
-                  className="flex justify-between items-center"
+                  key={notification._id}
+                  className="flex justify-between items-center gap-2 p-2"
                 >
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium text-sm">
-                      New Order: {order.customer.firstName}
+                      {notification.title}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Total ₹{order.summary.total}
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      User: {notification.user?.name || "Unknown"}
                     </p>
                   </div>
 
-                  {/* ❌ Delete Button */}
+                  {/* ❌ Mark as Read Button */}
                   <button
-                    className="text-red-500 text-xl"
-                    onClick={() => deleteNotification(order._id)}
+                    className="text-blue-500 text-lg hover:text-blue-700"
+                    onClick={() => handleMarkAsRead(notification._id)}
+                    title="Mark as read"
                   >
-                    ×
+                    ✓
                   </button>
                 </DropdownMenuItem>
               ))

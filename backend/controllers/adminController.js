@@ -29,10 +29,11 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
-    // ✅ Create JWT
+    // ✅ Create JWT with consistent secret
+    const secret = process.env.JWT_SECRET || 'yourSuperSecretKey123';
     const token = jwt.sign(
       { id: admin._id, role: admin.role },
-      process.env.JWT_SECRET,
+      secret,
       { expiresIn: "7d" }
     );
 

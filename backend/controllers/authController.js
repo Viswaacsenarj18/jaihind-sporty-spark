@@ -1,8 +1,10 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const generateToken = (id, role = 'user') => {
+  const secret = process.env.JWT_SECRET || 'yourSuperSecretKey123';
+  console.log('🔐 Generating token with secret:', secret);
+  return jwt.sign({ id, role }, secret, { expiresIn: '30d' });
 };
 
 export const registerUser = async (req, res) => {
@@ -22,7 +24,8 @@ export const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id)
+        role: 'user',
+        token: generateToken(user._id, 'user')
       }
     });
   } catch (err) {
@@ -39,13 +42,18 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    console.log('✅ User login successful:', email);
+    const token = generateToken(user._id, 'user');
+    console.log('✅ Token generated, length:', token.length);
+
     res.json({
       message: 'Login successful',
       data: {
         id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id)
+        role: 'user',
+        token: token
       }
     });
   } catch (err) {
