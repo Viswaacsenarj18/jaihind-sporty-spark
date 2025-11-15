@@ -14,6 +14,7 @@ const getUserFromToken = (req) => {
     if (!token) return null;
 
     const secret = process.env.JWT_SECRET || "yourSuperSecretKey123";
+
     const decoded = jwt.verify(token, secret);
 
     return { userId: decoded.id, role: decoded.role };
@@ -34,16 +35,18 @@ const verifyAdmin = (req) => {
 export const createOrder = async (req, res) => {
   try {
     const user = getUserFromToken(req);
-    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!user)
+      return res.status(401).json({ error: "Authentication required" });
 
     const { items, shippingInfo, summary } = req.body;
 
     // Validate items
-    if (!items || items.length === 0)
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
+    }
 
     // Validate shipping fields
-    const required = [
+    const requiredFields = [
       "firstName",
       "email",
       "phone",
@@ -53,25 +56,30 @@ export const createOrder = async (req, res) => {
       "pincode",
     ];
 
-    for (let field of required) {
-      if (!shippingInfo[field])
+    for (let field of requiredFields) {
+      if (!shippingInfo[field]) {
         return res.status(400).json({ error: `${field} is required` });
+      }
     }
 
     // Validate stock
     for (let item of items) {
       const product = await Product.findById(item.productId);
-      if (!product)
-        return res.status(404).json({ error: `Product not found: ${item.name}` });
+      if (!product) {
+        return res
+          .status(404)
+          .json({ error: `Product not found: ${item.name}` });
+      }
 
-      if (product.stock < item.quantity)
+      if (product.stock < item.quantity) {
         return res.status(400).json({
           error: `Insufficient stock for ${product.name}. Available: ${product.stock}`,
         });
+      }
     }
 
     // Create Order
-    const newOrder = await Order.create({
+    const order = await Order.create({
       user: user.userId,
       items,
       shippingInfo,
@@ -79,37 +87,37 @@ export const createOrder = async (req, res) => {
       status: "Pending",
     });
 
-    // Decrease stock
+    // Reduce stock
     for (let item of items) {
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: -item.quantity },
       });
     }
 
-    // Attach order to user
+    // Add order to user's past orders
     await User.findByIdAndUpdate(user.userId, {
-      $push: { pastOrders: newOrder._id },
+      $push: { pastOrders: order._id },
     });
 
-    // Notification to admin
+    // Admin notification
     const admin = await User.findOne({ role: "admin" });
     if (admin) {
       await Notification.create({
         user: admin._id,
-        orderId: newOrder._id,
+        orderId: order._id,
         type: "new_order",
         title: "New Order Received",
-        message: `New order placed. Total: ₹${summary.total}`,
+        message: `A new order was placed. Total: ₹${summary.total}`,
       });
     }
 
     res.status(201).json({
       success: true,
       message: "Order created successfully",
-      orderId: newOrder._id,
+      orderId: order._id,
     });
   } catch (err) {
-    console.error("Order Creation Error:", err);
+    console.error("Order Creation Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -120,7 +128,8 @@ export const createOrder = async (req, res) => {
 export const getUserOrders = async (req, res) => {
   try {
     const user = getUserFromToken(req);
-    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!user)
+      return res.status(401).json({ error: "Authentication required" });
 
     const orders = await Order.find({ user: user.userId })
       .populate("items.productId", "name price")
@@ -128,6 +137,7 @@ export const getUserOrders = async (req, res) => {
 
     res.json({ success: true, orders });
   } catch (err) {
+    console.error("Get User Orders Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -138,18 +148,25 @@ export const getUserOrders = async (req, res) => {
 export const cancelOrder = async (req, res) => {
   try {
     const user = getUserFromToken(req);
-    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!user)
+      return res.status(401).json({ error: "Authentication required" });
 
     const { orderId } = req.params;
-
     const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ error: "Order not found" });
 
-    if (order.user.toString() !== user.userId)
+    if (!order)
+      return res.status(404).json({ error: "Order not found" });
+
+    if (order.user.toString() !== user.userId) {
       return res.status(403).json({ error: "Unauthorized" });
+    }
 
-    if (!["Pending", "Processing"].includes(order.status))
-      return res.status(400).json({ error: "Cannot cancel this order" });
+    if (!["Pending", "Processing"].includes(order.status)) {
+      return res.status(400).json({
+        error:
+          "Order cannot be cancelled. Only Pending or Processing orders can be cancelled.",
+      });
+    }
 
     // Restore stock
     for (let item of order.items) {
@@ -161,8 +178,9 @@ export const cancelOrder = async (req, res) => {
     order.status = "Cancelled";
     await order.save();
 
-    res.json({ success: true, message: "Order cancelled" });
+    res.json({ success: true, message: "Order cancelled successfully" });
   } catch (err) {
+    console.error("Cancel Order Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -182,6 +200,7 @@ export const getAllOrders = async (req, res) => {
 
     res.json({ success: true, orders });
   } catch (err) {
+    console.error("Get All Orders Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -197,18 +216,28 @@ export const updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    if (!["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].includes(status))
-      return res.status(400).json({ error: "Invalid status" });
+    const validStatuses = [
+      "Pending",
+      "Processing",
+      "Shipped",
+      "Delivered",
+      "Cancelled",
+    ];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid order status" });
+    }
 
     const order = await Order.findById(orderId);
-
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (!order)
+      return res.status(404).json({ error: "Order not found" });
 
     order.status = status;
     await order.save();
 
-    res.json({ success: true, message: "Order updated", order });
+    res.json({ success: true, message: "Order status updated", order });
   } catch (err) {
+    console.error("Update Status Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -219,19 +248,23 @@ export const updateOrderStatus = async (req, res) => {
 export const getOrderDetails = async (req, res) => {
   try {
     const user = getUserFromToken(req);
-    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!user)
+      return res.status(401).json({ error: "Authentication required" });
 
     const order = await Order.findById(req.params.orderId)
-      .populate("user", "name email")
+      .populate("user", "name email phone")
       .populate("items.productId", "name price image");
 
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (!order)
+      return res.status(404).json({ error: "Order not found" });
 
-    if (order.user._id.toString() !== user.userId)
+    if (order.user._id.toString() !== user.userId) {
       return res.status(403).json({ error: "Unauthorized" });
+    }
 
     res.json(order);
   } catch (err) {
+    console.error("Get Order Details Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
