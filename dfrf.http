@@ -1,0 +1,10 @@
+PUT {{baseUrl}}{{apiBase}}/products/PRODUCT_ID
+Content-Type: application/json
+
+{
+  "name": "Updated Product Name",
+  "price": 1299,
+  "description": "Updated description",
+  "category": "Sports",
+  "stock": 75
+}
