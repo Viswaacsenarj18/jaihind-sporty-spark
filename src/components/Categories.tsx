@@ -114,7 +114,7 @@ const categories = [
     name: "Trophies",
     icon: Trophy,
     description: "Awards, cups & medals.",
-    image: "https://media.istockphoto.com/id/108353971/photo/trophy.webp?a=1&b=1&s=612x612&w=0&k=20&c=DCSBY2WdcLCblHHSNpzmapItigixJdQvV7VnvqgpPgU=3",
+    image: "https://media.istockphoto.com/id/108353971/photo/trophy.webp?a=1&b=1&s=612x612&w=0&k=20&c=DCSBY2WdcLCblHHSNpzmapItigixJdQvV7VnvqgpPgU=",
     slug: "trophies",
     gradient: "from-yellow-500 to-yellow-700",
   },
