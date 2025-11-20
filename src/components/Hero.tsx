@@ -8,20 +8,37 @@ import api from "@/lib/api";
 
 const Hero = () => {
   const [stats, setStats] = useState({ products: 0, users: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [prodRes, userRes] = await Promise.all([
-          api.get("/products"),
-          api.get("/auth/users"),
-        ]);
-        setStats({
-          products: prodRes.data?.products?.length || 0,
-          users: userRes.data?.users?.length || 0,
-        });
+        // ✅ Fetch public stats from backend
+        const res = await api.get("/admin/stats");
+        console.log("📊 Stats response:", res.data);
+        
+        const data = res.data as any;
+        if (data?.success) {
+          setStats({
+            products: data.stats?.products || 0,
+            users: data.stats?.users || 0,
+          });
+          console.log("📦 Stats updated - Products:", data.stats?.products, "Users:", data.stats?.users);
+        }
       } catch (err) {
-        console.error("Error fetching stats:", err);
+        console.error("❌ Error fetching stats:", err);
+        // Fallback: Still fetch products at least
+        try {
+          const prodRes = await api.get("/products");
+          const prodData = prodRes.data as any;
+          const productsCount = prodData?.products?.length || 0;
+          console.log("📦 Fallback - Products fetched:", productsCount);
+          setStats({ products: productsCount, users: 0 });
+        } catch (fallbackErr) {
+          console.error("❌ Fallback also failed:", fallbackErr);
+        }
+      } finally {
+        setLoading(false);
       }
     };
     fetchStats();
