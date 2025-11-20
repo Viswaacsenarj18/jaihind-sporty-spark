@@ -26,9 +26,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Force fresh login - clear any old tokens that were signed with different secret
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    // ✅ Restore user from localStorage on app load (don't clear!)
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (savedToken && savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        console.log('🔄 Restoring session from localStorage:', userData.email);
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to restore user session:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    } else {
+      console.log('ℹ️ No saved session found');
+    }
+    
     setLoading(false);
   }, []);
 
