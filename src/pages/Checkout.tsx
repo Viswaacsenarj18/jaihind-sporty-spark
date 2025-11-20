@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Truck, ShoppingBag, AlertCircle } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Shield, Truck, ShoppingBag, AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,11 @@ type ShippingInfo = {
 type FieldErrors = Partial<Record<keyof ShippingInfo, string>>;
 
 const Checkout = () => {
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, updateQuantity, removeFromCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isBuyNow = searchParams.get("buyNow") === "true";
 
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     firstName: "",
@@ -48,6 +50,23 @@ const Checkout = () => {
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [buyNowItems, setBuyNowItems] = useState<any[]>([]);
+
+  // ✅ Load buyNow item from sessionStorage if coming from product detail
+  useEffect(() => {
+    if (isBuyNow) {
+      const buyNowItem = sessionStorage.getItem("buyNowItem");
+      if (buyNowItem) {
+        try {
+          const item = JSON.parse(buyNowItem);
+          setBuyNowItems([item]);
+          sessionStorage.removeItem("buyNowItem");
+        } catch (err) {
+          console.error("Error parsing buyNowItem:", err);
+        }
+      }
+    }
+  }, [isBuyNow]);
 
   // ✅ Validation Functions
   const validateEmail = (email: string): boolean => {
@@ -138,10 +157,29 @@ const Checkout = () => {
     }
   };
 
+  // ✅ Handlers for buyNow mode
+  const handleBuyNowUpdateQuantity = (itemId: string, newQty: number) => {
+    if (newQty <= 0) {
+      setBuyNowItems(buyNowItems.filter(item => item.id !== itemId));
+      toast({ title: "Item Removed", description: "Item removed from checkout" });
+    } else {
+      setBuyNowItems(buyNowItems.map(item =>
+        item.id === itemId ? { ...item, quantity: newQty } : item
+      ));
+    }
+  };
+
+  const handleBuyNowRemoveItem = (itemId: string, itemName: string) => {
+    setBuyNowItems(buyNowItems.filter(item => item.id !== itemId));
+    toast({ title: "Item Removed", description: `${itemName} removed from checkout` });
+  };
+
   // ✅ Price calculations
+  const itemsToCheckout = isBuyNow ? buyNowItems : cartItems;
+  
   const subtotal = useMemo(
-    () => cartItems.reduce((s, it) => s + it.price * it.quantity, 0),
-    [cartItems]
+    () => itemsToCheckout.reduce((s, it) => s + it.price * it.quantity, 0),
+    [itemsToCheckout]
   );
 
   const shipping = subtotal > 5000 ? 0 : 99;
@@ -150,7 +188,7 @@ const Checkout = () => {
   // ✅ Backend Payload
   const placeOrder = async () => {
     const token = localStorage.getItem("token");
-    const items = cartItems.map((it) => ({
+    const items = itemsToCheckout.map((it) => ({
       productId: it.id,
       name: it.name,
       image: it.image,
@@ -239,7 +277,7 @@ const Checkout = () => {
       return;
     }
 
-    if (cartItems.length === 0) {
+    if (itemsToCheckout.length === 0) {
       toast({
         title: "Cart Empty",
         description: "Add some items before placing an order.",
@@ -252,7 +290,7 @@ const Checkout = () => {
 
     try {
       console.log("📦 Placing order with:", {
-        itemsCount: cartItems.length,
+        itemsCount: itemsToCheckout.length,
         total: subtotal + shipping,
         shippingInfo: shippingInfo,
       });
@@ -309,7 +347,7 @@ const Checkout = () => {
   };
 
   // ✅ Empty Cart Screen
-  if (cartItems.length === 0) {
+  if (itemsToCheckout.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -484,13 +522,70 @@ const Checkout = () => {
 
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-3">
+                {itemsToCheckout.map((item) => (
+                  <div key={item.id} className="flex gap-3 pb-3 border-b last:border-b-0">
                     <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                      <p className="font-semibold">₹{item.price * item.quantity}</p>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{item.name}</p>
+                      {item.size && (
+                        <p className="text-xs text-muted-foreground">Size: {item.size}</p>
+                      )}
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-sm text-muted-foreground">Qty: <span className="font-semibold text-foreground">{item.quantity}</span></p>
+                        <p className="font-semibold text-sm">₹{(item.price * item.quantity).toLocaleString()}</p>
+                      </div>
+
+                      {/* Quantity & Delete Controls */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center border rounded-lg">
+                          <button
+                            onClick={() => {
+                              if (isBuyNow) {
+                                handleBuyNowUpdateQuantity(item.id, Math.max(1, item.quantity - 1));
+                              } else {
+                                updateQuantity(item.id, Math.max(1, item.quantity - 1));
+                              }
+                            }}
+                            className="p-1 hover:bg-muted"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="px-2 py-0.5 font-semibold text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => {
+                              const maxQty = item.stock || 999;
+                              if (item.quantity < maxQty) {
+                                if (isBuyNow) {
+                                  handleBuyNowUpdateQuantity(item.id, item.quantity + 1);
+                                } else {
+                                  updateQuantity(item.id, item.quantity + 1);
+                                }
+                              }
+                            }}
+                            disabled={(item.stock || 999) <= item.quantity}
+                            className="p-1 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (isBuyNow) {
+                              handleBuyNowRemoveItem(item.id, item.name);
+                            } else {
+                              removeFromCart(item.id);
+                              toast({ title: "Item Removed", description: `${item.name} removed from cart` });
+                            }
+                          }}
+                          className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition ml-auto"
+                          aria-label="Delete item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -501,7 +596,7 @@ const Checkout = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{subtotal}</span>
+                  <span>₹{subtotal.toLocaleString()}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -513,7 +608,7 @@ const Checkout = () => {
 
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-primary">₹{total}</span>
+                  <span className="text-primary">₹{total.toLocaleString()}</span>
                 </div>
               </div>
 

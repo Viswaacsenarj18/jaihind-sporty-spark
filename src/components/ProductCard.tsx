@@ -54,9 +54,8 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   };
 
   const handleBuyNow = () => {
-    handleAddToCart();
-    // Navigate to checkout page
-    navigate("/checkout");
+    // Navigate directly to product detail page (user can review product and then proceed to checkout)
+    navigate(`/product/${product.id}?buyNow=true`);
   };
 
   return (

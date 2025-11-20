@@ -130,39 +130,63 @@ const Cart = () => {
                       </div>
 
                       {/* Quantity & Remove */}
-                      <div className="flex items-center gap-3">
-                        {/* Quantity Buttons */}
-                        <div className="flex items-center border rounded-lg">
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity - 1)
-                            }
-                            className="p-3"
-                          >
-                            <Minus className="w-5 h-5" />
-                          </button>
+                      <div className="flex flex-col items-end gap-3">
+                        <div className="flex items-center gap-3">
+                          {/* Quantity Buttons */}
+                          <div className="flex items-center border rounded-lg">
+                            <button
+                              onClick={() =>
+                                updateQuantity(item.id, Math.max(1, item.quantity - 1))
+                              }
+                              className="p-3 hover:bg-muted"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="w-5 h-5" />
+                            </button>
 
-                          <span className="px-4 py-1 font-semibold">
-                            {item.quantity}
-                          </span>
+                            <span className="px-4 py-1 font-semibold">
+                              {item.quantity}
+                            </span>
 
+                            <button
+                              onClick={() => {
+                                const maxQty = item.stock || 999;
+                                if (item.quantity < maxQty) {
+                                  updateQuantity(item.id, item.quantity + 1);
+                                }
+                              }}
+                              disabled={(item.stock || 999) <= item.quantity}
+                              className="p-3 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          {/* Remove */}
                           <button
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)
-                            }
-                            className="p-3"
+                            onClick={() => removeFromCart(item.id)}
+                            className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
+                            aria-label="Remove from cart"
                           >
-                            <Plus className="w-5 h-5" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
 
-                        {/* Remove */}
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {/* Stock Status */}
+                        {item.stock !== undefined && (
+                          <div className="text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            {item.stock > 0 
+                              ? `${item.stock} in stock` 
+                              : 'Out of stock'}
+                          </div>
+                        )}
+
+                        {item.quantity > (item.stock || 999) && (
+                          <div className="text-xs font-semibold px-2 py-1 rounded bg-red-50 text-red-700 border border-red-200">
+                            Only {item.stock} available
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>

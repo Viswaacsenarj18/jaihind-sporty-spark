@@ -9,6 +9,7 @@ export interface CartItem {
   quantity: number;
   category?: string;
   size?: string; // For T-shirts and apparel
+  stock?: number; // ✅ Track available stock
 }
 
 interface CartContextType {

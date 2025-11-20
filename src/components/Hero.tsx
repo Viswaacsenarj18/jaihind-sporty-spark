@@ -4,7 +4,7 @@ import { ArrowRight, Play, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-sports.jpg";
-import api from "@/lib/api";
+import { adminAPI } from "@/lib/api";
 
 const Hero = () => {
   const [stats, setStats] = useState({ products: 0, users: 0 });
@@ -13,8 +13,8 @@ const Hero = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // ✅ Fetch public stats from backend
-        const res = await api.get("/admin/stats");
+        // ✅ Fetch public stats from backend using consistent API
+        const res = await adminAPI.getStats();
         console.log("📊 Stats response:", res.data);
         
         const data = res.data as any;
@@ -29,8 +29,8 @@ const Hero = () => {
         console.error("❌ Error fetching stats:", err);
         // Fallback: Still fetch products at least
         try {
-          const prodRes = await api.get("/products");
-          const prodData = prodRes.data as any;
+          const prodRes = await fetch(`${window.location.origin.includes('localhost') ? 'http://localhost:5000' : 'https://jaihind-sporty-spark-backend.onrender.com'}/api/products`);
+          const prodData = await prodRes.json();
           const productsCount = prodData?.products?.length || 0;
           console.log("📦 Fallback - Products fetched:", productsCount);
           setStats({ products: productsCount, users: 0 });

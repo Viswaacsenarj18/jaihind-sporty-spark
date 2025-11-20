@@ -42,6 +42,7 @@ export const adminAPI = {
   login: (email: string, password: string) =>
     api.post('/admin/login', { email, password }),
   getProfile: () => api.get('/admin/profile'),
+  getStats: () => api.get('/admin/stats'), // ✅ Public stats endpoint
 };
 
 // Products API

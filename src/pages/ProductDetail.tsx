@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, ShoppingCart, Plus, Minus } from "lucide-react";
 
@@ -15,6 +15,9 @@ import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const buyNow = searchParams.get("buyNow") === "true";
 
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
@@ -24,7 +27,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const isWishlisted = wishlist.some((item) => item.id === id || item._id === id);
+  const isWishlisted = wishlist.some((item) => item.id === id);
 
   useEffect(() => {
     const getProduct = async () => {
@@ -52,11 +55,34 @@ const ProductDetail = () => {
   if (!product)
     return <div className="p-10 text-center text-lg">Loading product...</div>;
 
+  // ✅ Check if product is out of stock
+  const isOutOfStock = product.stock <= 0;
+
   const handleQuantityChange = (delta: number) => {
-    setQuantity((prev) => Math.max(1, prev + delta));
+    setQuantity((prev) => Math.max(1, Math.min(prev + delta, product.stock || 1)));
   };
 
   const handleAddToCart = () => {
+    // ✅ Check stock before adding to cart
+    if (isOutOfStock) {
+      toast({
+        title: "Out of Stock",
+        description: "This product is currently out of stock. Please check back later.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if quantity exceeds stock
+    if (quantity > product.stock) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${product.stock} items available in stock.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validate size selection if product has sizes
     if (product.hasSizes && !selectedSize) {
       toast({
@@ -67,7 +93,7 @@ const ProductDetail = () => {
       return;
     }
 
-    addToCart({
+    const cartItem = {
       id: product._id,
       name: product.name,
       price: product.price,
@@ -77,14 +103,32 @@ const ProductDetail = () => {
       quantity,
       category: product.category,
       size: selectedSize || undefined,
-    });
+      stock: product.stock, // ✅ Include stock
+    };
 
-    toast({
-      title: "Added to cart",
-      description: `${quantity} × ${product.name}${selectedSize ? ` (${selectedSize})` : ""} added.`,
-    });
+    // ✅ NEW: If buyNow was clicked, navigate directly to checkout with this item
+    if (buyNow) {
+      // Store the item in sessionStorage to pass to checkout
+      sessionStorage.setItem("buyNowItem", JSON.stringify(cartItem));
+      
+      toast({
+        title: "Proceeding to checkout",
+        description: `${quantity} × ${product.name} ready for checkout.`,
+      });
+      
+      // Navigate to checkout
+      navigate("/checkout?buyNow=true");
+    } else {
+      // Regular add to cart flow
+      addToCart(cartItem);
 
-    setQuantity(1);
+      toast({
+        title: "Added to cart",
+        description: `${quantity} × ${product.name}${selectedSize ? ` (${selectedSize})` : ""} added.`,
+      });
+
+      setQuantity(1);
+    }
   };
 
   const handleWishlist = () => {
@@ -155,6 +199,25 @@ const ProductDetail = () => {
             <p className="text-sm text-muted-foreground mb-3">
               {product.description}
             </p>
+
+            <Separator />
+
+            {/* ✅ Stock Status Badge */}
+            <div className="mt-4">
+              {isOutOfStock ? (
+                <Badge variant="destructive" className="text-base py-1 px-3">
+                  Out of Stock
+                </Badge>
+              ) : product.stock < 5 ? (
+                <Badge variant="secondary" className="text-base py-1 px-3 bg-amber-100 text-amber-800 border border-amber-300">
+                  ⚠️ Only {product.stock} left in stock
+                </Badge>
+              ) : (
+                <Badge className="text-base py-1 px-3 bg-green-100 text-green-800 border border-green-300">
+                  ✓ {product.stock} in stock
+                </Badge>
+              )}
+            </div>
 
             <Separator />
 
