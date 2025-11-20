@@ -6,6 +6,7 @@ import {
   cancelOrder,
   updateOrderStatus,
   getOrderDetails,
+  deleteOrder,
 } from "../controllers/orderController.js";
 import { protectUser } from "../middleware/protectUser.js";
 import { protectAdmin } from "../middleware/auth.js";
@@ -35,7 +36,7 @@ router.get("/", protectAdmin, getAllOrders);
 // ✅ Update order status (Protected - admin only)
 router.patch("/status/:orderId", protectAdmin, updateOrderStatus);
 
-// ❌ deleteOrder removed (not exported anymore)
-
+// ✅ Delete order (Protected - admin only)
+router.delete("/:orderId", protectAdmin, deleteOrder);
 
 export default router;

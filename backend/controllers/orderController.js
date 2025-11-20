@@ -299,3 +299,39 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+/* ===================================================================
+   ADMIN: DELETE ORDER (Protected by middleware)
+=================================================================== */
+export const deleteOrder = async (req, res) => {
+  try {
+    const adminId = req.admin?._id || req.user?._id;
+    const { orderId } = req.params;
+
+    console.log("🗑️ Admin deleting order:", { orderId, adminId });
+
+    if (!adminId) {
+      return res.status(401).json({ error: "Admin authentication failed" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Remove order from user's pastOrders
+    await User.findByIdAndUpdate(order.user, {
+      $pull: { pastOrders: orderId },
+    });
+
+    // Delete order
+    await Order.findByIdAndDelete(orderId);
+
+    console.log("✅ Order deleted successfully");
+
+    res.json({ success: true, message: "Order deleted successfully" });
+  } catch (err) {
+    console.error("❌ Delete Order Error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
