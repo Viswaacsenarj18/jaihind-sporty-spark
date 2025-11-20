@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../models/User.js";
 import { deleteUser, getAllUsers } from "../controllers/authController.js";
+import { protectAdmin } from "../middleware/auth.js";
 
 dotenv.config();
 
@@ -88,10 +89,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/* ✅ GET ALL USERS (Admin Only Access Later) */
-router.get("/users", getAllUsers);
+/* ✅ GET ALL USERS (Protected - Admin Only) */
+router.get("/users", protectAdmin, getAllUsers);
 
-/* ✅ DELETE USER (Admin function) */
-router.delete("/users/:id", deleteUser);
+/* ✅ DELETE USER (Protected - Admin Only) */
+router.delete("/users/:id", protectAdmin, deleteUser);
 
 export default router;
