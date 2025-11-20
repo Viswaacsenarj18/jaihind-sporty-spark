@@ -5,38 +5,64 @@ import { Filter, SlidersHorizontal } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
-import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
+import { PRODUCT_ROUTES, CATEGORY_ROUTES, API_BASE_URL } from "@/config/api";
 
-// ✅ Category list with slug + label mapping
-const categoryData = [
-  { slug: "all", label: "All" },
-  { slug: "cricket", label: "Cricket" },
-  { slug: "badminton", label: "Badminton" },
-  { slug: "tennis", label: "Tennis" },
-  { slug: "kabaddi", label: "Kabaddi" },
-  { slug: "football", label: "Football" },
-  { slug: "volleyball", label: "Volleyball" },
-  { slug: "basketball", label: "Basketball" },
-  { slug: "other-sports", label: "Other Sports" },
-  { slug: "indoor-games", label: "Indoor Games" },
-  { slug: "gym-fitness", label: "Gym & Fitness" },
-  { slug: "trophies", label: "Trophies" },
-  { slug: "t-shirts-apparel", label: "T-Shirts & Apparel" }, // ✅ fixed
+// ✅ Default category list
+const DEFAULT_CATEGORIES = [
+  { _id: "all", slug: "all", name: "All" },
+  { _id: "cricket", slug: "cricket", name: "Cricket" },
+  { _id: "badminton", slug: "badminton", name: "Badminton" },
+  { _id: "tennis", slug: "tennis", name: "Tennis" },
+  { _id: "kabaddi", slug: "kabaddi", name: "Kabaddi" },
+  { _id: "football", slug: "football", name: "Football" },
+  { _id: "volleyball", slug: "volleyball", name: "Volleyball" },
+  { _id: "basketball", slug: "basketball", name: "Basketball" },
+  { _id: "other-sports", slug: "other-sports", name: "Other Sports" },
+  { _id: "indoor-games", slug: "indoor-games", name: "Indoor Games" },
+  { _id: "gym-fitness", slug: "gym-fitness", name: "Gym & Fitness" },
+  { _id: "trophies", slug: "trophies", name: "Trophies" },
+  { _id: "t-shirts-apparel", slug: "t-shirts-apparel", name: "T-Shirts & Apparel" },
 ];
-
-const normalize = (str: string) =>
-  str?.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const ProductListing = () => {
   const [searchParams] = useSearchParams();
   const categorySlug = searchParams.get("category") || "all";
+  const searchQuery = searchParams.get("search") || "";
 
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState(categorySlug);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [appliedRange, setAppliedRange] = useState<{ min?: number; max?: number }>({});
+
+  // ✅ Fetch categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        console.log("📂 Fetching categories from:", CATEGORY_ROUTES.GET_ALL);
+        const res = await fetch(CATEGORY_ROUTES.GET_ALL);
+        const data = await res.json();
+        console.log("📂 Categories response:", data);
+        
+        if (data.success && data.categories?.length > 0) {
+          // Add "All" at the beginning
+          const categoriesWithAll = [
+            { _id: "all", slug: "all", name: "All" },
+            ...data.categories
+          ];
+          setCategories(categoriesWithAll);
+          console.log("✅ Categories loaded:", categoriesWithAll.length);
+        }
+      } catch (err) {
+        console.error("❌ Categories Fetch Error:", err);
+        setCategories(DEFAULT_CATEGORIES);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   // ✅ Fetch products
   useEffect(() => {
@@ -64,25 +90,30 @@ const ProductListing = () => {
     });
   };
 
-  const toggleWishlist = (id: string) => {
-    setWishlist(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  };
-
-  const currentCategoryLabel =
-    categoryData.find(c => c.slug === selectedCategory)?.label || "All";
-
-  // ✅ Final product filter
+  // ✅ Final product filter - works with category, search, and price
   const filteredProducts = products
-    .filter((p) =>
-      selectedCategory === "all"
-        ? true
-        : normalize(p.category) === normalize(currentCategoryLabel)
-    )
     .filter((p) => {
+      // 🔍 Search filter - match product name
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          p.name?.toLowerCase().includes(query) ||
+          p.description?.toLowerCase().includes(query) ||
+          p.category?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
+      // 📂 Category filter
+      if (selectedCategory !== "all") {
+        const matchedCategory = categories.find(c => c.slug === selectedCategory || c._id === selectedCategory);
+        if (!matchedCategory) return false;
+        if (p.category?.toLowerCase() !== matchedCategory.name?.toLowerCase()) return false;
+      }
+
+      // 💰 Price filter
       if (appliedRange.min && p.price < appliedRange.min) return false;
       if (appliedRange.max && p.price > appliedRange.max) return false;
+      
       return true;
     });
 
@@ -94,7 +125,7 @@ const ProductListing = () => {
       <section className="py-10 text-center bg-primary text-white">
         <h1 className="text-2xl sm:text-4xl font-bold">Jaihind Sportify</h1>
         <p className="text-white/90 mt-2 text-sm sm:text-base">
-          Premium Sports Gear For Champions
+          {searchQuery ? `Search Results for "${searchQuery}"` : "Premium Sports Gear For Champions"}
         </p>
       </section>
 
@@ -111,9 +142,9 @@ const ProductListing = () => {
           </h3>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
-            {categoryData.map((cat) => (
+            {categories.map((cat) => (
               <button
-                key={cat.slug}
+                key={cat._id || cat.slug}
                 onClick={() => setSelectedCategory(cat.slug)}
                 className={`py-2 px-2 rounded text-sm border transition ${
                   selectedCategory === cat.slug
@@ -121,7 +152,7 @@ const ProductListing = () => {
                     : "bg-muted hover:bg-primary hover:text-white"
                 }`}
               >
-                {cat.label}
+                {cat.name}
               </button>
             ))}
           </div>

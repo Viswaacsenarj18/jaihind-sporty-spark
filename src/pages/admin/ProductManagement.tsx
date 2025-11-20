@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
@@ -12,14 +13,10 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, CATEGORY_ROUTES } from "@/config/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
-const CATEGORY_OPTIONS = [
-  "T-Shirts & Apparel", "Cricket", "Badminton", "Kabaddi", "Football",
-  "Volleyball", "Basketball", "Indoor Games", "Gym & Fitness",
-  "Trophies", "Other Sports"
-];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
 
 interface Product {
   _id: string;
@@ -29,16 +26,42 @@ interface Product {
   price: number;
   stock: number;
   image: string;
+  hasSizes?: boolean;
+  sizes?: Array<{ size: string; quantity: number }>;
 }
 
 export default function ProductManagement() {
-  const navigate = useNavigate(); // ✅ for back button
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [hasSizes, setHasSizes] = useState(false);
+  const [sizes, setSizes] = useState<Array<{ size: string; quantity: number }>>(
+    SIZES.map(s => ({ size: s, quantity: 0 }))
+  );
+
+  // ✅ Fetch categories from database
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        console.log("📂 Fetching categories...");
+        const res = await fetch(CATEGORY_ROUTES.GET_ALL);
+        const data = await res.json();
+        if (data.success && data.categories) {
+          const categoryNames = data.categories.map((c: any) => c.name);
+          setCategories(categoryNames);
+          console.log("✅ Categories loaded:", categoryNames);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching categories:", err);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const fetchProducts = async () => {
     try {
@@ -67,6 +90,12 @@ export default function ProductManagement() {
       formData.set("imageUrl", imageUrl);
     }
 
+    // Add size data
+    formData.set("hasSizes", hasSizes.toString());
+    if (hasSizes) {
+      formData.set("sizes", JSON.stringify(sizes));
+    }
+
     try {
       if (editingProduct) {
         await productsAPI.update(editingProduct._id, formData);
@@ -87,6 +116,8 @@ export default function ProductManagement() {
     setEditingProduct(p);
     setImageUrl(p.image);
     setImageFile(null);
+    setHasSizes(p.hasSizes || false);
+    setSizes(p.sizes && p.sizes.length > 0 ? p.sizes : SIZES.map(s => ({ size: s, quantity: 0 })));
     setDialogOpen(true);
   };
 
@@ -94,6 +125,8 @@ export default function ProductManagement() {
     setEditingProduct(null);
     setImageUrl("");
     setImageFile(null);
+    setHasSizes(false);
+    setSizes(SIZES.map(s => ({ size: s, quantity: 0 })));
     setDialogOpen(true);
   };
 
@@ -143,7 +176,7 @@ export default function ProductManagement() {
             <select name="category" aria-label="Category" className="border rounded-md p-2 w-full"
               defaultValue={editingProduct?.category || ""} required>
               <option value="">Select Category</option>
-              {CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
+              {categories.map(c => <option key={c}>{c}</option>)}
             </select>
 
             <Textarea name="description" placeholder="Description" defaultValue={editingProduct?.description} />
@@ -151,6 +184,39 @@ export default function ProductManagement() {
             <Input name="price" type="number" placeholder="Price" defaultValue={editingProduct?.price} required />
 
             <Input name="stock" type="number" placeholder="Stock" defaultValue={editingProduct?.stock} required />
+
+            {/* Size Toggle */}
+            <div className="flex items-center gap-3 border rounded-md p-3 bg-gray-50">
+              <Checkbox
+                id="hasSizes"
+                checked={hasSizes}
+                onCheckedChange={(checked) => setHasSizes(checked as boolean)}
+              />
+              <Label htmlFor="hasSizes" className="cursor-pointer font-medium">This product has size variants</Label>
+            </div>
+
+            {/* Size Inventory */}
+            {hasSizes && (
+              <div className="space-y-3 border rounded-md p-3 bg-blue-50">
+                <Label className="font-semibold">Size Inventory (XS - XXXL)</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {sizes.map((item) => (
+                    <div key={item.size} className="flex flex-col gap-1">
+                      <Label className="text-xs font-medium">{item.size}</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          setSizes(sizes.map(s => s.size === item.size ? { ...s, quantity: parseInt(e.target.value) || 0 } : s));
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Image Input */}
             <div className="space-y-2">
@@ -192,6 +258,7 @@ export default function ProductManagement() {
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
+                  <TableHead>Sizes</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -199,13 +266,14 @@ export default function ProductManagement() {
                 {products.map(p => (
                   <TableRow key={p._id}>
                     <TableCell><img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-14 w-14 rounded object-contain border" /></TableCell>
-                    <TableCell>{p.name}</TableCell>
+                    <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{p.category}</TableCell>
                     <TableCell>₹{p.price}</TableCell>
                     <TableCell>{p.stock}</TableCell>
+                    <TableCell>{p.hasSizes ? "✅ Yes" : "❌ No"}</TableCell>
                     <TableCell className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditDialog(p)}><Pencil /></Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 /></Button>
+                      <Button size="sm" variant="outline" onClick={() => openEditDialog(p)}><Pencil className="h-4" /></Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 className="h-4" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}

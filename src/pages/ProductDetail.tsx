@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";   // ✅ ADDED
+import { useWishlist } from "@/context/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { PRODUCT_ROUTES, API_BASE_URL } from "@/config/api";
 
@@ -17,13 +17,14 @@ const ProductDetail = () => {
   const { id } = useParams();
 
   const { addToCart } = useCart();
-  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist(); // ✅ ADDED
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
 
   const [product, setProduct] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const isWishlisted = wishlist.some((item) => item.id === id || item._id === id); // ✅ FIX
+  const isWishlisted = wishlist.some((item) => item.id === id || item._id === id);
 
   useEffect(() => {
     const getProduct = async () => {
@@ -34,6 +35,11 @@ const ProductDetail = () => {
         if (data.success) {
           const found = data.products.find((p: any) => p._id === id);
           setProduct(found);
+          
+          // Set default size if product has sizes
+          if (found?.hasSizes && found?.sizes?.length > 0) {
+            setSelectedSize(found.sizes[0].size);
+          }
         }
       } catch (err) {
         console.error("Error loading product", err);
@@ -51,6 +57,16 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
+    // Validate size selection if product has sizes
+    if (product.hasSizes && !selectedSize) {
+      toast({
+        title: "Please select a size",
+        description: "You must select a size before adding to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     addToCart({
       id: product._id,
       name: product.name,
@@ -60,11 +76,12 @@ const ProductDetail = () => {
         : `${API_BASE_URL}${product.image}`,
       quantity,
       category: product.category,
+      size: selectedSize || undefined,
     });
 
     toast({
       title: "Added to cart",
-      description: `${quantity} × ${product.name} added.`,
+      description: `${quantity} × ${product.name}${selectedSize ? ` (${selectedSize})` : ""} added.`,
     });
 
     setQuantity(1);
@@ -141,6 +158,74 @@ const ProductDetail = () => {
 
             <Separator />
 
+            {/* ✅ Size Selection (Like Flipkart) */}
+            {product.hasSizes && product.sizes && product.sizes.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg border border-blue-200"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-bold text-foreground">
+                    SELECT SIZE
+                  </h3>
+                  <Badge variant="outline" className="text-xs">Guide</Badge>
+                </div>
+                
+                <div className="flex gap-2 flex-wrap">
+                  {product.sizes.map((s: any) => {
+                    const isSelected = selectedSize === s.size;
+                    const isOutOfStock = s.quantity === 0;
+                    
+                    return (
+                      <motion.button
+                        key={s.size}
+                        whileHover={!isOutOfStock ? { scale: 1.05 } : {}}
+                        whileTap={!isOutOfStock ? { scale: 0.95 } : {}}
+                        onClick={() => !isOutOfStock && setSelectedSize(s.size)}
+                        disabled={isOutOfStock}
+                        className={`
+                          px-4 py-2 rounded-lg font-semibold text-sm border-2 transition-all
+                          ${isSelected
+                            ? "bg-blue-600 text-white border-blue-600 shadow-lg"
+                            : isOutOfStock
+                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            : "bg-white text-foreground border-gray-300 hover:border-blue-600"
+                          }
+                        `}
+                      >
+                        <div className="flex flex-col items-center">
+                          <span className="text-base font-bold">{s.size}</span>
+                          {s.quantity > 0 ? (
+                            <span className="text-xs opacity-70">In Stock</span>
+                          ) : (
+                            <span className="text-xs">Out of Stock</span>
+                          )}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {selectedSize && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 p-2 bg-white rounded border border-green-300 bg-green-50 flex items-center gap-2"
+                  >
+                    <span className="text-green-700 font-semibold text-sm">
+                      ✓ Size {selectedSize} selected
+                    </span>
+                    <span className="text-green-600 text-xs">
+                      ({product.sizes.find((s: any) => s.size === selectedSize)?.quantity} available)
+                    </span>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+
+            <Separator className="my-3" />
+
             {/* ✅ Quantity */}
             <div className="mt-3 flex items-center gap-3 text-sm">
               <span className="font-medium">Quantity:</span>
@@ -191,3 +276,4 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+

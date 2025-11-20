@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 import api from "@/lib/api";
 
 type ShippingInfo = {
@@ -148,19 +149,43 @@ const Checkout = () => {
 
   // ✅ Backend Payload
   const placeOrder = async () => {
+    const token = localStorage.getItem("token");
     const items = cartItems.map((it) => ({
-      productId: it.id ?? it._id,
+      productId: it.id,
       name: it.name,
       image: it.image,
       price: it.price,
       quantity: it.quantity,
+      size: it.size, // Include size if selected
     }));
 
-    return api.post("/orders/create", {
-      items,
-      shippingInfo,
-      summary: { subtotal, shipping, total },
-    });
+    // ✅ Manual request with explicit token header
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/orders/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items,
+          shippingInfo,
+          summary: { subtotal, shipping, total },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error: any = new Error(data?.message || "Order creation failed");
+        error.response = { status: response.status, data };
+        throw error;
+      }
+
+      return { status: response.status, data };
+    } catch (error) {
+      throw error;
+    }
   };
 
   // ✅ Handle Place Order
@@ -174,6 +199,7 @@ const Checkout = () => {
       hasToken: !!token,
       tokenLength: token?.length,
       hasUser: !!user,
+      userRole: user ? JSON.parse(user)?.role : "none",
       token: token ? token.substring(0, 30) + "..." : null,
       cartItems: cartItems.length,
     });
@@ -182,10 +208,25 @@ const Checkout = () => {
     if (!token || !user) {
       toast({
         title: "Login Required",
-        description: "Please log in to place your order.",
+        description: "Please log in as a user to place your order. Admin cannot checkout.",
         variant: "destructive",
       });
       return navigate("/login?redirect=checkout");
+    }
+
+    // ✅ Check if user is an admin (admins cannot checkout)
+    try {
+      const userData = JSON.parse(user);
+      if (userData?.role === "admin") {
+        toast({
+          title: "Admin Cannot Checkout",
+          description: "Please log in as a regular user to place orders. Log out and login as a user.",
+          variant: "destructive",
+        });
+        return navigate("/login?redirect=checkout");
+      }
+    } catch (e) {
+      console.error("Error parsing user data:", e);
     }
 
     // ✅ Validate all fields
@@ -248,7 +289,7 @@ const Checkout = () => {
       // More specific error messages
       let errorMsg = "Failed to place order. Please try again.";
       if (err?.response?.status === 401) {
-        errorMsg = "Authentication failed. Please log in again.";
+        errorMsg = "Authentication failed. Please log in again. Make sure you're logged in as a user, not admin.";
       } else if (err?.response?.status === 400) {
         errorMsg = err?.response?.data?.error || "Invalid order details. Please check and try again.";
       } else if (err?.response?.status === 404) {

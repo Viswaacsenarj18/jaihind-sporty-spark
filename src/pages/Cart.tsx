@@ -110,6 +110,12 @@ const Cart = () => {
                           {item.name}
                         </h3>
 
+                        {item.size && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Size: <span className="font-semibold text-foreground">{item.size}</span>
+                          </p>
+                        )}
+
                         <div className="flex justify-center sm:justify-start items-center gap-2 mt-1">
                           <span className="font-bold text-primary text-lg">
                             ₹{item.price.toLocaleString()}

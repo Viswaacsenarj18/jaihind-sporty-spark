@@ -9,6 +9,7 @@ import connectDB from "./config/db.js";
 // ROUTES
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
@@ -32,33 +33,48 @@ connectDB();
 // ✅ REQUIRED for Cookies (MUST BE BEFORE CORS)
 app.set("trust proxy", 1);
 
-// ✅ CORS Configuration - Allow all Vercel deployments + localhost
+// ✅ CORS Configuration - Allow Vercel production + localhost
 // This CORS config accepts:
-// - All *.vercel.app domains (production + preview)
-// - localhost:5173 (local frontend development)
-// - localhost:3000 (alternative frontend port)
-// - Any localhost origin (for local dev)
+// - jaihind-sporty-spark.vercel.app (production frontend)
+// - *.vercel.app (preview deployments)
+// - localhost (all ports for local dev)
 // - Rejects other origins for security
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow Vercel + localhost (any port)
+    // Allow specific Vercel domain + all vercel preview deployments + localhost
     if (
       !origin || 
+      origin === "https://jaihind-sporty-spark.vercel.app" ||
       origin.includes("vercel.app") || 
       origin.includes("localhost") || 
       origin.includes("127.0.0.1")
     ) {
       callback(null, true);
     } else {
+      console.warn("❌ CORS blocked origin:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// ✅ Explicit OPTIONS handler for all routes
+app.options("*", cors(corsOptions));
+
+// ✅ Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.path} from ${req.get('origin') || 'unknown'}`);
+  if (req.method === 'OPTIONS') {
+    console.log("   ✅ CORS preflight request");
+  }
+  next();
+});
 
 // ✅ Cookie Parser
 app.use(cookieParser());
@@ -73,6 +89,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ✅ API ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -114,3 +131,15 @@ app.use((err, req, res, next) => {
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port: ${PORT}`));
+
+// ✅ Unhandled Rejection Handler
+process.on("unhandledRejection", (err) => {
+  console.error("❌ UNHANDLED REJECTION:", err);
+  process.exit(1);
+});
+
+// ✅ Uncaught Exception Handler
+process.on("uncaughtException", (err) => {
+  console.error("❌ UNCAUGHT EXCEPTION:", err);
+  process.exit(1);
+});

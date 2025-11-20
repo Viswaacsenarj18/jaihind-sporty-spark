@@ -7,7 +7,16 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     stock: { type: Number, required: true },
-    image: { type: String }, // Cloudinary URL or local file path
+    image: { type: String },
+    // Size variant tracking (for T-shirts, Apparel, etc.)
+    sizes: [
+      {
+        size: { type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"], required: true },
+        quantity: { type: Number, required: true, default: 0 },
+      }
+    ],
+    // Check if product has size variants
+    hasSizes: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

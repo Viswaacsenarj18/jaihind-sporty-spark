@@ -9,6 +9,7 @@ import {
   Settings,
   Menu,
   X,
+  FolderOpen,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -51,9 +52,10 @@ export function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
   }, []);
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },  // FIXED
+    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Users, label: "Users", path: "/admin/users" },
     { icon: Package, label: "Products", path: "/admin/products" },
+    { icon: FolderOpen, label: "Categories", path: "/admin/categories" },
     {
       icon: ShoppingCart,
       label: `Orders (${orderCount})`,

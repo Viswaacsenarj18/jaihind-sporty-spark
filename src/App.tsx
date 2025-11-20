@@ -41,6 +41,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import Dashboard from "./pages/admin/Dashboard"; // OLD dashboard (index)
 import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
+import CategoryManagement from "./pages/admin/CategoryManagement";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/AdminOrders";
 
@@ -147,6 +148,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute requireAdmin>
               <ProductManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute requireAdmin>
+              <CategoryManagement />
             </ProtectedRoute>
           }
         />

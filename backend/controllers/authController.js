@@ -3,8 +3,11 @@ import jwt from 'jsonwebtoken';
 
 const generateToken = (id, role = 'user') => {
   const secret = process.env.JWT_SECRET || 'yourSuperSecretKey123';
-  console.log('🔐 Generating token with secret:', secret);
-  return jwt.sign({ id, role }, secret, { expiresIn: '30d' });
+  console.log('🔐 JWT_SECRET in use:', secret?.substring(0, 10) + '...');
+  console.log('🔐 Generating token for ID:', id, 'Role:', role);
+  const token = jwt.sign({ id, role }, secret, { expiresIn: '30d' });
+  console.log('✅ Token generated, length:', token.length);
+  return token;
 };
 
 export const registerUser = async (req, res) => {

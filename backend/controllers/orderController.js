@@ -4,41 +4,32 @@ import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import jwt from "jsonwebtoken";
 
-/* ----------------------- JWT USER EXTRACTION ----------------------- */
-const getUserFromToken = (req) => {
-  try {
-    const header = req.headers.authorization;
-    if (!header) return null;
-
-    const token = header.split(" ")[1];
-    if (!token) return null;
-
-    const secret = process.env.JWT_SECRET || "yourSuperSecretKey123";
-
-    const decoded = jwt.verify(token, secret);
-
-    return { userId: decoded.id, role: decoded.role };
-  } catch {
-    return null;
-  }
-};
-
-/* ----------------------- ADMIN CHECK ----------------------- */
-const verifyAdmin = (req) => {
-  const user = getUserFromToken(req);
-  return user && user.role === "admin";
-};
-
 /* ===================================================================
-   CREATE ORDER
+   CREATE ORDER (Now with protectUser middleware)
 =================================================================== */
 export const createOrder = async (req, res) => {
   try {
-    const user = getUserFromToken(req);
-    if (!user)
-      return res.status(401).json({ error: "Authentication required" });
+    // ✅ User is already authenticated via protectUser middleware
+    const userId = req.user?._id || req.user?.id;
+    
+    console.log("📦 Creating order for user:", userId);
+    console.log("🔍 req.user:", {
+      id: req.user?._id,
+      email: req.user?.email,
+      role: req.user?.role,
+    });
+
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication failed" });
+    }
 
     const { items, shippingInfo, summary } = req.body;
+
+    console.log("📋 Order request:", {
+      itemsCount: items?.length,
+      total: summary?.total,
+      shippingCity: shippingInfo?.city,
+    });
 
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -80,12 +71,14 @@ export const createOrder = async (req, res) => {
 
     // Create Order
     const order = await Order.create({
-      user: user.userId,
+      user: userId,
       items,
       shippingInfo,
       summary,
       status: "Pending",
     });
+
+    console.log("✅ Order created:", order._id);
 
     // Reduce stock
     for (let item of items) {
@@ -95,7 +88,7 @@ export const createOrder = async (req, res) => {
     }
 
     // Add order to user's past orders
-    await User.findByIdAndUpdate(user.userId, {
+    await User.findByIdAndUpdate(userId, {
       $push: { pastOrders: order._id },
     });
 
@@ -114,50 +107,99 @@ export const createOrder = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Order created successfully",
+      order,
       orderId: order._id,
     });
   } catch (err) {
-    console.error("Order Creation Error:", err.message);
+    console.error("❌ Order Creation Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
 /* ===================================================================
-   GET USER ORDERS
+   GET USER ORDERS (Protected by middleware)
 =================================================================== */
 export const getUserOrders = async (req, res) => {
   try {
-    const user = getUserFromToken(req);
-    if (!user)
-      return res.status(401).json({ error: "Authentication required" });
+    const userId = req.user?._id || req.user?.id;
+    
+    console.log("📋 Fetching orders for user:", userId);
 
-    const orders = await Order.find({ user: user.userId })
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication failed" });
+    }
+
+    const orders = await Order.find({ user: userId })
       .populate("items.productId", "name price")
       .sort({ createdAt: -1 });
 
+    console.log("✅ Found orders:", orders.length);
+
     res.json({ success: true, orders });
   } catch (err) {
-    console.error("Get User Orders Error:", err.message);
+    console.error("❌ Get User Orders Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
 /* ===================================================================
-   CANCEL ORDER
+   GET ORDER DETAILS (Protected by middleware)
+=================================================================== */
+export const getOrderDetails = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+    const { orderId } = req.params;
+
+    console.log("🔍 Fetching order details:", { orderId, userId });
+
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication failed" });
+    }
+
+    const order = await Order.findById(orderId)
+      .populate("user", "name email")
+      .populate("items.productId", "name price image");
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Verify ownership
+    if (order.user._id.toString() !== userId.toString()) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    console.log("✅ Order details retrieved");
+
+    res.json({ success: true, order });
+  } catch (err) {
+    console.error("❌ Get Order Details Error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/* ===================================================================
+   CANCEL ORDER (Protected by middleware)
 =================================================================== */
 export const cancelOrder = async (req, res) => {
   try {
-    const user = getUserFromToken(req);
-    if (!user)
-      return res.status(401).json({ error: "Authentication required" });
-
+    const userId = req.user?._id || req.user?.id;
     const { orderId } = req.params;
+
+    console.log("❌ Cancelling order:", { orderId, userId });
+
+    if (!userId) {
+      return res.status(401).json({ error: "User authentication failed" });
+    }
+
     const order = await Order.findById(orderId);
 
-    if (!order)
+    if (!order) {
       return res.status(404).json({ error: "Order not found" });
+    }
 
-    if (order.user.toString() !== user.userId) {
+    // Verify ownership
+    if (order.user.toString() !== userId.toString()) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
@@ -178,43 +220,56 @@ export const cancelOrder = async (req, res) => {
     order.status = "Cancelled";
     await order.save();
 
+    console.log("✅ Order cancelled successfully");
+
     res.json({ success: true, message: "Order cancelled successfully" });
   } catch (err) {
-    console.error("Cancel Order Error:", err.message);
+    console.error("❌ Cancel Order Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
 /* ===================================================================
-   ADMIN: GET ALL ORDERS
+   ADMIN: GET ALL ORDERS (Protected by middleware)
 =================================================================== */
 export const getAllOrders = async (req, res) => {
   try {
-    if (!verifyAdmin(req))
-      return res.status(403).json({ error: "Admin access required" });
+    const adminId = req.admin?._id || req.user?._id;
+    
+    console.log("📊 Admin fetching all orders by:", adminId);
+
+    if (!adminId) {
+      return res.status(401).json({ error: "Admin authentication failed" });
+    }
 
     const orders = await Order.find()
       .populate("user", "name email")
       .populate("items.productId", "name price")
       .sort({ createdAt: -1 });
 
+    console.log("✅ Retrieved orders:", orders.length);
+
     res.json({ success: true, orders });
   } catch (err) {
-    console.error("Get All Orders Error:", err.message);
+    console.error("❌ Get All Orders Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
 /* ===================================================================
-   ADMIN: UPDATE ORDER STATUS
+   ADMIN: UPDATE ORDER STATUS (Protected by middleware)
 =================================================================== */
 export const updateOrderStatus = async (req, res) => {
   try {
-    if (!verifyAdmin(req))
-      return res.status(403).json({ error: "Admin access required" });
-
+    const adminId = req.admin?._id || req.user?._id;
     const { orderId } = req.params;
     const { status } = req.body;
+
+    console.log("✏️ Updating order status:", { orderId, status, adminId });
+
+    if (!adminId) {
+      return res.status(401).json({ error: "Admin authentication failed" });
+    }
 
     const validStatuses = [
       "Pending",
@@ -229,42 +284,18 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const order = await Order.findById(orderId);
-    if (!order)
+    if (!order) {
       return res.status(404).json({ error: "Order not found" });
+    }
 
     order.status = status;
     await order.save();
 
+    console.log("✅ Order status updated to:", status);
+
     res.json({ success: true, message: "Order status updated", order });
   } catch (err) {
-    console.error("Update Status Error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-/* ===================================================================
-   ORDER DETAILS
-=================================================================== */
-export const getOrderDetails = async (req, res) => {
-  try {
-    const user = getUserFromToken(req);
-    if (!user)
-      return res.status(401).json({ error: "Authentication required" });
-
-    const order = await Order.findById(req.params.orderId)
-      .populate("user", "name email phone")
-      .populate("items.productId", "name price image");
-
-    if (!order)
-      return res.status(404).json({ error: "Order not found" });
-
-    if (order.user._id.toString() !== user.userId) {
-      return res.status(403).json({ error: "Unauthorized" });
-    }
-
-    res.json(order);
-  } catch (err) {
-    console.error("Get Order Details Error:", err.message);
+    console.error("❌ Update Status Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };

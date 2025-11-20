@@ -10,8 +10,12 @@ const isLocalhost =
 
 // 🔥 IMPORTANT: Your REAL backend URL on Render
 export const API_BASE_URL = isLocalhost
-  ? "http://localhost:5000" // Local development
+  ? "http://localhost:5000" // Local development - backend always on 5000
   : "https://jaihind-sporty-spark-backend.onrender.com"; // Production backend
+
+console.log("🌐 API_BASE_URL:", API_BASE_URL);
+console.log("📍 Frontend hostname:", typeof window !== "undefined" ? window.location.hostname : "server-side");
+console.log("📍 Frontend port:", typeof window !== "undefined" ? window.location.port : "N/A");
 
 /**
  * 🛡 Auth Routes
@@ -38,6 +42,17 @@ export const PRODUCT_ROUTES = {
   ADD: `${API_BASE_URL}/api/products`,
   UPDATE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
   DELETE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
+};
+
+/**
+ * 📂 Category Routes
+ */
+export const CATEGORY_ROUTES = {
+  GET_ALL: `${API_BASE_URL}/api/categories`,
+  GET_ONE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
+  ADD: `${API_BASE_URL}/api/categories`,
+  UPDATE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
+  DELETE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
 };
 
 /**

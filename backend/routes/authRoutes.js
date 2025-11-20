@@ -1,12 +1,17 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import User from "../models/User.js";
 import { deleteUser, getAllUsers } from "../controllers/authController.js";
 
+dotenv.config();
+
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "CHANGE_THIS_SECRET_KEY";
+const JWT_SECRET = process.env.JWT_SECRET || "yourSuperSecretKey123";
+
+console.log("🔐 AUTH ROUTES - JWT_SECRET loaded:", JWT_SECRET?.substring(0, 10) + "...");
 
 /* ✅ USER REGISTRATION */
 router.post("/register", async (req, res) => {
@@ -22,9 +27,27 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({ name, email, password: hashedPassword, role: "user" });
+    const user = await User.create({ name, email, password: hashedPassword, role: "user" });
+    
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "30d" }
+    );
 
-    return res.json({ success: true, message: "✅ Registered successfully!" });
+    return res.json({ 
+      success: true, 
+      message: "✅ Registered successfully!",
+      data: {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      }
+    });
   } catch (error) {
     console.error("Register Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -45,7 +68,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30d" }
     );
 
     return res.json({

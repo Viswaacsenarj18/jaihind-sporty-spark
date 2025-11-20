@@ -7,31 +7,33 @@ import {
   updateOrderStatus,
   getOrderDetails,
 } from "../controllers/orderController.js";
+import { protectUser } from "../middleware/protectUser.js";
+import { protectAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
 /* ----------------------- USER ROUTES ----------------------- */
 
-// Create order
-router.post("/create", createOrder);
+// ✅ Create order (Protected - requires authentication)
+router.post("/create", protectUser, createOrder);
 
-// Get user's orders
-router.get("/user/my-orders", getUserOrders);
+// ✅ Get user's orders (Protected - requires authentication)
+router.get("/user/my-orders", protectUser, getUserOrders);
 
-// Get order details
-router.get("/details/:orderId", getOrderDetails);
+// ✅ Get order details (Protected - requires authentication)
+router.get("/details/:orderId", protectUser, getOrderDetails);
 
-// Cancel order
-router.patch("/cancel/:orderId", cancelOrder);
+// ✅ Cancel order (Protected - requires authentication)
+router.patch("/cancel/:orderId", protectUser, cancelOrder);
 
 
 /* ----------------------- ADMIN ROUTES ----------------------- */
 
-// Get all orders
-router.get("/", getAllOrders);
+// ✅ Get all orders (Protected - admin only)
+router.get("/", protectAdmin, getAllOrders);
 
-// Update order status
-router.patch("/status/:orderId", updateOrderStatus);
+// ✅ Update order status (Protected - admin only)
+router.patch("/status/:orderId", protectAdmin, updateOrderStatus);
 
 // ❌ deleteOrder removed (not exported anymore)
 
