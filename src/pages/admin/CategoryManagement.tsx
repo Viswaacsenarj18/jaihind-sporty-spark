@@ -292,6 +292,102 @@ export default function CategoryManagement() {
           </Dialog>
         </div>
 
+        {/* EDIT CATEGORY DIALOG */}
+        <Dialog open={isEditCategory} onOpenChange={setIsEditCategory}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Category</DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={submitEditCategory} className="space-y-3">
+              <Input
+                placeholder="Category Name"
+                required
+                value={categoryForm.name}
+                onChange={(e) =>
+                  setCategoryForm({ ...categoryForm, name: e.target.value })
+                }
+              />
+
+              <Input
+                placeholder="Slug"
+                required
+                value={categoryForm.slug}
+                onChange={(e) =>
+                  setCategoryForm({ ...categoryForm, slug: e.target.value })
+                }
+              />
+
+              <Textarea
+                placeholder="Description"
+                value={categoryForm.description}
+                onChange={(e) =>
+                  setCategoryForm({
+                    ...categoryForm,
+                    description: e.target.value,
+                  })
+                }
+              />
+
+              {/* IMAGE MODE */}
+              <div className="flex gap-4">
+                <label>
+                  <input
+                    type="radio"
+                    checked={categoryImgMode === "file"}
+                    onChange={() => setCategoryImgMode("file")}
+                  />{" "}
+                  Upload New
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    checked={categoryImgMode === "url"}
+                    onChange={() => setCategoryImgMode("url")}
+                  />{" "}
+                  Image URL
+                </label>
+              </div>
+
+              {categoryImgMode === "file" ? (
+                <Input
+                  type="file"
+                  onChange={(e) =>
+                    setCategoryForm({
+                      ...categoryForm,
+                      imageFile: e.target.files?.[0],
+                    })
+                  }
+                />
+              ) : (
+                <Input
+                  placeholder="Image URL"
+                  value={categoryForm.imageUrl}
+                  onChange={(e) =>
+                    setCategoryForm({
+                      ...categoryForm,
+                      imageUrl: e.target.value,
+                    })
+                  }
+                />
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" className="flex-1">
+                  Update Category
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditCategory(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* CATEGORY GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {categories.map((cat) => (
