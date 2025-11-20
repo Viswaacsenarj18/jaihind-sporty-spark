@@ -35,12 +35,27 @@ export const addProduct = async (req, res) => {
       });
     }
 
-    console.log("📸 File uploaded:", req.file);
+    console.log("📸 File details:", {
+      hasFile: !!req.file,
+      fileName: req.file?.filename,
+      fileSize: req.file?.size,
+      secureUrl: req.file?.secure_url,
+      path: req.file?.path,
+    });
+    
+    // ✅ Prioritize Cloudinary secure_url for production, fallback to path
     const image = req.file
-      ? (req.file.secure_url || req.file.path)  // Cloudinary returns secure_url or path
+      ? (req.file.secure_url || req.file.path)  // Cloudinary returns secure_url
       : imageUrl;
     
     console.log("🖼️  Image URL resolved to:", image);
+    
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        message: "Product image is required (upload file or provide URL)",
+      });
+    }
 
     const productData = {
       name,
@@ -84,9 +99,17 @@ export const updateProduct = async (req, res) => {
   try {
     const { name, category, description, price, stock, imageUrl, hasSizes, sizes } = req.body;
 
+    console.log("📸 Update file details:", {
+      hasFile: !!req.file,
+      fileName: req.file?.filename,
+      secureUrl: req.file?.secure_url,
+      path: req.file?.path,
+    });
+    
+    // ✅ Only update image if a new file is provided or imageUrl is provided
     const image = req.file
-      ? (req.file.secure_url || req.file.path)  // Cloudinary returns secure_url or path
-      : imageUrl;
+      ? (req.file.secure_url || req.file.path)  // Cloudinary returns secure_url
+      : imageUrl || undefined;
 
     const updateData = {
       name,
@@ -94,9 +117,13 @@ export const updateProduct = async (req, res) => {
       description,
       price,
       stock,
-      image,
       hasSizes: hasSizes === "true" || hasSizes === true,
     };
+
+    // Only update image if provided
+    if (image) {
+      updateData.image = image;
+    }
 
     // If product has sizes, parse and validate them
     if (updateData.hasSizes && sizes) {

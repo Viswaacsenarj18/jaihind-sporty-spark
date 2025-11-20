@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
+// ✅ Request interceptor: Add token & handle FormData
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -19,6 +19,13 @@ api.interceptors.request.use((config) => {
   } else {
     console.warn('⚠️ No token found in localStorage');
   }
+  
+  // ✅ Handle FormData - let axios set proper multipart/form-data header
+  if (config.data instanceof FormData) {
+    console.log('📤 FormData detected - removing Content-Type to allow axios to set multipart/form-data');
+    delete config.headers['Content-Type'];
+  }
+  
   return config;
 });
 
@@ -41,8 +48,22 @@ export const adminAPI = {
 export const productsAPI = {
   getAll: () => api.get('/products'),
   getById: (id: string) => api.get(`/products/${id}`),
-  create: (data: any) => api.post('/products', data),
-  update: (id: string, data: any) => api.put(`/products/${id}`, data),
+  create: (data: any) => {
+    // ✅ Handle FormData for file uploads
+    if (data instanceof FormData) {
+      console.log('📤 Uploading product with FormData');
+      return api.post('/products', data);
+    }
+    return api.post('/products', data);
+  },
+  update: (id: string, data: any) => {
+    // ✅ Handle FormData for file uploads
+    if (data instanceof FormData) {
+      console.log('📤 Updating product with FormData');
+      return api.put(`/products/${id}`, data);
+    }
+    return api.put(`/products/${id}`, data);
+  },
   delete: (id: string) => api.delete(`/products/${id}`),
 };
 

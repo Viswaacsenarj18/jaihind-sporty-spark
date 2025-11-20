@@ -83,10 +83,13 @@ export default function ProductManagement() {
     e.preventDefault();
     const formData = new FormData(e.target);
 
+    // ✅ Always use imageFile if provided, otherwise use imageUrl
     if (imageFile) {
+      console.log("📤 Adding image file:", imageFile.name);
       formData.set("imageFile", imageFile);
-      formData.delete("image");
-    } else {
+      formData.delete("image"); // Remove any existing image field
+    } else if (imageUrl) {
+      console.log("📤 Using image URL:", imageUrl);
       formData.set("imageUrl", imageUrl);
     }
 
@@ -96,19 +99,35 @@ export default function ProductManagement() {
       formData.set("sizes", JSON.stringify(sizes));
     }
 
+    // Log FormData contents for debugging
+    console.log("📋 FormData entries:");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`  ${key}: File(${value.name}, ${value.size} bytes)`);
+      } else {
+        console.log(`  ${key}: ${value}`);
+      }
+    }
+
     try {
       if (editingProduct) {
+        console.log("✏️ Updating product:", editingProduct._id);
         await productsAPI.update(editingProduct._id, formData);
         toast.success("✅ Product Updated");
       } else {
+        console.log("➕ Creating new product");
         await productsAPI.create(formData);
         toast.success("✅ Product Added");
       }
       setDialogOpen(false);
       setEditingProduct(null);
+      setImageFile(null);
+      setImageUrl("");
       fetchProducts();
-    } catch {
-      toast.error("❌ Error Saving Product");
+    } catch (error: any) {
+      console.error("❌ Error saving product:", error);
+      const errorMsg = error?.response?.data?.message || error?.message || "Error Saving Product";
+      toast.error(`❌ ${errorMsg}`);
     }
   };
 
