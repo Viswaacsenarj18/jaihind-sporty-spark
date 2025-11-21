@@ -223,6 +223,14 @@ const Profile = () => {
       if (res.data.success && res.data.photoUrl) {
         setEditedInfo((prev) => ({ ...prev, profilePicture: res.data.photoUrl }));
         console.log("✅ Profile picture updated:", res.data.photoUrl);
+        
+        // Also save to localStorage immediately
+        const updatedUser = {
+          ...userInfo,
+          profilePicture: res.data.photoUrl
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
         toast({
           title: "Photo Uploaded",
           description: "Profile picture updated successfully",

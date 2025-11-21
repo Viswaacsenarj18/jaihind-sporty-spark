@@ -41,9 +41,8 @@ router.post("/register", async (req, res) => {
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, message: "Email already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({ name, email, password: hashedPassword, role: "user" });
+    // Password will be hashed by pre-save hook in User model
+    const user = await User.create({ name, email, password, role: "user" });
     
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -60,6 +59,9 @@ router.post("/register", async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          phone: user.phone || "",
+          gender: user.gender || "",
+          profilePicture: user.profilePicture || "",
           role: user.role
         }
       }
@@ -78,7 +80,8 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ success: false, message: "User not found" });
 
-    const match = await bcrypt.compare(password, user.password);
+    // Use matchPassword method from User schema
+    const match = await user.matchPassword(password);
     if (!match) return res.status(400).json({ success: false, message: "Incorrect password" });
 
     const token = jwt.sign(
@@ -95,6 +98,9 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || "",
+        gender: user.gender || "",
+        profilePicture: user.profilePicture || "",
         role: user.role
       }
     });

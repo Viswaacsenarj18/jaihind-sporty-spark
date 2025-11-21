@@ -50,6 +50,7 @@ import AdminNotifications from "./pages/admin/AdminNotifications"; // ✅ NEW PA
 // Misc
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
+import LiveChat from "@/components/LiveChat";
 
 const queryClient = new QueryClient();
 
@@ -211,6 +212,7 @@ const App = () => {
             <WishlistProvider>
               <BrowserRouter>
                 <AppRoutes />
+                <LiveChat />
               </BrowserRouter>
             </WishlistProvider>
           </CartProvider>
