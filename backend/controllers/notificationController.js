@@ -1,49 +1,35 @@
 import Notification from "../models/Notification.js";
 import jwt from "jsonwebtoken";
 
-// Helper: Extract user from token
+/* -----------------------------------------
+   Extract logged-in user from JWT token
+----------------------------------------- */
 const getUserFromToken = (req) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return null;
 
-    const decodedUnverified = jwt.decode(token);
-    let decoded;
-    try {
-      const primarySecret = process.env.JWT_SECRET || "yourSuperSecretKey123";
-      decoded = jwt.verify(token, primarySecret);
-    } catch (primaryErr) {
-      if (decodedUnverified && decodedUnverified.id && decodedUnverified.role) {
-        decoded = decodedUnverified;
-      } else {
-        return null;
-      }
-    }
-
-    return { userId: decoded.id || decoded.userId, role: decoded.role || "user" };
-  } catch (err) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded.id; // userId
+  } catch {
     return null;
   }
 };
 
-// Get user notifications
+/* -----------------------------------------
+   USER: Get own notifications
+----------------------------------------- */
 export const getNotifications = async (req, res) => {
   try {
-    const userInfo = getUserFromToken(req);
-    if (!userInfo) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userId = getUserFromToken(req);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const notifications = await Notification.find({
-      user: userInfo.userId,
-    })
+    const notifications = await Notification.find({ receiver: userId })
       .populate("orderId")
       .sort({ createdAt: -1 });
 
-    const unreadCount = await Notification.countDocuments({
-      user: userInfo.userId,
-      read: false,
-    });
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
     return res.json({
       success: true,
@@ -51,30 +37,64 @@ export const getNotifications = async (req, res) => {
       unreadCount,
     });
   } catch (err) {
-    console.error("❌ Error fetching notifications:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("❌ Error fetching user notifications:", err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Mark notification as read
+/* -----------------------------------------
+   ADMIN: Get all order notifications
+----------------------------------------- */
+export const getAdminNotifications = async (req, res) => {
+  try {
+    const userId = getUserFromToken(req);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    // You may check here if userId is admin using your protectAdmin middleware
+
+    const notifications = await Notification.find({
+      type: "order_created",
+    })
+      .populate("receiver", "name email")
+      .populate("sender", "name email")
+      .populate("orderId")
+      .sort({ createdAt: -1 });
+
+    const unreadCount = notifications.filter((n) => !n.read).length;
+
+    return res.json({
+      success: true,
+      notifications,
+      unreadCount,
+    });
+  } catch (err) {
+    console.error("❌ Admin notifications error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* -----------------------------------------
+   Mark single notification as read
+----------------------------------------- */
 export const markAsRead = async (req, res) => {
   try {
-    const userInfo = getUserFromToken(req);
-    if (!userInfo) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userId = getUserFromToken(req);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const { notificationId } = req.params;
 
-    const notification = await Notification.findByIdAndUpdate(
-      notificationId,
+    const notification = await Notification.findOneAndUpdate(
+      { _id: notificationId, receiver: userId },
       { read: true },
       { new: true }
     );
 
-    if (!notification) {
-      return res.status(404).json({ error: "Notification not found" });
-    }
+    if (!notification)
+      return res
+        .status(404)
+        .json({ success: false, message: "Notification not found" });
 
     return res.json({
       success: true,
@@ -82,44 +102,46 @@ export const markAsRead = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error marking notification as read:", err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Mark all as read
+/* -----------------------------------------
+   Mark all notifications as read
+----------------------------------------- */
 export const markAllAsRead = async (req, res) => {
   try {
-    const userInfo = getUserFromToken(req);
-    if (!userInfo) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userId = getUserFromToken(req);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    await Notification.updateMany(
-      { user: userInfo.userId, read: false },
-      { read: true }
-    );
+    await Notification.updateMany({ receiver: userId }, { read: true });
 
     return res.json({
       success: true,
       message: "All notifications marked as read",
     });
   } catch (err) {
-    console.error("❌ Error marking all notifications as read:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("❌ Error marking all as read:", err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Delete notification
+/* -----------------------------------------
+   Delete notification
+----------------------------------------- */
 export const deleteNotification = async (req, res) => {
   try {
-    const userInfo = getUserFromToken(req);
-    if (!userInfo) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userId = getUserFromToken(req);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const { notificationId } = req.params;
 
-    await Notification.findByIdAndDelete(notificationId);
+    await Notification.findOneAndDelete({
+      _id: notificationId,
+      receiver: userId,
+    });
 
     return res.json({
       success: true,
@@ -127,34 +149,44 @@ export const deleteNotification = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error deleting notification:", err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Get all notifications for admin dashboard (unread notifications)
-export const getAdminNotifications = async (req, res) => {
+/* -----------------------------------------
+   TRIGGER: USER → ADMIN (order placed)
+----------------------------------------- */
+export const notifyAdmin = async (userId, orderId) => {
   try {
-    const userInfo = getUserFromToken(req);
-    if (!userInfo) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    // Get all unread notifications from all users (for admin to see)
-    const notifications = await Notification.find({ read: false })
-      .populate("user", "name email")
-      .populate("orderId")
-      .sort({ createdAt: -1 })
-      .limit(50);
-
-    const totalUnread = await Notification.countDocuments({ read: false });
-
-    return res.json({
-      success: true,
-      notifications,
-      unreadCount: totalUnread,
+    return await Notification.create({
+      receiver: null,          // admin read by /admin panel, not tied to a user
+      sender: userId,
+      orderId,
+      type: "order_created",
+      title: "New Order Received",
+      message: "A customer placed a new order!",
+      read: false,
     });
   } catch (err) {
-    console.error("❌ Error fetching admin notifications:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("❌ Error creating admin notification:", err);
+  }
+};
+
+/* -----------------------------------------
+   TRIGGER: ADMIN → USER (status change)
+----------------------------------------- */
+export const notifyUser = async (userId, orderId, status) => {
+  try {
+    return await Notification.create({
+      receiver: userId,
+      sender: null, // admin system
+      orderId,
+      type: "status_updated",
+      title: `Order Status Updated`,
+      message: `Your order status changed to: ${status}`,
+      read: false,
+    });
+  } catch (err) {
+    console.error("❌ Error creating user notification:", err);
   }
 };

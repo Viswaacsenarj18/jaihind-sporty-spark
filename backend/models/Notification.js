@@ -2,28 +2,53 @@ import mongoose from "mongoose";
 
 const NotificationSchema = new mongoose.Schema(
   {
-    user: {
+    // Who the notification is for
+    receiver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
+    // Optional: who triggered it (user/admin)
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    // Related order
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       required: true,
     },
+
+    // Category of notification
     type: {
       type: String,
-      enum: ["order_created", "status_updated", "shipped", "delivered", "cancelled"],
+      enum: [
+        "order_created",     // User placed order → admin gets notification
+        "status_updated",    // Admin updated order status → user gets notification
+        "shipped",
+        "delivered",
+        "cancelled"
+      ],
       required: true,
     },
-    title: String,
-    message: String,
-    status: {
+
+    // Title shown in UI
+    title: {
       type: String,
-      enum: ["unread", "read"],
-      default: "unread",
+      required: true,
     },
+
+    // Message shown in UI
+    message: {
+      type: String,
+      required: true,
+    },
+
+    // Read status
     read: {
       type: Boolean,
       default: false,

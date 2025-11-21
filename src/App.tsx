@@ -39,12 +39,13 @@ import CookiePolicy from "./pages/CookiePolicy";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import Dashboard from "./pages/admin/Dashboard"; // OLD dashboard (index)
+import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminNotifications from "./pages/admin/AdminNotifications"; // ✅ NEW PAGE ADDED
 
 // Misc
 import NotFound from "./pages/NotFound";
@@ -54,13 +55,12 @@ const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   const location = useLocation();
-  
-  // ✅ Track and restore current page on refresh
+
+  // Restore page on refresh
   usePagePersistence();
 
   // Hide footer on login, signup, admin
   const hideFooterPaths = ["/login", "/signup", "/admin"];
-
   const shouldHideFooter = hideFooterPaths.some((path) =>
     location.pathname.startsWith(path)
   );
@@ -71,17 +71,11 @@ const AppRoutes = () => {
         {/* ---------- USER ROUTES ---------- */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
-
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
-
-        {/* ✅ Checkout added */}
         <Route path="/checkout" element={<Checkout />} />
-
-        {/* ✅ My Orders - User can view and manage their orders */}
         <Route
           path="/my-orders"
           element={
@@ -90,9 +84,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
         <Route
           path="/profile"
           element={
@@ -109,6 +103,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
 
@@ -122,7 +117,7 @@ const AppRoutes = () => {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
 
-        {/* ---------- ADMIN ROUTES (PROTECTED) ---------- */}
+        {/* ---------- ADMIN ROUTES ---------- */}
         <Route
           path="/admin"
           element={
@@ -131,6 +126,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/dashboard"
           element={
@@ -139,6 +135,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/users"
           element={
@@ -147,6 +144,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/products"
           element={
@@ -155,6 +153,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/categories"
           element={
@@ -163,6 +162,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/orders"
           element={
@@ -171,11 +171,22 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/settings"
           element={
             <ProtectedRoute requireAdmin>
               <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ New Admin Notifications Route */}
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminNotifications />
             </ProtectedRoute>
           }
         />

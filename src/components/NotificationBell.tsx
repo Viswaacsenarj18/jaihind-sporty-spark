@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 
 interface Notification {
@@ -23,60 +22,51 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchNotifications();
-    // Polling: refresh every 10 seconds
     const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await api.get("/notifications");
-      if ((res.data as any).notifications) {
-        setNotifications((res.data as any).notifications);
-        setUnreadCount((res.data as any).unreadCount || 0);
-      }
+      const res = await api.get("/api/notifications");  // ✅ FIXED
+      setNotifications(res.data.notifications || []);
+      setUnreadCount(res.data.unreadCount || 0);
     } catch (err) {
       console.error("Error fetching notifications:", err);
     }
   };
 
-  const handleMarkAsRead = async (notificationId: string) => {
+  const handleMarkAsRead = async (id: string) => {
     try {
-      await api.patch(`/notifications/${notificationId}/read`);
-      setNotifications(
-        notifications.map((n) =>
-          n._id === notificationId ? { ...n, read: true } : n
-        )
+      await api.patch(`/api/notifications/${id}/read`); // ✅ FIXED
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
       );
-      setUnreadCount(Math.max(0, unreadCount - 1));
+      setUnreadCount((u) => Math.max(0, u - 1));
     } catch (err) {
-      console.error("Error marking as read:", err);
+      console.error("Mark read error:", err);
     }
   };
 
-  const handleDelete = async (notificationId: string) => {
+  const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/notifications/${notificationId}`);
-      setNotifications(notifications.filter((n) => n._id !== notificationId));
+      await api.delete(`/api/notifications/${id}`); // ✅ FIXED
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
     } catch (err) {
-      console.error("Error deleting notification:", err);
+      console.error("Delete error:", err);
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
-      await api.patch("/notifications/mark-all-as-read");
-      setNotifications(notifications.map((n) => ({ ...n, read: true })));
+      await api.patch("/api/notifications/mark-all-as-read"); // ✅ FIXED
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (err) {
-      console.error("Error marking all as read:", err);
+      console.error("Mark all error:", err);
     }
   };
 
@@ -102,11 +92,7 @@ export function NotificationBell() {
             <div className="flex justify-between items-center">
               <DialogTitle>Notifications</DialogTitle>
               {unreadCount > 0 && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={handleMarkAllAsRead}
-                >
+                <Button variant="link" size="sm" onClick={handleMarkAllAsRead}>
                   Mark all as read
                 </Button>
               )}
@@ -135,11 +121,7 @@ export function NotificationBell() {
                         {notif.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(notif.createdAt).toLocaleDateString()}{" "}
-                        {new Date(notif.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(notif.createdAt).toLocaleString()}
                       </p>
                     </div>
 
@@ -149,7 +131,6 @@ export function NotificationBell() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleMarkAsRead(notif._id)}
-                          title="Mark as read"
                         >
                           <Check className="w-4 h-4 text-blue-600" />
                         </Button>
@@ -158,7 +139,6 @@ export function NotificationBell() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(notif._id)}
-                        title="Delete"
                       >
                         <X className="w-4 h-4 text-gray-400" />
                       </Button>

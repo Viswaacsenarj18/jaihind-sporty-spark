@@ -14,70 +14,48 @@ import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 
-// Load env
 dotenv.config();
 
-// Fix ES module paths
+// Fix path issue (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-
-//========================================
-// 🔌 CONNECT DATABASE
-//========================================
 connectDB();
 
-// Required for cookies
+// Allow cookies & proxies
 app.set("trust proxy", 1);
 
-//========================================
-// 🌐 CORS (Stable + Works for all Vercel URLs)
-//========================================
+// =========================
+// CORS CONFIG
+// =========================
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:3000",
   "https://jaihind-sporty-spark.vercel.app",
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
 ];
 
-// Any Vercel preview deployment (*.vercel.app)
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith("vercel.app") ||
-      origin.includes("localhost")
-    ) {
-      return callback(null, true);
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin) || origin.endsWith("vercel.app")) {
+      return cb(null, true);
     }
-
-    console.warn("❌ CORS blocked:", origin);
-    return callback(new Error("Not allowed by CORS"));
+    console.log("❌ CORS BLOCKED:", origin);
+    cb(new Error("Blocked by CORS"));
   },
-
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Handle preflight
-
-//========================================
-// 📡 MIDDLEWARES
-//========================================
-app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve images
+// Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-//========================================
-// 🛣 API ROUTES
-//========================================
+// ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -85,62 +63,20 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-//========================================
-// 🧪 Test Routes
-//========================================
+// TEST ROUTE
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Jaihind Sports API running successfully",
-    version: "2.0.0",
+    message: "Backend running successfully 📦",
   });
 });
 
-app.get("/status", (req, res) => {
-  res.json({
-    success: true,
-    message: "Backend is running",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-//========================================
-// ❌ 404 Handler
-//========================================
-app.use((req, res) =>
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  })
-);
-
-//========================================
-// 🔥 GLOBAL ERROR HANDLER
-//========================================
+// ERROR HANDLER
 app.use((err, req, res, next) => {
   console.error("SERVER ERROR:", err);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
+  res.status(500).json({ success: false, message: err.message });
 });
 
-//========================================
-// 🚀 START SERVER
-//========================================
+// START SERVER
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
-
-//========================================
-// SAFETY HANDLERS
-//========================================
-process.on("unhandledRejection", (err) => {
-  console.error("❌ UNHANDLED REJECTION:", err);
-});
-
-process.on("uncaughtException", (err) => {
-  console.error("❌ UNCAUGHT EXCEPTION:", err);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port: ${PORT}`));

@@ -1,28 +1,39 @@
 import express from "express";
 import {
   getNotifications,
+  getAdminNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
-  getAdminNotifications,
 } from "../controllers/notificationController.js";
+
 import { protectUser } from "../middleware/protectUser.js";
 
 const router = express.Router();
 
-// ✅ Get all notifications for user (Protected)
+/* -----------------------------------------
+   USER ROUTES
+----------------------------------------- */
+
+// Get all notifications for the logged-in user
 router.get("/", protectUser, getNotifications);
 
-// ✅ Get admin notifications (unread from all users) (Protected)
-router.get("/admin/all", protectUser, getAdminNotifications);
-
-// ✅ Mark single notification as read (Protected)
+// Mark a single notification as read
 router.patch("/:notificationId/read", protectUser, markAsRead);
 
-// ✅ Mark all as read (Protected)
+// Mark all notifications as read
 router.patch("/mark-all-as-read", protectUser, markAllAsRead);
 
-// ✅ Delete notification (Protected)
+// Delete a notification
 router.delete("/:notificationId", protectUser, deleteNotification);
+
+
+/* -----------------------------------------
+   ADMIN ROUTES
+----------------------------------------- */
+
+// Admin can view ALL user order_created notifications
+router.get("/admin/all", getAdminNotifications);
+
 
 export default router;
