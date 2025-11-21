@@ -1,24 +1,28 @@
 /**
- * 🌐 Centralized API Configuration (Fixed Version)
- * Automatically switches between localhost (development) and Render (production)
+ * 🌐 Centralized API Configuration (Stable + Deployment Ready)
+ * Automatically switches between localhost and production backend.
  */
 
+const isBrowser = typeof window !== "undefined";
+
 const isLocalhost =
-  typeof window !== "undefined" &&
+  isBrowser &&
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1");
 
-// 🔥 IMPORTANT: Your REAL backend URL on Render
-export const API_BASE_URL = isLocalhost
-  ? "http://localhost:5000" // Local development - backend always on 5000
-  : "https://jaihind-sporty-spark-backend.onrender.com"; // Production backend
+// 💡 Your backend URLs
+const LOCAL_BACKEND = "http://localhost:5000";
+const LIVE_BACKEND = "https://jaihind-sporty-spark-backend.onrender.com";
+
+// 🌐 Final Base URL
+export const API_BASE_URL = isLocalhost ? LOCAL_BACKEND : LIVE_BACKEND;
 
 console.log("🌐 API_BASE_URL:", API_BASE_URL);
-console.log("📍 Frontend hostname:", typeof window !== "undefined" ? window.location.hostname : "server-side");
-console.log("📍 Frontend port:", typeof window !== "undefined" ? window.location.port : "N/A");
 
 /**
- * 🛡 Auth Routes
+ * ============================
+ * 🚀 AUTH ROUTES
+ * ============================
  */
 export const AUTH_ROUTES = {
   REGISTER: `${API_BASE_URL}/api/auth/register`,
@@ -27,48 +31,59 @@ export const AUTH_ROUTES = {
 };
 
 /**
- * 👨‍💼 Admin Routes
+ * ============================
+ * 👨‍💼 ADMIN ROUTES
+ * ============================
  */
 export const ADMIN_ROUTES = {
   LOGIN: `${API_BASE_URL}/api/admin/login`,
   PROFILE: `${API_BASE_URL}/api/admin/profile`,
+  STATS: `${API_BASE_URL}/api/admin/stats`, // ⭐ IMPORTANT
 };
 
 /**
- * 🛒 Product Routes
+ * ============================
+ * 🛒 PRODUCT ROUTES
+ * ============================
  */
 export const PRODUCT_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/products`,
   ADD: `${API_BASE_URL}/api/products`,
   UPDATE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
   DELETE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
+  GET_ONE: (id: string) => `${API_BASE_URL}/api/products/${id}`,
 };
 
 /**
- * 📂 Category Routes
+ * ============================
+ * 📂 CATEGORY ROUTES
+ * ============================
  */
 export const CATEGORY_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/categories`,
-  GET_ONE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
   ADD: `${API_BASE_URL}/api/categories`,
+  GET_ONE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
   UPDATE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
   DELETE: (id: string) => `${API_BASE_URL}/api/categories/${id}`,
 };
 
 /**
- * 📦 Order Routes
- * (fixed: /api/orders/create was wrong for your backend)
+ * ============================
+ * 📦 ORDER ROUTES
+ * ============================
  */
 export const ORDER_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/orders`,
-  CREATE: `${API_BASE_URL}/api/orders`, // FIXED (POST /api/orders)
+  CREATE: `${API_BASE_URL}/api/orders`, // POST
   GET_USER: (userId: string) => `${API_BASE_URL}/api/orders/user/${userId}`,
   UPDATE_STATUS: (orderId: string) =>
     `${API_BASE_URL}/api/orders/status/${orderId}`,
 };
 
 /**
- * 🧩 Helper API caller with full error handling
+ * ============================
+ * 🧩 Generic Fetch Wrapper
+ * ============================
  */
 export const apiCall = async (
   url: string,
@@ -81,20 +96,20 @@ export const apiCall = async (
         "Content-Type": "application/json",
         ...(options.headers || {}),
       },
-      credentials: "include", // Allows cookies/JWT
+      credentials: "include", // Allow cookie/JWT
       body: options.body || null,
     });
 
-    const data = await response.json().catch(() => null);
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data?.message || `API Error ${response.status}`);
+      throw new Error(data.message || `API Error ${response.status}`);
     }
 
     return data;
-  } catch (err) {
-    console.error("API Error:", err);
-    throw err;
+  } catch (error) {
+    console.error("❌ API Error:", error);
+    throw error;
   }
 };
 
