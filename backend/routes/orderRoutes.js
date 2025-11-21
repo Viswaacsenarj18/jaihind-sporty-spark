@@ -38,7 +38,6 @@ router.patch("/cancel/:orderId", protectUser, cancelOrder);
 
 // ➤ Get all orders (ADMIN)
 router.get("/", protectAdmin, getAllOrders);
-router.get("/admin/all", protectAdmin, getAdminNotifications);
 
 // ➤ Update order status (ADMIN)
 router.patch("/status/:orderId", protectAdmin, updateOrderStatus);
