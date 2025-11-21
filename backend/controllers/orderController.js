@@ -1,18 +1,20 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import { notifyAdmin, notifyUser } from "./notificationController.js";
 
-/* ============================================================
-   CREATE ORDER  (USER → ADMIN Notification)
-============================================================ */
+import {
+  notifyAdminOrder,
+  notifyLowStock,
+  notifyOutOfStock,
+  notifyUserStatus
+} from "./notificationController.js";
+
+/* ======================================================
+   CREATE ORDER (User → Admin)
+====================================================== */
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
-
-    if (!userId)
-      return res.status(401).json({ error: "User authentication failed" });
-
     const { items, shippingInfo, summary } = req.body;
 
     if (!items || items.length === 0)
@@ -21,17 +23,20 @@ export const createOrder = async (req, res) => {
     // Validate stock
     for (let item of items) {
       const product = await Product.findById(item.productId);
-      if (!product)
-        return res.status(404).json({ error: `Product not found: ${item.name}` });
-
-      if (product.stock < item.quantity)
+      if (!product) {
+        return res.status(404).json({
+          error: `Product not found: ${item.productId}`,
+        });
+      }
+      if (product.stock < item.quantity) {
         return res.status(400).json({
           error: `Insufficient stock for ${product.name}`,
         });
+      }
     }
 
-    // Create order
-    const newOrder = await Order.create({
+    // Create Order
+    const order = await Order.create({
       user: userId,
       items,
       shippingInfo,
@@ -39,44 +44,52 @@ export const createOrder = async (req, res) => {
       status: "Pending",
     });
 
-    // Update stock
+    // Update stock + Stock notifications
     for (let item of items) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
-      });
+      const product = await Product.findById(item.productId);
+
+      product.stock -= item.quantity;
+      await product.save();
+
+      if (product.stock <= 5 && product.stock > 0) {
+        await notifyLowStock(product); // low stock
+      }
+
+      if (product.stock === 0) {
+        await notifyOutOfStock(product); // out of stock
+      }
     }
 
-    // Add order to user history
+    // Add to past orders
     await User.findByIdAndUpdate(userId, {
-      $push: { pastOrders: newOrder._id },
+      $push: { pastOrders: order._id },
     });
 
-    // 🔥 NOTIFY ADMIN
-    await notifyAdmin(userId, newOrder._id);
+    const user = await User.findById(userId);
 
-    res.status(201).json({
+    // Notify admin
+    await notifyAdminOrder(order, items, user);
+
+    res.json({
       success: true,
       message: "Order created successfully",
-      order: newOrder,
-      orderId: newOrder._id,
+      order,
     });
-
   } catch (err) {
-    console.error("❌ Order Creation Error:", err.message);
+    console.error("❌ Order Create Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-
-/* ============================================================
+/* ======================================================
    GET USER ORDERS
-============================================================ */
+====================================================== */
 export const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.id;
+    const userId = req.user._id;
 
     const orders = await Order.find({ user: userId })
-      .populate("items.productId", "name price")
+      .populate("items.productId", "name price image")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, orders });
@@ -85,13 +98,12 @@ export const getUserOrders = async (req, res) => {
   }
 };
 
-
-/* ============================================================
+/* ======================================================
    GET ORDER DETAILS
-============================================================ */
+====================================================== */
 export const getOrderDetails = async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.id;
+    const userId = req.user._id;
     const { orderId } = req.params;
 
     const order = await Order.findById(orderId)
@@ -104,19 +116,17 @@ export const getOrderDetails = async (req, res) => {
       return res.status(403).json({ error: "Unauthorized access" });
 
     res.json({ success: true, order });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
-/* ============================================================
+/* ======================================================
    CANCEL ORDER
-============================================================ */
+====================================================== */
 export const cancelOrder = async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.id;
+    const userId = req.user._id;
     const { orderId } = req.params;
 
     const order = await Order.findById(orderId);
@@ -127,9 +137,10 @@ export const cancelOrder = async (req, res) => {
 
     if (!["Pending", "Processing"].includes(order.status))
       return res.status(400).json({
-        error: "Only Pending/Processing orders can be cancelled",
+        error: "Only Pending or Processing orders can be cancelled",
       });
 
+    // Refund stock
     for (let item of order.items) {
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity },
@@ -139,50 +150,45 @@ export const cancelOrder = async (req, res) => {
     order.status = "Cancelled";
     await order.save();
 
-    res.json({ success: true, message: "Order cancelled successfully" });
+    // Update user
+    await User.findByIdAndUpdate(userId, {
+      $pull: { pastOrders: orderId },
+    });
 
+    res.json({ success: true, message: "Order cancelled successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
-/* ============================================================
+/* ======================================================
    ADMIN: GET ALL ORDERS
-============================================================ */
+====================================================== */
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("user", "name email")
-      .populate("items.productId", "name price")
+      .populate("items.productId", "name price image")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, orders });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
-/* ============================================================
-   ADMIN: UPDATE ORDER STATUS (ADMIN → USER Notification)
-============================================================ */
+/* ======================================================
+   ADMIN: UPDATE ORDER STATUS (Admin → User)
+====================================================== */
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = [
-      "Pending",
-      "Processing",
-      "Shipped",
-      "Delivered",
-      "Cancelled",
-    ];
+    const allowed = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-    if (!validStatuses.includes(status))
-      return res.status(400).json({ error: "Invalid order status" });
+    if (!allowed.includes(status))
+      return res.status(400).json({ error: "Invalid status" });
 
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ error: "Order not found" });
@@ -190,20 +196,22 @@ export const updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
-    // 🔥 NOTIFY USER
-    await notifyUser(order.user, order._id, status);
+    // Notify user
+    await notifyUserStatus(order.user, order._id, status);
 
-    res.json({ success: true, message: "Order status updated", order });
-
+    res.json({
+      success: true,
+      message: "Order status updated",
+      order,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
-/* ============================================================
+/* ======================================================
    ADMIN: DELETE ORDER
-============================================================ */
+====================================================== */
 export const deleteOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -218,7 +226,6 @@ export const deleteOrder = async (req, res) => {
     await Order.findByIdAndDelete(orderId);
 
     res.json({ success: true, message: "Order deleted successfully" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

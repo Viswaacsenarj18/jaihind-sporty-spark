@@ -2,33 +2,39 @@ import mongoose from "mongoose";
 
 const NotificationSchema = new mongoose.Schema(
   {
-    // Who the notification is for
+    // Who receives the notification
     receiver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      default: null,   // admin notifications do NOT need receiver
     },
 
-    // Optional: who triggered it (user/admin)
+    // Who triggered it (User or Admin)
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
 
-    // Related order
+    // Related order (optional for stock notifications)
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: true,
+      default: null,
     },
 
-    // Category of notification
+    // Type of notification
     type: {
       type: String,
       enum: [
-        "order_created",     // User placed order → admin gets notification
-        "status_updated",    // Admin updated order status → user gets notification
+        "order_created",     // User placed order → Admin gets notification
+        "status_updated",    // Admin updated order status → User gets notification
+
+        "low_stock",         // Product low stock alert
+        "out_of_stock",      // Product zero stock alert
+
+        // Order lifecycle events (optional future use)
+        "processing",
         "shipped",
         "delivered",
         "cancelled"
@@ -36,19 +42,19 @@ const NotificationSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Title shown in UI
+    // Notification title
     title: {
       type: String,
       required: true,
     },
 
-    // Message shown in UI
+    // Notification message
     message: {
       type: String,
       required: true,
     },
 
-    // Read status
+    // If user/admin has read it
     read: {
       type: Boolean,
       default: false,

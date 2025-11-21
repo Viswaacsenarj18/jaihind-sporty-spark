@@ -31,20 +31,29 @@ app.set("trust proxy", 1);
 // =========================
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://jaihind-sporty-spark.vercel.app",
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
 ];
 
 const corsOptions = {
-  origin(origin, cb) {
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith("vercel.app")) {
-      return cb(null, true);
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith("vercel.app") ||
+      origin.includes("localhost")
+    ) {
+      return callback(null, true);
     }
-    console.log("❌ CORS BLOCKED:", origin);
-    cb(new Error("Blocked by CORS"));
+
+    console.warn("❌ CORS BLOCKED:", origin);
+    return callback(new Error("Blocked by CORS"));
   },
+
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 };
 
 app.use(cors(corsOptions));
