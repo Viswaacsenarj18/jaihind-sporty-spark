@@ -56,8 +56,9 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
     try {
       const token = localStorage.getItem("token");
 
+      // ✅ Use admin-specific endpoint
       await axios.patch(
-        `${API_BASE_URL}/api/notifications/${notificationId}/read`,
+        `${API_BASE_URL}/api/notifications/admin/${notificationId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

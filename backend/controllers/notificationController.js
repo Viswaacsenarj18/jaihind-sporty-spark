@@ -137,12 +137,12 @@ export const getNotifications = async (req, res) => {
 ======================================================================== */
 export const getAdminNotifications = async (req, res) => {
   try {
-    const admin = await getAdminUser();
-    if (!admin)
-      return res.status(403).json({ success: false, message: "No Admin Found" });
+    // ✅ Use req.admin from protectAdmin middleware (FIXED)
+    if (!req.admin)
+      return res.status(403).json({ success: false, message: "Admin not authenticated" });
 
     const notifications = await Notification.find({
-      receiver: admin._id,
+      receiver: req.admin._id,
     })
       .populate("sender", "name email")
       .populate("orderId")
@@ -160,7 +160,27 @@ export const getAdminNotifications = async (req, res) => {
 };
 
 /* ========================================================================
-    MARK AS READ
+    ADMIN: MARK NOTIFICATION AS READ
+======================================================================== */
+export const markAdminNotificationAsRead = async (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(403).json({ success: false, message: "Admin not authenticated" });
+    }
+
+    await Notification.findByIdAndUpdate(req.params.notificationId, {
+      read: true,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ markAdminNotificationAsRead Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/* ========================================================================
+    USER: MARK AS READ
 ======================================================================== */
 export const markAsRead = async (req, res) => {
   try {

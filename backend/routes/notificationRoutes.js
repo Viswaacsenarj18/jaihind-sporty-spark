@@ -5,6 +5,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification,
+  markAdminNotificationAsRead,
 } from "../controllers/notificationController.js";
 
 import { protectUser } from "../middleware/protectUser.js";
@@ -18,6 +19,9 @@ const router = express.Router();
 
 // ✅ Admin gets all notifications (order + stock alerts)
 router.get("/admin/all", protectAdmin, getAdminNotifications);
+
+// ✅ Admin marks notification as read
+router.patch("/admin/:notificationId/read", protectAdmin, markAdminNotificationAsRead);
 
 
 /* -----------------------------------------
