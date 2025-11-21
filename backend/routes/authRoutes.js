@@ -3,8 +3,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../models/User.js";
-import { deleteUser, getAllUsers } from "../controllers/authController.js";
+import { deleteUser, getAllUsers, updateProfile } from "../controllers/authController.js";
 import { protectAdmin } from "../middleware/auth.js";
+import { protectUser } from "../middleware/protectUser.js";
 
 dotenv.config();
 
@@ -94,5 +95,8 @@ router.get("/users", protectAdmin, getAllUsers);
 
 /* ✅ DELETE USER (Protected - Admin Only) */
 router.delete("/users/:id", protectAdmin, deleteUser);
+
+/* ✅ UPDATE USER PROFILE */
+router.patch("/profile/update", protectUser, updateProfile);
 
 export default router;

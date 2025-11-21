@@ -6,6 +6,7 @@ import {
   markAllAsRead,
   deleteNotification,
   markAdminNotificationAsRead,
+  deleteAdminNotification,
 } from "../controllers/notificationController.js";
 
 import { protectUser } from "../middleware/protectUser.js";
@@ -22,6 +23,9 @@ router.get("/admin/all", protectAdmin, getAdminNotifications);
 
 // ✅ Admin marks notification as read
 router.patch("/admin/:notificationId/read", protectAdmin, markAdminNotificationAsRead);
+
+// ✅ Admin deletes notification
+router.delete("/admin/:notificationId", protectAdmin, deleteAdminNotification);
 
 
 /* -----------------------------------------

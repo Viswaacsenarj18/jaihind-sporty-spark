@@ -59,8 +59,8 @@ const Profile = () => {
     name: "",
     email: "",
     phone: "",
-    address: "",
-    photo: "",
+    gender: "",
+    profilePicture: "",
     _id: "",
   });
 
@@ -120,17 +120,40 @@ const Profile = () => {
   }, []);
 
   //----------------------------------------------------
-  // ✅ SAVE PROFILE
+  // ✅ SAVE PROFILE TO DATABASE
   //----------------------------------------------------
-  const handleSave = () => {
-    setUserInfo({ ...editedInfo });
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.patch(
+        "/auth/profile/update",
+        {
+          name: editedInfo.name,
+          email: editedInfo.email,
+          phone: editedInfo.phone,
+          gender: editedInfo.gender,
+          profilePicture: editedInfo.profilePicture,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    toast({
-      title: "Profile Updated",
-      description: "Your profile was updated successfully.",
-    });
+      if (res.data.success) {
+        setUserInfo({ ...editedInfo });
+        localStorage.setItem("user", JSON.stringify(editedInfo));
 
-    setIsEditing(false);
+        toast({
+          title: "Profile Updated",
+          description: "Your profile was updated successfully.",
+        });
+        setIsEditing(false);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -139,21 +162,45 @@ const Profile = () => {
   };
 
   //----------------------------------------------------
-  // ✅ Upload Photo
+  // ✅ Upload Photo (Direct to Cloudinary)
   //----------------------------------------------------
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setEditedInfo((prev) => ({ ...prev, photo: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "jaihind_sports");
+
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dzyilb43m/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+      if (data.secure_url) {
+        setEditedInfo((prev) => ({ ...prev, profilePicture: data.secure_url }));
+        toast({
+          title: "Photo Uploaded",
+          description: "Profile picture updated successfully",
+        });
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload photo",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRemovePhoto = () => {
-    setEditedInfo((prev) => ({ ...prev, photo: "" }));
+    setEditedInfo((prev) => ({ ...prev, profilePicture: "" }));
   };
 
   //----------------------------------------------------
@@ -310,19 +357,17 @@ Check your order in My Account.
             <CardHeader className="text-center">
               <div className="flex flex-col items-center mb-4">
                 <Avatar className="w-24 h-24">
-                  {editedInfo.photo ? (
-                    <AvatarImage src={editedInfo.photo} />
+                  {editedInfo.profilePicture ? (
+                    <AvatarImage src={editedInfo.profilePicture} />
                   ) : (
-                    <AvatarImage
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.name}`}
-                    />
+                    <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-lg">
+                      {userInfo.name
+                        ?.split(" ")
+                        ?.map((n) => n[0])
+                        ?.join("")
+                        .toUpperCase()}
+                    </AvatarFallback>
                   )}
-                  <AvatarFallback>
-                    {userInfo.name
-                      ?.split(" ")
-                      ?.map((n) => n[0])
-                      ?.join("")}
-                  </AvatarFallback>
                 </Avatar>
 
                 <div className="flex gap-2 mt-4">
@@ -338,7 +383,7 @@ Check your order in My Account.
                     </label>
                   </Button>
 
-                  {editedInfo.photo && (
+                  {editedInfo.profilePicture && (
                     <Button
                       size="sm"
                       variant="destructive"
@@ -394,22 +439,63 @@ Check your order in My Account.
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    {["name", "email", "phone", "address"].map((field) => (
-                      <div key={field}>
-                        <Label className="capitalize">{field}</Label>
-                        <Input
-                          disabled={!isEditing}
-                          value={
-                            isEditing
-                              ? editedInfo[field as keyof typeof editedInfo]
-                              : userInfo[field as keyof typeof userInfo]
-                          }
-                          onChange={(e) =>
-                            setEditedInfo({ ...editedInfo, [field]: e.target.value })
-                          }
-                        />
-                      </div>
-                    ))}
+                    {/* Name */}
+                    <div>
+                      <Label>Name</Label>
+                      <Input
+                        disabled={!isEditing}
+                        value={isEditing ? editedInfo.name : userInfo.name}
+                        onChange={(e) =>
+                          setEditedInfo({ ...editedInfo, name: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        disabled={!isEditing}
+                        type="email"
+                        value={isEditing ? editedInfo.email : userInfo.email}
+                        onChange={(e) =>
+                          setEditedInfo({ ...editedInfo, email: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <Label>Phone</Label>
+                      <Input
+                        disabled={!isEditing}
+                        type="tel"
+                        value={isEditing ? editedInfo.phone : userInfo.phone}
+                        onChange={(e) =>
+                          setEditedInfo({ ...editedInfo, phone: e.target.value })
+                        }
+                        placeholder="10-digit number"
+                      />
+                    </div>
+
+                    {/* Gender */}
+                    <div>
+                      <Label htmlFor="gender-select">Gender</Label>
+                      <select
+                        id="gender-select"
+                        disabled={!isEditing}
+                        value={isEditing ? editedInfo.gender : userInfo.gender}
+                        onChange={(e) =>
+                          setEditedInfo({ ...editedInfo, gender: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

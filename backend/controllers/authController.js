@@ -10,6 +10,37 @@ const generateToken = (id, role = 'user') => {
   return token;
 };
 
+// ✅ UPDATE USER PROFILE
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+    const { name, email, phone, gender, profilePicture } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const updateData = {
+      ...(name && { name }),
+      ...(email && { email }),
+      ...(phone && { phone }),
+      ...(gender && { gender }),
+      ...(profilePicture && { profilePicture }),
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select("-password");
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error("Update Profile Error:", err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
+};
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone, address } = req.body;

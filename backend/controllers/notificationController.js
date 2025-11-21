@@ -182,6 +182,24 @@ export const markAdminNotificationAsRead = async (req, res) => {
 };
 
 /* ========================================================================
+    ADMIN: DELETE NOTIFICATION
+======================================================================== */
+export const deleteAdminNotification = async (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(403).json({ success: false, message: "Admin not authenticated" });
+    }
+
+    await Notification.findByIdAndDelete(req.params.notificationId);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ deleteAdminNotification Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/* ========================================================================
     USER: MARK AS READ
 ======================================================================== */
 export const markAsRead = async (req, res) => {

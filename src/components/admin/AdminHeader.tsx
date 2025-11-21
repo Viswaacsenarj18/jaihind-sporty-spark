@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, Menu, User } from "lucide-react";
+import { Bell, Menu, User, Trash2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -71,6 +71,24 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
     }
   };
 
+  // Delete notification
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(
+        `${API_BASE_URL}/api/notifications/admin/${notificationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updated = notifications.filter((n: any) => n._id !== notificationId);
+      setNotifications(updated);
+      setCount(Math.max(0, count - 1));
+    } catch (err) {
+      console.error("❌ Delete error:", err);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
@@ -104,27 +122,39 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
               <DropdownMenuItem disabled>No new notifications</DropdownMenuItem>
             ) : (
               notifications.map((notification: any) => (
-                <DropdownMenuItem
+                <div
                   key={notification._id}
-                  className="flex justify-between items-center gap-2 p-2"
+                  className="flex justify-between items-center gap-2 p-3 border-b hover:bg-muted/50 transition"
                 >
                   <div className="flex-1">
                     <p className="font-medium text-sm">{notification.title}</p>
                     <p className="text-xs text-muted-foreground">{notification.message}</p>
 
-                    {/* ⭐ FIXED: Correct sender */}
+                    {/* Sender info */}
                     <p className="text-xs text-gray-400 mt-1">
-                      From: {notification.sender?.name || "Unknown"}
+                      From: {notification.sender?.name || "System"}
                     </p>
                   </div>
 
-                  <button
-                    className="text-blue-500 text-lg hover:text-blue-700"
-                    onClick={() => handleMarkAsRead(notification._id)}
-                  >
-                    ✓
-                  </button>
-                </DropdownMenuItem>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleMarkAsRead(notification._id)}
+                      title="Mark as read"
+                    >
+                      <Check className="w-4 h-4 text-blue-500" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteNotification(notification._id)}
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
               ))
             )}
           </DropdownMenuContent>
