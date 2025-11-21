@@ -54,6 +54,7 @@ const Profile = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [userInfo, setUserInfo] = useState({
     name: "",
@@ -189,10 +190,16 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadingPhoto(true);
+
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "jaihind_sports");
+      formData.append("upload_preset", "sports_app");
+      formData.append("cloud_name", "dzyilb43m");
+
+      console.log("📤 Starting Cloudinary upload...");
+      console.log("📁 File:", file.name, file.size, file.type);
 
       const res = await fetch(
         "https://api.cloudinary.com/v1_1/dzyilb43m/image/upload",
@@ -202,26 +209,45 @@ const Profile = () => {
         }
       );
 
+      console.log("📡 Upload response status:", res.status);
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ Cloudinary error:", errorData);
+        throw new Error(errorData.error?.message || "Upload failed");
+      }
+
       const data = await res.json();
+      console.log("✅ Cloudinary response:", data);
+
       if (data.secure_url) {
         setEditedInfo((prev) => ({ ...prev, profilePicture: data.secure_url }));
+        console.log("✅ Profile picture updated:", data.secure_url);
         toast({
           title: "Photo Uploaded",
           description: "Profile picture updated successfully",
         });
+      } else {
+        throw new Error("No secure_url returned");
       }
-    } catch (err) {
-      console.error("Upload error:", err);
+    } catch (err: any) {
+      console.error("❌ Upload error:", err);
       toast({
         title: "Upload Failed",
-        description: "Failed to upload photo",
+        description: err.message || "Failed to upload photo",
         variant: "destructive",
       });
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
   const handleRemovePhoto = () => {
     setEditedInfo((prev) => ({ ...prev, profilePicture: "" }));
+    toast({
+      title: "Photo Removed",
+      description: "Profile picture has been removed",
+    });
   };
 
   //----------------------------------------------------
@@ -392,14 +418,21 @@ Check your order in My Account.
                 </Avatar>
 
                 <div className="flex gap-2 mt-4">
-                  <Button size="sm" variant="outline" asChild>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={uploadingPhoto}
+                    asChild
+                  >
                     <label className="cursor-pointer flex items-center gap-1">
-                      <Upload className="w-4 h-4" /> Upload
+                      <Upload className="w-4 h-4" /> 
+                      {uploadingPhoto ? "Uploading..." : "Upload"}
                       <input
                         type="file"
                         accept="image/*"
                         className="hidden"
                         onChange={handlePhotoUpload}
+                        disabled={uploadingPhoto}
                       />
                     </label>
                   </Button>
@@ -409,6 +442,7 @@ Check your order in My Account.
                       size="sm"
                       variant="destructive"
                       onClick={handleRemovePhoto}
+                      disabled={uploadingPhoto}
                     >
                       <X className="w-4 h-4" />
                       Remove
