@@ -6,7 +6,7 @@ import {
   notifyAdminOrder,
   notifyLowStock,
   notifyOutOfStock,
-  notifyUserStatus
+  notifyUserStatus,
 } from "./notificationController.js";
 
 /* ======================================================
@@ -20,22 +20,22 @@ export const createOrder = async (req, res) => {
     if (!items || items.length === 0)
       return res.status(400).json({ error: "Cart is empty" });
 
-    // Validate stock
+    /* ------------------------ VALIDATE STOCK ------------------------ */
     for (let item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) {
+
+      if (!product)
         return res.status(404).json({
           error: `Product not found: ${item.productId}`,
         });
-      }
-      if (product.stock < item.quantity) {
+
+      if (product.stock < item.quantity)
         return res.status(400).json({
           error: `Insufficient stock for ${product.name}`,
         });
-      }
     }
 
-    // Create Order
+    /* ------------------------ CREATE ORDER ------------------------ */
     const order = await Order.create({
       user: userId,
       items,
@@ -44,30 +44,31 @@ export const createOrder = async (req, res) => {
       status: "Pending",
     });
 
-    // Update stock + Stock notifications
+    /* ------------------------ UPDATE STOCK + ALERTS ------------------------ */
     for (let item of items) {
       const product = await Product.findById(item.productId);
 
       product.stock -= item.quantity;
       await product.save();
 
+      // LOW STOCK ALERT
       if (product.stock <= 5 && product.stock > 0) {
-        await notifyLowStock(product); // low stock
+        await notifyLowStock(product);
       }
 
+      // OUT OF STOCK ALERT
       if (product.stock === 0) {
-        await notifyOutOfStock(product); // out of stock
+        await notifyOutOfStock(product);
       }
     }
 
-    // Add to past orders
+    /* ------------------------ ADD ORDER TO USER HISTORY ------------------------ */
     await User.findByIdAndUpdate(userId, {
       $push: { pastOrders: order._id },
     });
 
+    /* ------------------------ NOTIFY ADMIN ------------------------ */
     const user = await User.findById(userId);
-
-    // Notify admin
     await notifyAdminOrder(order, items, user);
 
     res.json({
@@ -140,7 +141,7 @@ export const cancelOrder = async (req, res) => {
         error: "Only Pending or Processing orders can be cancelled",
       });
 
-    // Refund stock
+    // Restore stock
     for (let item of order.items) {
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity },
@@ -150,7 +151,6 @@ export const cancelOrder = async (req, res) => {
     order.status = "Cancelled";
     await order.save();
 
-    // Update user
     await User.findByIdAndUpdate(userId, {
       $pull: { pastOrders: orderId },
     });
@@ -196,7 +196,7 @@ export const updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
-    // Notify user
+    // Send notification to user
     await notifyUserStatus(order.user, order._id, status);
 
     res.json({

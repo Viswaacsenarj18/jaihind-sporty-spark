@@ -8,6 +8,7 @@ import {
 } from "../controllers/notificationController.js";
 
 import { protectUser } from "../middleware/protectUser.js";
+import { protectAdmin } from "../middleware/auth.js"; // ✅ added import
 
 const router = express.Router();
 
@@ -32,8 +33,8 @@ router.delete("/:notificationId", protectUser, deleteNotification);
    ADMIN ROUTES
 ----------------------------------------- */
 
-// Admin can view ALL user order_created notifications
-router.get("/admin/all", getAdminNotifications);
+// Admin can view ALL notifications
+router.get("/admin/all", protectAdmin, getAdminNotifications); // ✅ added protectAdmin
 
 
 export default router;

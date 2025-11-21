@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   createOrder,
   getAllOrders,
@@ -8,35 +9,41 @@ import {
   getOrderDetails,
   deleteOrder,
 } from "../controllers/orderController.js";
+
 import { protectUser } from "../middleware/protectUser.js";
 import { protectAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/* ----------------------- USER ROUTES ----------------------- */
+/* =======================================================
+   USER ROUTES
+======================================================= */
 
-// ✅ Create order (Protected - requires authentication)
+// ➤ Create order
 router.post("/create", protectUser, createOrder);
 
-// ✅ Get user's orders (Protected - requires authentication)
+// ➤ Get logged-in user's orders
 router.get("/user/my-orders", protectUser, getUserOrders);
 
-// ✅ Get order details (Protected - requires authentication)
+// ➤ Get specific order details
 router.get("/details/:orderId", protectUser, getOrderDetails);
 
-// ✅ Cancel order (Protected - requires authentication)
+// ➤ Cancel order
 router.patch("/cancel/:orderId", protectUser, cancelOrder);
 
 
-/* ----------------------- ADMIN ROUTES ----------------------- */
+/* =======================================================
+   ADMIN ROUTES
+======================================================= */
 
-// ✅ Get all orders (Protected - admin only)
+// ➤ Get all orders (ADMIN)
 router.get("/", protectAdmin, getAllOrders);
+router.get("/admin/all", protectAdmin, getAdminNotifications);
 
-// ✅ Update order status (Protected - admin only)
+// ➤ Update order status (ADMIN)
 router.patch("/status/:orderId", protectAdmin, updateOrderStatus);
 
-// ✅ Delete order (Protected - admin only)
+// ➤ Delete order (ADMIN)
 router.delete("/:orderId", protectAdmin, deleteOrder);
 
 export default router;
