@@ -31,7 +31,7 @@ export function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await api.get("/api/notifications");  // ✅ FIXED
+      const res = await api.get("/notifications");  // ✅ FIXED - removed duplicate /api
       setNotifications(res.data.notifications || []);
       setUnreadCount(res.data.unreadCount || 0);
     } catch (err) {
@@ -41,7 +41,7 @@ export function NotificationBell() {
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await api.patch(`/api/notifications/${id}/read`); // ✅ FIXED
+      await api.patch(`/notifications/${id}/read`);
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n))
       );
@@ -53,7 +53,7 @@ export function NotificationBell() {
 
   const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/api/notifications/${id}`); // ✅ FIXED
+      await api.delete(`/notifications/${id}`);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
     } catch (err) {
       console.error("Delete error:", err);
@@ -62,7 +62,7 @@ export function NotificationBell() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await api.patch("/api/notifications/mark-all-as-read"); // ✅ FIXED
+      await api.patch("/notifications/mark-all-as-read");
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (err) {

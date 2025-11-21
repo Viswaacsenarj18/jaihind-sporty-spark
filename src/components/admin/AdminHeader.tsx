@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "@/config/api";
 
 interface AdminHeaderProps {
   onMenuToggle: () => void;
@@ -30,7 +31,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await axios.get("/api/notifications/admin/all", {
+        const res = await axios.get(`${API_BASE_URL}/api/notifications/admin/all`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -39,7 +40,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
           setCount(res.data.unreadCount || 0);
         }
       } catch (err) {
-        console.error("Admin notifications error:", err);
+        console.error("❌ Admin notifications error:", err);
         setNotifications([]);
         setCount(0);
       }
@@ -56,16 +57,16 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
       const token = localStorage.getItem("token");
 
       await axios.patch(
-        `/api/notifications/${notificationId}/read`,
+        `${API_BASE_URL}/api/notifications/${notificationId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const updated = notifications.filter((n: any) => n._id !== notificationId);
       setNotifications(updated);
-      setCount(updated.length);
+      setCount(Math.max(0, count - 1));
     } catch (err) {
-      console.error("Mark read error:", err);
+      console.error("❌ Mark read error:", err);
     }
   };
 

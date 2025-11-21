@@ -7,12 +7,18 @@ import jwt from "jsonwebtoken";
 ----------------------------------------- */
 const getUserFromToken = (req) => {
   try {
+    // Try from middleware first (protectUser)
+    if (req.user && req.user._id) return req.user._id;
+    if (req.user && req.user.id) return req.user.id;
+
+    // Fallback to token extraction
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return null;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded.id;
-  } catch {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "yourSuperSecretKey123");
+    return decoded.id || decoded._id;
+  } catch (error) {
+    console.error("❌ Error getting user from token:", error.message);
     return null;
   }
 };

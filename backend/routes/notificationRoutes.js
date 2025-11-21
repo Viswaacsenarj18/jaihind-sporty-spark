@@ -13,28 +13,28 @@ import { protectAdmin } from "../middleware/auth.js";
 const router = express.Router();
 
 /* -----------------------------------------
-   USER ROUTES
+   ADMIN ROUTES (Must be before user routes)
 ----------------------------------------- */
 
-// Get user notifications
-router.get("/", protectUser, getNotifications);
-
-// Mark single notification as read
-router.patch("/:notificationId/read", protectUser, markAsRead);
-
-// Mark all as read
-router.patch("/mark-all-as-read", protectUser, markAllAsRead);
-
-// Delete notification
-router.delete("/:notificationId", protectUser, deleteNotification);
+// ✅ Admin gets all notifications (order + stock alerts)
+router.get("/admin/all", protectAdmin, getAdminNotifications);
 
 
 /* -----------------------------------------
-   ADMIN ROUTES
+   USER ROUTES
 ----------------------------------------- */
 
-// Admin sees ALL notifications (order + stock)
-router.get("/admin/all", protectAdmin, getAdminNotifications);
+// ✅ Get user's own notifications
+router.get("/", protectUser, getNotifications);
+
+// ✅ Mark single notification as read
+router.patch("/:notificationId/read", protectUser, markAsRead);
+
+// ✅ Mark all notifications as read
+router.patch("/mark-all-as-read", protectUser, markAllAsRead);
+
+// ✅ Delete single notification
+router.delete("/:notificationId", protectUser, deleteNotification);
 
 
 export default router;
