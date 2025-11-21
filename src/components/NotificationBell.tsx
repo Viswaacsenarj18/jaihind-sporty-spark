@@ -31,7 +31,15 @@ export function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await api.get("/notifications");  // ✅ FIXED - removed duplicate /api
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("⚠️ No auth token found for notifications");
+        return;
+      }
+
+      const res = await api.get("/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setNotifications(res.data.notifications || []);
       setUnreadCount(res.data.unreadCount || 0);
     } catch (err) {

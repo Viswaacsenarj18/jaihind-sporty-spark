@@ -55,6 +55,20 @@ const userSchema = new mongoose.Schema(
         ref: "Order",
       },
     ],
+
+    cartItems: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        name: String,
+        price: Number,
+        quantity: Number,
+        image: String,
+        category: String,
+      },
+    ],
   },
   { 
     timestamps: true // ✅ Auto adds createdAt & updatedAt

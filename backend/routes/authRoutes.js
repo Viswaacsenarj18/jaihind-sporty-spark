@@ -2,12 +2,26 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import multer from "multer";
 import User from "../models/User.js";
-import { deleteUser, getAllUsers, updateProfile } from "../controllers/authController.js";
+import { deleteUser, getAllUsers, updateProfile, uploadProfilePhoto, changePassword, deleteAccount, saveCart, getCart } from "../controllers/authController.js";
 import { protectAdmin } from "../middleware/auth.js";
 import { protectUser } from "../middleware/protectUser.js";
 
 dotenv.config();
+
+// Setup multer for file upload (memory storage for Cloudinary)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files allowed'), false);
+    }
+  }
+});
 
 const router = express.Router();
 
@@ -118,5 +132,20 @@ router.get("/profile", protectUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+/* ✅ UPLOAD PROFILE PHOTO */
+router.post("/profile/upload-photo", protectUser, upload.single("file"), uploadProfilePhoto);
+
+/* ✅ CHANGE PASSWORD */
+router.patch("/change-password", protectUser, changePassword);
+
+/* ✅ DELETE ACCOUNT */
+router.delete("/delete-account", protectUser, deleteAccount);
+
+/* ✅ SAVE CART */
+router.post("/cart/save", protectUser, saveCart);
+
+/* ✅ GET CART */
+router.get("/cart", protectUser, getCart);
 
 export default router;

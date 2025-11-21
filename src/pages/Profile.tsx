@@ -55,6 +55,16 @@ const Profile = () => {
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [deletePassword, setDeletePassword] = useState("");
+  const [loadingPassword, setLoadingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const [userInfo, setUserInfo] = useState({
     name: "",
@@ -184,7 +194,7 @@ const Profile = () => {
   };
 
   //----------------------------------------------------
-  // ✅ Upload Photo (Direct to Cloudinary)
+  // ✅ Upload Photo (Backend Endpoint to Cloudinary)
   //----------------------------------------------------
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,46 +205,42 @@ const Profile = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "sports_app");
-      formData.append("cloud_name", "dzyilb43m");
 
-      console.log("📤 Starting Cloudinary upload...");
+      console.log("📤 Starting file upload to backend...");
       console.log("📁 File:", file.name, file.size, file.type);
 
-      const res = await fetch(
-        "https://api.cloudinary.com/v1_1/dzyilb43m/image/upload",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const token = localStorage.getItem("token");
+      const res = await api.post("/auth/profile/upload-photo", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Don't set Content-Type, axios will set it to multipart/form-data
+        },
+      });
 
       console.log("📡 Upload response status:", res.status);
+      console.log("✅ Backend response:", res.data);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("❌ Cloudinary error:", errorData);
-        throw new Error(errorData.error?.message || "Upload failed");
-      }
-
-      const data = await res.json();
-      console.log("✅ Cloudinary response:", data);
-
-      if (data.secure_url) {
-        setEditedInfo((prev) => ({ ...prev, profilePicture: data.secure_url }));
-        console.log("✅ Profile picture updated:", data.secure_url);
+      if (res.data.success && res.data.photoUrl) {
+        setEditedInfo((prev) => ({ ...prev, profilePicture: res.data.photoUrl }));
+        console.log("✅ Profile picture updated:", res.data.photoUrl);
         toast({
           title: "Photo Uploaded",
           description: "Profile picture updated successfully",
         });
       } else {
-        throw new Error("No secure_url returned");
+        throw new Error("Upload failed - no photo URL returned");
       }
     } catch (err: any) {
       console.error("❌ Upload error:", err);
+      const errorMsg = 
+        err.response?.data?.error || 
+        err.response?.data?.message || 
+        err.message || 
+        "Failed to upload photo";
+      
       toast({
         title: "Upload Failed",
-        description: err.message || "Failed to upload photo",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -387,6 +393,127 @@ Check your order in My Account.
     }
   };
 
+  //----------------------------------------------------
+  // ✅ CHANGE PASSWORD
+  //----------------------------------------------------
+  const handleChangePassword = async () => {
+    try {
+      if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "All password fields are required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "New passwords don't match",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (passwordData.newPassword.length < 6) {
+        toast({
+          title: "Error",
+          description: "Password must be at least 6 characters",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setLoadingPassword(true);
+      const token = localStorage.getItem("token");
+
+      const res = await api.patch(
+        "/auth/change-password",
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+          confirmPassword: passwordData.confirmPassword,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        toast({
+          title: "Success",
+          description: "Password changed successfully",
+        });
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+        setShowChangePassword(false);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to change password",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPassword(false);
+    }
+  };
+
+  //----------------------------------------------------
+  // ✅ DELETE ACCOUNT
+  //----------------------------------------------------
+  const handleDeleteAccount = async () => {
+    try {
+      if (!deletePassword) {
+        toast({
+          title: "Error",
+          description: "Password is required to delete account",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setDeletingAccount(true);
+      const token = localStorage.getItem("token");
+
+      const res = await api.delete(
+        "/auth/delete-account",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { password: deletePassword },
+        }
+      );
+
+      if (res.data.success) {
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been deleted successfully",
+        });
+        
+        // Clear local storage and redirect to home
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        
+        // Redirect to home after 2 seconds
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to delete account",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingAccount(false);
+      setDeletePassword("");
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -459,10 +586,11 @@ Check your order in My Account.
           {/* ✅ Right Side Tabs */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="info">
-              <TabsList className="grid grid-cols-3">
+              <TabsList className="grid grid-cols-4">
                 <TabsTrigger value="info">Profile</TabsTrigger>
                 <TabsTrigger value="orders">Orders</TabsTrigger>
                 <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
 
               {/* ✅ Personal Info */}
@@ -826,6 +954,197 @@ Check your order in My Account.
                         ))}
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* ✅ Settings Tab */}
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Settings</CardTitle>
+                    <CardDescription>Manage your security and account</CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-6">
+                    {/* Change Password Section */}
+                    <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Change Password</DialogTitle>
+                          <DialogDescription>
+                            Enter your current password and a new password
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="current-pwd">Current Password</Label>
+                            <Input
+                              id="current-pwd"
+                              type="password"
+                              placeholder="Current password"
+                              value={passwordData.currentPassword}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  currentPassword: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="new-pwd">New Password</Label>
+                            <Input
+                              id="new-pwd"
+                              type="password"
+                              placeholder="New password (min 6 chars)"
+                              value={passwordData.newPassword}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  newPassword: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="confirm-pwd">Confirm New Password</Label>
+                            <Input
+                              id="confirm-pwd"
+                              type="password"
+                              placeholder="Confirm new password"
+                              value={passwordData.confirmPassword}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  confirmPassword: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="flex gap-2 pt-4">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => {
+                                setShowChangePassword(false);
+                                setPasswordData({
+                                  currentPassword: "",
+                                  newPassword: "",
+                                  confirmPassword: "",
+                                });
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              className="flex-1"
+                              onClick={handleChangePassword}
+                              disabled={loadingPassword}
+                            >
+                              {loadingPassword ? "Saving..." : "Change Password"}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                      <div>
+                        <p className="font-semibold">Change Password</p>
+                        <p className="text-sm text-muted-foreground">
+                          Update your password regularly for security
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowChangePassword(true)}
+                      >
+                        Change
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    {/* Delete Account Section */}
+                    <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+                          <DialogDescription>
+                            This action cannot be undone. Please enter your password to confirm.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-4">
+                          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                            <p className="text-sm text-destructive font-semibold">
+                              ⚠️ Warning: Deleting your account will:
+                            </p>
+                            <ul className="text-sm text-destructive mt-2 ml-4 space-y-1">
+                              <li>• Permanently delete your profile</li>
+                              <li>• Remove all your orders history</li>
+                              <li>• Clear your wishlist</li>
+                              <li>• Cannot be recovered</li>
+                            </ul>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="delete-pwd">
+                              Enter your password to confirm deletion
+                            </Label>
+                            <Input
+                              id="delete-pwd"
+                              type="password"
+                              placeholder="Your password"
+                              value={deletePassword}
+                              onChange={(e) => setDeletePassword(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="flex gap-2 pt-4">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeletePassword("");
+                              }}
+                              disabled={deletingAccount}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="flex-1"
+                              onClick={handleDeleteAccount}
+                              disabled={deletingAccount || !deletePassword}
+                            >
+                              {deletingAccount ? "Deleting..." : "Delete Account"}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <div className="flex items-center justify-between p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+                      <div>
+                        <p className="font-semibold text-destructive">Delete Account</p>
+                        <p className="text-sm text-muted-foreground">
+                          Permanently delete your account and all data
+                        </p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        onClick={() => setShowDeleteConfirm(true)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
