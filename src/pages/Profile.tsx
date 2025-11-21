@@ -67,15 +67,36 @@ const Profile = () => {
   const [editedInfo, setEditedInfo] = useState({ ...userInfo });
 
   //----------------------------------------------------
-  // ✅ LOAD PROFILE FROM LOCALSTORAGE
+  // ✅ LOAD PROFILE FROM DATABASE
   //----------------------------------------------------
   useEffect(() => {
-    const saved = localStorage.getItem("user");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setUserInfo(parsed);
-      setEditedInfo(parsed);
-    }
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await api.get("/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.data.user) {
+          setUserInfo(res.data.user);
+          setEditedInfo(res.data.user);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        // Fallback to localStorage if API fails
+        const saved = localStorage.getItem("user");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setUserInfo(parsed);
+          setEditedInfo(parsed);
+        }
+      }
+    };
+
+    loadProfile();
   }, []);
 
   //----------------------------------------------------

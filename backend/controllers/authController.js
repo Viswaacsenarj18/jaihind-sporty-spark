@@ -58,6 +58,9 @@ export const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || "",
+        gender: user.gender || "",
+        profilePicture: user.profilePicture || "",
         role: 'user',
         token: generateToken(user._id, 'user')
       }
@@ -86,6 +89,9 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || "",
+        gender: user.gender || "",
+        profilePicture: user.profilePicture || "",
         role: 'user',
         token: token
       }

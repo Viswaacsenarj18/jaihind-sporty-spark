@@ -99,4 +99,24 @@ router.delete("/users/:id", protectAdmin, deleteUser);
 /* ✅ UPDATE USER PROFILE */
 router.patch("/profile/update", protectUser, updateProfile);
 
+/* ✅ GET USER PROFILE */
+router.get("/profile", protectUser, async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("Get Profile Error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 export default router;
