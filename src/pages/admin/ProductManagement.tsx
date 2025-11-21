@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
@@ -78,6 +79,17 @@ export default function ProductManagement() {
 
   const resolveImage = (img: string) =>
     img?.startsWith("http") ? img : `${API_BASE_URL}${img}`;
+
+  // ✅ Helper function to get product status
+  const getProductStatus = (stock: number) => {
+    if (stock === 0) {
+      return { label: "Out of Stock", color: "bg-red-100 text-red-800", badge: "destructive" };
+    } else if (stock <= 5) {
+      return { label: "Low Stock", color: "bg-yellow-100 text-yellow-800", badge: "outline" };
+    } else {
+      return { label: "In Stock", color: "bg-green-100 text-green-800", badge: "default" };
+    }
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -277,45 +289,69 @@ export default function ProductManagement() {
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Sizes</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map(p => (
-                  <TableRow key={p._id}>
-                    <TableCell><img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-14 w-14 rounded object-contain border" /></TableCell>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell>{p.category}</TableCell>
-                    <TableCell>₹{p.price}</TableCell>
-                    <TableCell>{p.stock}</TableCell>
-                    <TableCell>{p.hasSizes ? "✅ Yes" : "❌ No"}</TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditDialog(p)}><Pencil className="h-4" /></Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 className="h-4" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {products.map(p => {
+                  const status = getProductStatus(p.stock);
+                  return (
+                    <TableRow key={p._id}>
+                      <TableCell><img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-14 w-14 rounded object-contain border" /></TableCell>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell>{p.category}</TableCell>
+                      <TableCell>₹{p.price}</TableCell>
+                      <TableCell>{p.stock}</TableCell>
+                      <TableCell>
+                        <Badge variant={status.badge as any}>
+                          {status.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{p.hasSizes ? "✅ Yes" : "❌ No"}</TableCell>
+                      <TableCell className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(p)}><Pencil className="h-4" /></Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 className="h-4" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
 
           {/* Mobile view */}
           <div className="md:hidden grid gap-3 mt-3">
-            {products.map(p => (
-              <div key={p._id} className="border rounded-lg p-3 flex gap-3 items-center">
-                <img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-16 w-16 rounded border object-contain" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm">{p.name}</h4>
-                  <p className="text-xs text-gray-500">{p.category}</p>
-                  <p className="text-sm font-bold text-primary">₹{p.price}</p>
+            {products.map(p => {
+              const status = getProductStatus(p.stock);
+              return (
+                <div key={p._id} className="border rounded-lg p-3 space-y-3">
+                  <div className="flex gap-3 items-center">
+                    <img src={resolveImage(p.image)} alt={p.name || "product image"} className="h-16 w-16 rounded border object-contain" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm">{p.name}</h4>
+                      <p className="text-xs text-gray-500">{p.category}</p>
+                      <p className="text-sm font-bold text-primary">₹{p.price}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="flex gap-2 flex-col">
+                      <div className="text-xs">
+                        <span className="font-semibold">Stock: </span>
+                        <span>{p.stock}</span>
+                      </div>
+                      <Badge variant={status.badge as any}>{status.label}</Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="outline" onClick={() => openEditDialog(p)}><Pencil className="h-4" /></Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 className="h-4" /></Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Button size="icon" onClick={() => openEditDialog(p)}><Pencil className="h-4" /></Button>
-                  <Button size="icon" variant="destructive" onClick={() => handleDelete(p._id)}><Trash2 className="h-4" /></Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
         </CardContent>
