@@ -1,4 +1,5 @@
 import Notification from "../models/Notification.js";
+import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
 /* -----------------------------------------
@@ -17,8 +18,15 @@ const getUserFromToken = (req) => {
 };
 
 /* -----------------------------------------
-   USER: Get own notifications
+   Helper: Get Admin User
 ----------------------------------------- */
+const getAdminUser = async () => {
+  return await User.findOne({ role: "admin" });
+};
+
+/* ============================================================================
+   USER: GET OWN NOTIFICATIONS
+============================================================================ */
 export const getNotifications = async (req, res) => {
   try {
     const userId = getUserFromToken(req);
@@ -42,21 +50,18 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-/* -----------------------------------------
-   ADMIN: Get all order notifications
------------------------------------------ */
+/* ============================================================================
+   ADMIN: GET ALL NOTIFICATIONS (order + stock alerts)
+============================================================================ */
 export const getAdminNotifications = async (req, res) => {
   try {
-    const userId = getUserFromToken(req);
-    if (!userId)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-
-    // You may check here if userId is admin using your protectAdmin middleware
+    const admin = await getAdminUser();
+    if (!admin)
+      return res.status(403).json({ success: false, message: "No admin found" });
 
     const notifications = await Notification.find({
-      type: "order_created",
+      receiver: admin._id,
     })
-      .populate("receiver", "name email")
       .populate("sender", "name email")
       .populate("orderId")
       .sort({ createdAt: -1 });
@@ -74,9 +79,9 @@ export const getAdminNotifications = async (req, res) => {
   }
 };
 
-/* -----------------------------------------
-   Mark single notification as read
------------------------------------------ */
+/* ============================================================================
+   MARK SINGLE NOTIFICATION AS READ
+============================================================================ */
 export const markAsRead = async (req, res) => {
   try {
     const userId = getUserFromToken(req);
@@ -92,23 +97,18 @@ export const markAsRead = async (req, res) => {
     );
 
     if (!notification)
-      return res
-        .status(404)
-        .json({ success: false, message: "Notification not found" });
+      return res.status(404).json({ success: false, message: "Not found" });
 
-    return res.json({
-      success: true,
-      notification,
-    });
+    return res.json({ success: true, notification });
   } catch (err) {
-    console.error("❌ Error marking notification as read:", err);
+    console.error("❌ markAsRead error:", err);
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-/* -----------------------------------------
-   Mark all notifications as read
------------------------------------------ */
+/* ============================================================================
+   MARK ALL AS READ
+============================================================================ */
 export const markAllAsRead = async (req, res) => {
   try {
     const userId = getUserFromToken(req);
@@ -117,19 +117,16 @@ export const markAllAsRead = async (req, res) => {
 
     await Notification.updateMany({ receiver: userId }, { read: true });
 
-    return res.json({
-      success: true,
-      message: "All notifications marked as read",
-    });
+    return res.json({ success: true, message: "All marked as read" });
   } catch (err) {
-    console.error("❌ Error marking all as read:", err);
+    console.error("❌ markAllAsRead error:", err);
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-/* -----------------------------------------
-   Delete notification
------------------------------------------ */
+/* ============================================================================
+   DELETE NOTIFICATION
+============================================================================ */
 export const deleteNotification = async (req, res) => {
   try {
     const userId = getUserFromToken(req);
@@ -143,50 +140,89 @@ export const deleteNotification = async (req, res) => {
       receiver: userId,
     });
 
-    return res.json({
-      success: true,
-      message: "Notification deleted",
-    });
+    return res.json({ success: true, message: "Deleted" });
   } catch (err) {
-    console.error("❌ Error deleting notification:", err);
+    console.error("❌ Delete notification error:", err);
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-/* -----------------------------------------
-   TRIGGER: USER → ADMIN (order placed)
------------------------------------------ */
-export const notifyAdmin = async (userId, orderId) => {
+/* ============================================================================
+   TRIGGER 1: USER → ADMIN  (Order Placed)
+============================================================================ */
+export const notifyAdminOrder = async (order, items, user) => {
   try {
-    return await Notification.create({
-      receiver: null,          // admin read by /admin panel, not tied to a user
-      sender: userId,
-      orderId,
+    const admin = await getAdminUser();
+    if (!admin) return;
+
+    const itemList = items
+      .map((i) => `${i.name} x ${i.quantity}`)
+      .join(", ");
+
+    await Notification.create({
+      receiver: admin._id,
+      sender: user._id,
+      orderId: order._id,
       type: "order_created",
       title: "New Order Received",
-      message: "A customer placed a new order!",
-      read: false,
+      message: `Amount ₹${order.summary.total} | Items: ${itemList}`,
     });
   } catch (err) {
-    console.error("❌ Error creating admin notification:", err);
+    console.error("❌ notifyAdminOrder error:", err);
   }
 };
 
-/* -----------------------------------------
-   TRIGGER: ADMIN → USER (status change)
------------------------------------------ */
-export const notifyUser = async (userId, orderId, status) => {
+/* ============================================================================
+   TRIGGER 2: LOW STOCK ALERT
+============================================================================ */
+export const notifyLowStock = async (product) => {
   try {
-    return await Notification.create({
-      receiver: userId,
-      sender: null, // admin system
-      orderId,
-      type: "status_updated",
-      title: `Order Status Updated`,
-      message: `Your order status changed to: ${status}`,
-      read: false,
+    const admin = await getAdminUser();
+    if (!admin) return;
+
+    await Notification.create({
+      receiver: admin._id,
+      type: "low_stock",
+      title: `Low Stock: ${product.name}`,
+      message: `${product.name} has only ${product.stock} left!`,
     });
   } catch (err) {
-    console.error("❌ Error creating user notification:", err);
+    console.error("❌ notifyLowStock error:", err);
+  }
+};
+
+/* ============================================================================
+   TRIGGER 3: OUT OF STOCK ALERT
+============================================================================ */
+export const notifyOutOfStock = async (product) => {
+  try {
+    const admin = await getAdminUser();
+    if (!admin) return;
+
+    await Notification.create({
+      receiver: admin._id,
+      type: "out_of_stock",
+      title: `OUT OF STOCK: ${product.name}`,
+      message: `${product.name} is now OUT OF STOCK!`,
+    });
+  } catch (err) {
+    console.error("❌ notifyOutOfStock error:", err);
+  }
+};
+
+/* ============================================================================
+   TRIGGER 4: ADMIN → USER (Order Status Update)
+============================================================================ */
+export const notifyUserStatus = async (userId, orderId, status) => {
+  try {
+    await Notification.create({
+      receiver: userId,
+      orderId,
+      type: "status_updated",
+      title: "Order Updated",
+      message: `Your order status changed to: ${status}`,
+    });
+  } catch (err) {
+    console.error("❌ notifyUserStatus error:", err);
   }
 };
