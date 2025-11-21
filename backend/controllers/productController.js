@@ -1,4 +1,5 @@
 import Product from "../models/Product.js";
+import { notifyLowStock, notifyOutOfStock } from "./notificationController.js";
 
 // ✅ Get all products
 export const getProducts = async (req, res) => {
@@ -140,6 +141,12 @@ export const updateProduct = async (req, res) => {
       updateData.sizes = [];
     }
 
+    // Get old product to check stock changes
+    const oldProduct = await Product.findById(req.params.id);
+    if (!oldProduct) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -148,6 +155,17 @@ export const updateProduct = async (req, res) => {
 
     if (!updatedProduct) {
       return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // ✅ TRIGGER NOTIFICATIONS ON STOCK CHANGE
+    if (stock !== undefined && oldProduct.stock !== stock) {
+      if (stock <= 5 && stock > 0) {
+        console.log("📢 Low stock alert triggered for:", updatedProduct.name);
+        await notifyLowStock(updatedProduct);
+      } else if (stock === 0) {
+        console.log("📢 Out of stock alert triggered for:", updatedProduct.name);
+        await notifyOutOfStock(updatedProduct);
+      }
     }
 
     return res.json({

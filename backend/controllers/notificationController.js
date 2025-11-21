@@ -1,5 +1,6 @@
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
 import jwt from "jsonwebtoken";
 
 /* -----------------------------------------
@@ -24,10 +25,11 @@ const getUserFromToken = (req) => {
 };
 
 /* -----------------------------------------
-   Helper: Get Admin User
+   Helper: Get Admin User (from Admin collection)
 ----------------------------------------- */
 const getAdminUser = async () => {
-  return await User.findOne({ role: "admin" });
+  // ✅ Get admin from Admin collection (not User collection)
+  return await Admin.findOne();
 };
 
 /* ========================================================================
