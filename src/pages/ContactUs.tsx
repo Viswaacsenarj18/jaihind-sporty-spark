@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/utils/api";
 
 const ContactUs = () => {
   const { toast } = useToast();
@@ -52,35 +53,36 @@ const ContactUs = () => {
     setIsSubmitting(true);
 
     try {
-      // Send email via mailto
-      const mailtoLink = `mailto:sethupathi51469@gmail.com?subject=${encodeURIComponent(
-        `New Contact Form: ${formData.subject}`
-      )}&body=${encodeURIComponent(
-        `From: ${formData.firstName} ${formData.lastName}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
-      )}`;
-
-      window.location.href = mailtoLink;
-
-      // Also show success toast
-      toast({
-        title: "Message Sent! 📧",
-        description:
-          "Thank you for contacting Jaihind Sports. We'll get back to you soon!",
+      // Send email via backend API
+      const res = await api.post("/contact/send", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
       });
 
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-    } catch (error) {
+      if (res.data.success) {
+        toast({
+          title: "Message Sent! 📧",
+          description: res.data.message,
+        });
+
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      }
+    } catch (error: any) {
       console.error("Error sending message:", error);
+      const errorMsg = error.response?.data?.message || "Failed to send message. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
