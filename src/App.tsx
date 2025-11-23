@@ -66,6 +66,12 @@ const AppRoutes = () => {
     location.pathname.startsWith(path)
   );
 
+  // Hide live chat on auth and admin pages
+  const hideLiveChatPaths = ["/login", "/signup", "/admin"];
+  const shouldHideLiveChat = hideLiveChatPaths.some((path) =>
+    location.pathname.startsWith(path)
+  );
+
   return (
     <>
       <Routes>
@@ -197,6 +203,7 @@ const AppRoutes = () => {
       </Routes>
 
       {!shouldHideFooter && <Footer />}
+      {!shouldHideLiveChat && <LiveChat />}
     </>
   );
 };
@@ -212,7 +219,6 @@ const App = () => {
             <WishlistProvider>
               <BrowserRouter>
                 <AppRoutes />
-                <LiveChat />
               </BrowserRouter>
             </WishlistProvider>
           </CartProvider>
