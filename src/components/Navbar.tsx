@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  Search, ShoppingCart, User, Menu, X, LogOut, Settings, Heart
+  Search, ShoppingCart, User, Menu, X, LogOut, Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -151,10 +151,6 @@ const Navbar = () => {
 
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="mr-2" /> Profile
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
-                    <Settings className="mr-2" /> Settings
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
