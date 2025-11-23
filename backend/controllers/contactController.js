@@ -22,19 +22,32 @@ export const sendContactEmail = async (req, res) => {
       });
     }
 
+    // Get Gmail credentials from environment
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailPassword = process.env.GMAIL_PASSWORD;
+    const adminEmail = process.env.ADMIN_EMAIL || 'sethupathi51469@gmail.com';
+
+    if (!gmailUser || !gmailPassword) {
+      console.error('❌ Gmail credentials not configured in .env');
+      return res.status(500).json({
+        success: false,
+        message: 'Email service is not configured. Please try again later.',
+      });
+    }
+
     // Configure nodemailer transporter using Gmail SMTP
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.GMAIL_USER || 'sethupathi51469@gmail.com',
-        pass: process.env.GMAIL_PASSWORD || 'yourGmailAppPassword', // Use app-specific password
+        user: gmailUser,
+        pass: gmailPassword,
       },
     });
 
     // Email content for you (admin)
     const adminMailOptions = {
-      from: process.env.GMAIL_USER || 'sethupathi51469@gmail.com',
-      to: 'sethupathi51469@gmail.com',
+      from: gmailUser,
+      to: adminEmail,
       subject: `New Contact Form: ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
@@ -62,7 +75,7 @@ export const sendContactEmail = async (req, res) => {
 
     // Email content for user (confirmation)
     const userMailOptions = {
-      from: process.env.GMAIL_USER || 'sethupathi51469@gmail.com',
+      from: gmailUser,
       to: email,
       subject: 'Thank you for contacting Jaihind Sports!',
       html: `
