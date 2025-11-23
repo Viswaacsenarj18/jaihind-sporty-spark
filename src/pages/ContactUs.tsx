@@ -8,11 +8,9 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/utils/api";
 
 const ContactUs = () => {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -31,7 +29,7 @@ const ContactUs = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -50,44 +48,30 @@ const ContactUs = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    // Create mailto link with pre-filled data
+    const mailtoLink = `mailto:sethupathi51469@gmail.com?subject=${encodeURIComponent(
+      `New Contact Form: ${formData.subject}`
+    )}&body=${encodeURIComponent(
+      `From: ${formData.firstName} ${formData.lastName}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+    )}`;
 
-    try {
-      // Send email via backend API
-      const res = await api.post("/contact/send", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-      });
+    // Open Gmail with pre-filled data
+    window.location.href = mailtoLink;
 
-      if (res.data.success) {
-        toast({
-          title: "Message Sent! 📧",
-          description: res.data.message,
-        });
+    // Show success message
+    toast({
+      title: "Opening Gmail! 📧",
+      description: "Your default email client will open with your message. Just click Send!",
+    });
 
-        // Reset form
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          subject: "",
-          message: "",
-        });
-      }
-    } catch (error: any) {
-      console.error("Error sending message:", error);
-      const errorMsg = error.response?.data?.message || "Failed to send message. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMsg,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Reset form
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
   };
 
   const phoneNumber = "9659059697"; // WhatsApp format: country code + number
@@ -127,14 +111,12 @@ const ContactUs = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleInputChange}
-                          disabled={isSubmitting}
                         />
                         <Input
                           placeholder="Last Name"
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleInputChange}
-                          disabled={isSubmitting}
                         />
                       </div>
                       <Input
@@ -143,29 +125,25 @@ const ContactUs = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        disabled={isSubmitting}
                       />
                       <Input
                         placeholder="Subject"
                         name="subject"
                         value={formData.subject}
                         onChange={handleInputChange}
-                        disabled={isSubmitting}
                       />
                       <Textarea
                         placeholder="Your Message"
                         name="message"
                         value={formData.message}
                         onChange={handleInputChange}
-                        disabled={isSubmitting}
                         className="min-h-32"
                       />
                       <Button
                         type="submit"
                         className="w-full"
-                        disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Sending..." : "Send Message"}
+                        Send Message
                       </Button>
                     </form>
                   </CardContent>
