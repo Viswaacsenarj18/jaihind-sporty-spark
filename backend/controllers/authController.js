@@ -255,9 +255,8 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Current password is incorrect" });
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    // Set new password (let pre-save hook hash it)
+    user.password = newPassword;
     await user.save();
 
     console.log("✅ Password changed successfully for user:", userId);
