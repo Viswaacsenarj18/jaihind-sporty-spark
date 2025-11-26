@@ -182,7 +182,7 @@ const Checkout = () => {
     [itemsToCheckout]
   );
 
-  const shipping = subtotal > 5000 ? 0 : 99;
+  const shipping = 0; // ✅ FREE SHIPPING
   const total = subtotal + shipping;
 
   // ✅ Backend Payload
@@ -362,9 +362,9 @@ const Checkout = () => {
             <p className="text-muted-foreground mb-6">
               Add some items before checking out.
             </p>
-            <Link to="/products">
+            <div className="flex flex-col gap-3">
               <Button className="rounded-full">Browse Products</Button>
-            </Link>
+            </div>
           </motion.div>
         </div>
         <Footer />
@@ -615,6 +615,12 @@ const Checkout = () => {
               <Button className="w-full" onClick={handleSubmit} disabled={loading}>
                 {loading ? "Placing Order..." : "Place Order"}
               </Button>
+
+              <Link to="/products" className="w-full">
+                <Button variant="outline" className="w-full">
+                  Continue Shopping
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
