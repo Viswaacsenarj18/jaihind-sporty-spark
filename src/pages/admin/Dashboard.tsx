@@ -31,13 +31,10 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem("token");
         const [prodRes, usersRes, ordersRes] = await Promise.all([
           productsAPI.getAll(),           // ✅ Fetch products
           api.get("/auth/users"),         // ✅ Fetch users
-          api.get("/orders/all", {        // ✅ Fetch orders from LOCAL API_BASE_URL
-            headers: { Authorization: `Bearer ${token}` }
-          }),
+          api.get("/orders"),             // ✅ Fetch orders (correct endpoint)
         ]);
 
         const productData = prodRes.data?.products || [];
