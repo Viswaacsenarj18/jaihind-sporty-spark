@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Shield, Truck, ShoppingBag, AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
+import { ArrowLeft, Shield, Truck, ShoppingBag, AlertCircle, Plus, Minus, Trash2, Edit2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,33 @@ const Checkout = () => {
       }
     }
   }, [isBuyNow]);
+
+  // ✅ When returning from continue shopping, merge new buy-now item with existing ones
+  useEffect(() => {
+    const newBuyNowItem = sessionStorage.getItem("buyNowItem");
+    if (newBuyNowItem && isBuyNow) {
+      try {
+        const item = JSON.parse(newBuyNowItem);
+        setBuyNowItems((prev) => {
+          // Check if item already exists
+          const exists = prev.some((p) => p.id === item.id);
+          if (exists) {
+            // Update quantity if same product
+            return prev.map((p) =>
+              p.id === item.id
+                ? { ...p, quantity: (p.quantity || 1) + (item.quantity || 1) }
+                : p
+            );
+          }
+          // Add new item
+          return [...prev, item];
+        });
+        sessionStorage.removeItem("buyNowItem");
+      } catch (err) {
+        console.error("Error parsing new buyNowItem:", err);
+      }
+    }
+  }, []);
 
   // ✅ Validation Functions
   const validateEmail = (email: string): boolean => {
@@ -535,8 +562,8 @@ const Checkout = () => {
                         <p className="font-semibold text-sm">₹{(item.price * item.quantity).toLocaleString()}</p>
                       </div>
 
-                      {/* Quantity & Delete Controls */}
-                      <div className="flex items-center gap-2 mt-2">
+                      {/* Quantity & Delete Controls - Hidden by default, shown on hover */}
+                      <div className="flex items-center gap-2 mt-2 opacity-0 hover:opacity-100 transition-opacity">
                         <div className="flex items-center border rounded-lg">
                           <button
                             onClick={() => {
@@ -585,6 +612,12 @@ const Checkout = () => {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                      </div>
+
+                      {/* Edit Indicator */}
+                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                        <Edit2 className="w-3 h-3" />
+                        <span>Hover to edit</span>
                       </div>
                     </div>
                   </div>

@@ -21,7 +21,7 @@ const Cart = () => {
     return sum + itemDiscount;
   }, 0);
 
-  const shipping = subtotal > 5000 ? 0 : 200;
+  const shipping = 0; // ✅ FREE SHIPPING
   const total = subtotal + shipping;
 
   // ✅ Empty Cart Screen
