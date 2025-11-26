@@ -15,7 +15,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { productsAPI } from "@/lib/api";
 import api from "@/lib/api";
-import axios from "axios";
+import { API_BASE_URL } from "@/config/api";
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
@@ -31,24 +31,29 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const [prodRes, usersRes, ordersRes] = await Promise.all([
           productsAPI.getAll(),           // ✅ Fetch products
           api.get("/auth/users"),         // ✅ Fetch users
-          axios.get("https://jaihind-sporty-spark-1.onrender.com/api/orders"), // ✅ Fetch orders
+          api.get("/orders/all", {        // ✅ Fetch orders from LOCAL API_BASE_URL
+            headers: { Authorization: `Bearer ${token}` }
+          }),
         ]);
 
         const productData = prodRes.data?.products || [];
         const usersData = usersRes.data?.users || [];
         const ordersData = ordersRes.data?.orders || [];
 
+        console.log("📊 Dashboard stats - Products:", productData.length, "Users:", usersData.length, "Orders:", ordersData.length);
+
         setStats({
           products: productData.length,
           users: usersData.length,
-          orders: ordersData.length,      // ✅ SET ORDER COUNT
+          orders: ordersData.length,      // ✅ SET ORDER COUNT FROM DB
           activeSessions: Math.floor(Math.random() * 200),
         });
       } catch (error) {
-        console.error("Dashboard data fetch failed", error);
+        console.error("❌ Dashboard data fetch failed", error);
       }
     };
 
