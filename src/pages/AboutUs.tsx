@@ -87,39 +87,34 @@ const AboutUs = () => {
     You can view our official UDYAM Registration Certificate below.
   </p>
 
-  {/* Desktop View */}
-  <div className="hidden md:block rounded-xl overflow-hidden border shadow-sm">
-    <iframe
-      src="/documents/jaihind-udyam-certificate.pdf"
-      className="w-full h-[600px]"
-      title="Jaihind Sports UDYAM Certificate"
-    />
-  </div>
+ {/* PDF View Button – Desktop & Mobile */}
+<div className="text-center border rounded-xl p-6">
+  <p className="text-muted-foreground mb-4">
+    View our UDYAM Registration Certificate
+  </p>
 
-  {/* Mobile View */}
-  <div className="md:hidden text-center border rounded-xl p-6">
-    <p className="text-muted-foreground mb-4">
-      View our UDYAM Registration Certificate
-    </p>
-    <a
-      href="/documents/jaihind-udyam-certificate.pdf"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg font-medium"
-    >
-      Open PDF
-    </a>
-  </div>
+  <a
+    href="/documents/jaihind-udyam-certificate.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg font-medium"
+  >
+    Open Certificate (PDF)
+  </a>
 
-  <div className="mt-4 text-center">
+  <div className="mt-3">
     <a
       href="/documents/jaihind-udyam-certificate.pdf"
       download
       className="text-primary font-medium underline"
     >
-      Download Certificate (PDF)
+      Download Certificate
     </a>
   </div>
+</div>
+
+
+
 </motion.div>
 
             </div>
