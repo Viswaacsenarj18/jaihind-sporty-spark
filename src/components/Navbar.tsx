@@ -60,7 +60,7 @@ const Navbar = () => {
     { name: "Home", href: "/" },
     { name: "Shop", href: "/products" },
     { name: "Categories", href: "/categories" },
-    { name: "Offers", href: "/offers" },
+    
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
