@@ -180,6 +180,18 @@ const Navbar = () => {
             className="lg:hidden bg-white border-t shadow"
           >
             <div className="p-4 space-y-3">
+              {/* Mobile Search Bar */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground cursor-pointer" onClick={handleSearchClick} />
+                <Input
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
+                  className="pl-10 w-full rounded-lg"
+                />
+              </div>
+
               {navLinks.map(link => (
                 <Link
                   key={link.href}

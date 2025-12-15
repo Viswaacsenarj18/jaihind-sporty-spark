@@ -17,7 +17,7 @@ const LiveChat = () => {
     <>
       {/* Chat Widget */}
       {isOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-full animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-full">
           <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-t-lg flex justify-between items-center">
@@ -76,7 +76,7 @@ const LiveChat = () => {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 animate-bounce"
+        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300"
         title="Live Chat Support"
       >
         {isOpen ? (
