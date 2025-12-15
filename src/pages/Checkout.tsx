@@ -562,8 +562,8 @@ const Checkout = () => {
                         <p className="font-semibold text-sm">₹{(item.price * item.quantity).toLocaleString()}</p>
                       </div>
 
-                      {/* Quantity & Delete Controls - Hidden by default, shown on hover */}
-                      <div className="flex items-center gap-2 mt-2 opacity-0 hover:opacity-100 transition-opacity">
+                      {/* Quantity & Delete Controls - Always visible */}
+                      <div className="flex items-center gap-2 mt-2">
                         <div className="flex items-center border rounded-lg">
                           <button
                             onClick={() => {
@@ -614,10 +614,23 @@ const Checkout = () => {
                         </button>
                       </div>
 
-                      {/* Edit Indicator */}
-                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                        <Edit2 className="w-3 h-3" />
-                        <span>Hover to edit</span>
+                      {/* Action Buttons - Always visible */}
+                      <div className="flex gap-1 mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-7 text-xs"
+                          onClick={() => navigate(`/product/${item.id}`)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 h-7 text-xs bg-green-600 hover:bg-green-700"
+                          onClick={() => navigate("/products")}
+                        >
+                          Buy More
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -649,11 +662,13 @@ const Checkout = () => {
                 {loading ? "Placing Order..." : "Place Order"}
               </Button>
 
-              <Link to="/products" className="w-full">
-                <Button variant="outline" className="w-full">
-                  Continue Shopping
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => navigate("/products")}
+              >
+                <ShoppingBag className="w-4 h-4 mr-2" /> Continue Shopping
+              </Button>
             </CardContent>
           </Card>
         </div>

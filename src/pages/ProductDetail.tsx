@@ -317,6 +317,44 @@ const ProductDetail = () => {
                 <ShoppingCart className="w-4 h-4 mr-1" /> Add to Cart
               </Button>
 
+              <Button 
+                className="flex-1 text-sm bg-green-600 hover:bg-green-700" 
+                onClick={() => {
+                  if (product.hasSizes && !selectedSize) {
+                    toast({
+                      title: "Please select a size",
+                      description: "You must select a size before proceeding.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+
+                  const cartItem = {
+                    id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image?.startsWith("http")
+                      ? product.image
+                      : `${API_BASE_URL}${product.image}`,
+                    quantity,
+                    category: product.category,
+                    size: selectedSize || undefined,
+                    stock: product.stock,
+                  };
+                  
+                  sessionStorage.setItem("buyNowItem", JSON.stringify(cartItem));
+                  
+                  toast({
+                    title: "Proceeding to checkout",
+                    description: `${quantity} × ${product.name} ready for checkout.`,
+                  });
+                  
+                  navigate("/checkout?buyNow=true");
+                }}
+              >
+                <ShoppingCart className="w-4 h-4 mr-1" /> Buy Now
+              </Button>
+
               <Button
                 variant="outline"
                 onClick={handleWishlist}

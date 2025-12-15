@@ -54,8 +54,24 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   };
 
   const handleBuyNow = () => {
-    // Navigate directly to product detail page (user can review product and then proceed to checkout)
-    navigate(`/product/${product.id}?buyNow=true`);
+    // Store product in sessionStorage and navigate directly to checkout
+    const buyNowItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+      category: product.category,
+      stock: product.stock,
+    };
+    sessionStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+    
+    toast({
+      title: "Proceeding to checkout",
+      description: `${product.name} ready for checkout.`,
+    });
+    
+    navigate("/checkout?buyNow=true");
   };
 
   return (
