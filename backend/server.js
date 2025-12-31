@@ -22,58 +22,72 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// -------------------------
+// DB CONNECTION
+// -------------------------
 connectDB();
 
-// Allow cookies & proxies
+// Allow cookies & proxies (important for Render / HTTPS)
 app.set("trust proxy", 1);
 
 // =========================
-// CORS CONFIG
+// ✅ CORS CONFIG (FINAL FIX)
 // =========================
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
+
   "https://jaihind-sporty-spark.vercel.app",
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
-  "http://jaihindsportsfit.in",
+
   "https://jaihindsportsfit.in",
-  "http://www.jaihindsportsfit.in",
   "https://www.jaihindsportsfit.in",
-  "http://jaihindsports.in",
+
   "https://jaihindsports.in",
-  "http://www.jaihindsports.in",
-  "https://www.jaihindsports.in"
+  "https://www.jaihindsports.in",
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
+    // Allow Postman, server-to-server, Render health checks
     if (!origin) return callback(null, true);
 
     if (
       allowedOrigins.includes(origin) ||
-      origin.endsWith("vercel.app") ||
+      origin.endsWith(".vercel.app") ||
       origin.includes("localhost")
     ) {
       return callback(null, true);
     }
 
     console.warn("❌ CORS BLOCKED:", origin);
-    return callback(new Error("Blocked by CORS"));
+    return callback(new Error("Not allowed by CORS"));
   },
-
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+// 🔥 APPLY CORS (VERY IMPORTANT ORDER)
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+app.options("*", cors(corsOptions)); // ✅ Preflight handler
 
-// Static files
+// -------------------------
+// BODY PARSERS
+// -------------------------
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// -------------------------
+// STATIC FILES
+// -------------------------
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// -------------------------
 // ROUTES
+// -------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -82,7 +96,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/contact", contactRoutes);
 
-// TEST ROUTE
+// -------------------------
+// TEST ROUTES
+// -------------------------
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -91,7 +107,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// API HEALTH CHECK
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -101,12 +116,21 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ERROR HANDLER
+// -------------------------
+// GLOBAL ERROR HANDLER
+// -------------------------
 app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-  res.status(500).json({ success: false, message: err.message });
+  console.error("🔥 SERVER ERROR:", err.message);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
 });
 
+// -------------------------
 // START SERVER
+// -------------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port: ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);
