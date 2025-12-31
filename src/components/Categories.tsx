@@ -163,16 +163,34 @@ const Categories = () => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(CATEGORY_ROUTES.GET_ALL);
-        const data = await res.json();
+        console.log("🔄 Fetching categories from:", CATEGORY_ROUTES.GET_ALL);
 
-        if (data.success && data.categories.length > 0) {
+        const res = await fetch(CATEGORY_ROUTES.GET_ALL, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies for CORS
+        });
+
+        console.log("📦 Response status:", res.status, res.statusText);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        console.log("✅ Categories received:", data);
+
+        if (data.success && data.categories && data.categories.length > 0) {
           setCategories(data.categories);
         } else {
+          console.warn("⚠️ No categories found, using defaults");
           setCategories(DEFAULT_CATEGORIES);
         }
       } catch (err: any) {
-        setError("Unable to load categories");
+        console.error("❌ Category fetch error:", err.message);
+        setError(err.message);
         setCategories(DEFAULT_CATEGORIES);
       } finally {
         setLoading(false);

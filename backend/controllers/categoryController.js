@@ -4,11 +4,13 @@ import Product from "../models/Product.js";
 // ✅ Get all categories
 export const getCategories = async (req, res) => {
   try {
+    console.log("📂 GET /api/categories - Fetching all categories...");
     const categories = await Category.find().sort({ displayOrder: 1 });
+    console.log(`✅ Found ${categories.length} categories`);
     return res.json({ success: true, categories });
   } catch (err) {
-    console.error("Get Categories Error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    console.error("❌ Get Categories Error:", err.message);
+    return res.status(500).json({ success: false, message: "Server Error: " + err.message });
   }
 };
 
