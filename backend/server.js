@@ -36,6 +36,7 @@ const allowedOrigins = [
   "https://jaihind-sporty-spark.vercel.app",
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
   "http://jaihindsportsfit.in"
+  "https://jaihindsportsfit.in"
 
 ];
 
