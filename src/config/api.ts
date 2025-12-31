@@ -12,7 +12,21 @@ const isLocalhost =
 
 // 💡 Your backend URLs
 const LOCAL_BACKEND = "http://localhost:5000";
-const LIVE_BACKEND = "https://jaihind-sporty-spark-backend.onrender.com";
+const PRODUCTION_BACKEND = "https://jaihind-sporty-spark-backend.onrender.com";
+
+// 🌐 Domain-based backend routing
+let LIVE_BACKEND = PRODUCTION_BACKEND;
+
+if (isBrowser) {
+  const hostname = window.location.hostname;
+  
+  // Route to appropriate backend based on domain
+  if (hostname.includes("jaihindsports.in") || hostname.includes("jaihindsportsfit.in")) {
+    // For custom domains, use the same domain for API
+    const protocol = window.location.protocol;
+    LIVE_BACKEND = `${protocol}//${hostname}`;
+  }
+}
 
 // 🌐 Final Base URL
 export const API_BASE_URL = isLocalhost ? LOCAL_BACKEND : LIVE_BACKEND;
