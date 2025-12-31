@@ -10,10 +10,25 @@ const ProductGrid = () => {
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
-        const res = await fetch(PRODUCT_ROUTES.GET_ALL);
-        const data = await res.json();
+        console.log("🛒 Fetching latest products from:", PRODUCT_ROUTES.GET_ALL);
+        const res = await fetch(PRODUCT_ROUTES.GET_ALL, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
 
-        if (data.success) {
+        console.log("📦 Response status:", res.status);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        console.log("✅ Got products:", data.products?.length || 0);
+
+        if (data.success && data.products) {
           // ✅ Sort by latest & take 10
           const latest = data.products
             .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -21,8 +36,8 @@ const ProductGrid = () => {
 
           setLatestProducts(latest);
         }
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      } catch (error: any) {
+        console.error("❌ Error fetching products:", error.message);
       }
     };
 

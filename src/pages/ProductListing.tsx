@@ -68,11 +68,29 @@ const ProductListing = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const res = await fetch(PRODUCT_ROUTES.GET_ALL);
+        console.log("🛒 Fetching products from:", PRODUCT_ROUTES.GET_ALL);
+        const res = await fetch(PRODUCT_ROUTES.GET_ALL, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        console.log("📦 Products response status:", res.status, res.statusText);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
         const data = await res.json();
-        if (data.success) setProducts(data.products);
-      } catch (err) {
-        console.error("Product Fetch Error:", err);
+        console.log("✅ Products received:", data.products?.length || 0);
+
+        if (data.success && data.products) {
+          setProducts(data.products);
+        }
+      } catch (err: any) {
+        console.error("❌ Product Fetch Error:", err.message);
       }
     };
     loadProducts();

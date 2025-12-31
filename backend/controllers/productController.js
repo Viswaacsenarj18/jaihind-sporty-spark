@@ -4,11 +4,13 @@ import { notifyLowStock, notifyOutOfStock } from "./notificationController.js";
 // ✅ Get all products
 export const getProducts = async (req, res) => {
   try {
+    console.log("🛒 GET /api/products - Fetching all products...");
     const products = await Product.find().sort({ createdAt: -1 });
+    console.log(`✅ Found ${products.length} products`);
     return res.json({ success: true, products });
   } catch (err) {
-    console.error("Get Products Error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    console.error("❌ Get Products Error:", err.message);
+    return res.status(500).json({ success: false, message: "Server Error: " + err.message });
   }
 };
 

@@ -19,12 +19,26 @@ let LIVE_BACKEND = PRODUCTION_BACKEND;
 
 if (isBrowser) {
   const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
   
-  // Route to appropriate backend based on domain
-  if (hostname.includes("jaihindsports.in") || hostname.includes("jaihindsportsfit.in")) {
-    // For custom domains, use the same domain for API
-    const protocol = window.location.protocol;
+  // For development/testing on custom domains, you can set via query param
+  // e.g., ?apiBackend=http://localhost:5000
+  const urlParams = new URLSearchParams(window.location.search);
+  const customBackend = urlParams.get("apiBackend");
+  
+  if (customBackend) {
+    LIVE_BACKEND = customBackend;
+    console.log("🔧 Using custom backend from query param:", customBackend);
+  } else if (hostname.includes("jaihindsports.in")) {
+    // For production jaihindsports.in, use same domain
+    // Make sure backend is running on same domain (via reverse proxy/deployment)
     LIVE_BACKEND = `${protocol}//${hostname}`;
+    console.log("🌐 Using same-domain backend for jaihindsports.in");
+  } else if (hostname.includes("jaihindsportsfit.in")) {
+    // For jaihindsportsfit.in, use Render backend (or configure as needed)
+    // You can change this to use same domain if backend is deployed there
+    LIVE_BACKEND = PRODUCTION_BACKEND;
+    console.log("🌐 Using Render backend for jaihindsportsfit.in");
   }
 }
 
