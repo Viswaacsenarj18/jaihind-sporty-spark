@@ -37,8 +37,12 @@ const allowedOrigins = [
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
   "http://jaihindsportsfit.in",
   "https://jaihindsportsfit.in",
+  "http://www.jaihindsportsfit.in",
+  "https://www.jaihindsportsfit.in",
   "http://jaihindsports.in",
-  "https://jaihindsports.in"
+  "https://jaihindsports.in",
+  "http://www.jaihindsports.in",
+  "https://www.jaihindsports.in"
 ];
 
 const corsOptions = {

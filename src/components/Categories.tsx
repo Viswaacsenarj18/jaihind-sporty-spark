@@ -190,6 +190,8 @@ const Categories = () => {
         }
       } catch (err: any) {
         console.error("❌ Category fetch error:", err.message);
+        console.error("❌ Attempted URL:", CATEGORY_ROUTES.GET_ALL);
+        console.error("❌ Full error:", err);
         setError(err.message);
         setCategories(DEFAULT_CATEGORIES);
       } finally {
