@@ -35,6 +35,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://jaihind-sporty-spark.vercel.app",
   "https://jaihind-sporty-spark-viswaacsenars-projects.vercel.app",
+  "http://jaihindsports.in/"
+
 ];
 
 const corsOptions = {
