@@ -227,8 +227,8 @@ const Categories = () => {
           </p>
         </motion.div>
 
-        {/* Error message */}
-        {error && (
+        {/* Error message - only show if actual error occurred AND using defaults */}
+        {error && categories === DEFAULT_CATEGORIES && (
           <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 text-sm text-yellow-700">
             Could not load categories from server. Showing defaults.
           </div>
