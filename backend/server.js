@@ -149,6 +149,33 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+console.log("⏳ Starting server initialization...");
+console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`📧 Email configured: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
+
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Server started successfully at ${new Date().toISOString()}`);
+});
+
+/* ===============================
+   ERROR HANDLING
+=============================== */
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
 });
