@@ -26,6 +26,10 @@ import Offers from "./pages/Offers";
 import Categories from "./pages/Categories";
 import Wishlist from "./pages/Wishlist";
 
+// Forgot Password Pages
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 // Info Pages
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
@@ -44,7 +48,7 @@ import ProductManagement from "./pages/admin/ProductManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/AdminOrders";
-import AdminNotifications from "./pages/admin/AdminNotifications"; // ✅ NEW PAGE ADDED
+import AdminNotifications from "./pages/admin/AdminNotifications";
 
 // Misc
 import NotFound from "./pages/NotFound";
@@ -56,17 +60,14 @@ const queryClient = new QueryClient();
 const AppRoutes = () => {
   const location = useLocation();
 
-  // Restore page on refresh
   usePagePersistence();
 
-  // Hide footer on login, signup, admin
-  const hideFooterPaths = ["/login", "/signup", "/admin"];
+  const hideFooterPaths = ["/login", "/signup", "/admin", "/forgot-password"];
   const shouldHideFooter = hideFooterPaths.some((path) =>
     location.pathname.startsWith(path)
   );
 
-  // Hide live chat on auth and admin pages
-  const hideLiveChatPaths = ["/login", "/signup", "/admin"];
+  const hideLiveChatPaths = ["/login", "/signup", "/admin", "/forgot-password"];
   const shouldHideLiveChat = hideLiveChatPaths.some((path) =>
     location.pathname.startsWith(path)
   );
@@ -74,7 +75,8 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
-        {/* ---------- USER ROUTES ---------- */}
+
+        {/* USER ROUTES */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/products" element={<ProductListing />} />
@@ -82,6 +84,7 @@ const AppRoutes = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<Checkout />} />
+
         <Route
           path="/my-orders"
           element={
@@ -90,8 +93,13 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
+        {/* FORGOT PASSWORD ROUTES */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route
           path="/profile"
@@ -105,7 +113,7 @@ const AppRoutes = () => {
         <Route path="/offers" element={<Offers />} />
         <Route path="/categories" element={<Categories />} />
 
-        {/* ---------- INFO PAGES ---------- */}
+        {/* INFO PAGES */}
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/shipping" element={<Shipping />} />
@@ -115,7 +123,7 @@ const AppRoutes = () => {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
 
-        {/* ---------- ADMIN ROUTES ---------- */}
+        {/* ADMIN ROUTES */}
         <Route
           path="/admin"
           element={
@@ -179,7 +187,6 @@ const AppRoutes = () => {
           }
         />
 
-        {/* ✅ New Admin Notifications Route */}
         <Route
           path="/admin/notifications"
           element={
@@ -189,8 +196,9 @@ const AppRoutes = () => {
           }
         />
 
-        {/* ---------- NOT FOUND ---------- */}
+        {/* NOT FOUND */}
         <Route path="*" element={<NotFound />} />
+
       </Routes>
 
       {!shouldHideFooter && <Footer />}

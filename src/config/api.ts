@@ -20,23 +20,21 @@ let LIVE_BACKEND = PRODUCTION_BACKEND;
 if (isBrowser) {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
-  
+
   // For development/testing on custom domains, you can set via query param
   // e.g., ?apiBackend=http://localhost:5000
   const urlParams = new URLSearchParams(window.location.search);
   const customBackend = urlParams.get("apiBackend");
-  
+
   if (customBackend) {
     LIVE_BACKEND = customBackend;
     console.log("🔧 Using custom backend from query param:", customBackend);
   } else if (hostname.includes("jaihindsports.in")) {
     // For production jaihindsports.in, use same domain
-    // Make sure backend is running on same domain (via reverse proxy/deployment)
     LIVE_BACKEND = `${protocol}//${hostname}`;
     console.log("🌐 Using same-domain backend for jaihindsports.in");
   } else if (hostname.includes("jaihindsportsfit.in")) {
-    // For jaihindsportsfit.in, use Render backend (or configure as needed)
-    // You can change this to use same domain if backend is deployed there
+    // For jaihindsportsfit.in, use Render backend
     LIVE_BACKEND = PRODUCTION_BACKEND;
     console.log("🌐 Using Render backend for jaihindsportsfit.in");
   }
@@ -47,6 +45,15 @@ export const API_BASE_URL = isLocalhost ? LOCAL_BACKEND : LIVE_BACKEND;
 
 console.log("🌐 API_BASE_URL:", API_BASE_URL);
 
+// ✅ FIX: Added getApiUrl — this was missing and caused the import error
+/**
+ * Helper to build a full API URL from a path.
+ * Usage: getApiUrl("/api/tractors/confirm-rental")
+ */
+export const getApiUrl = (path: string): string => {
+  return `${API_BASE_URL}${path}`;
+};
+
 /**
  * ============================
  * 🚀 AUTH ROUTES
@@ -56,6 +63,9 @@ export const AUTH_ROUTES = {
   REGISTER: `${API_BASE_URL}/api/auth/register`,
   LOGIN: `${API_BASE_URL}/api/auth/login`,
   GET_USERS: `${API_BASE_URL}/api/auth/users`,
+  FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
+  RESET_PASSWORD: (token: string) => `${API_BASE_URL}/api/auth/reset-password/${token}`,
+  CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/change-password`,
 };
 
 /**
@@ -66,7 +76,7 @@ export const AUTH_ROUTES = {
 export const ADMIN_ROUTES = {
   LOGIN: `${API_BASE_URL}/api/admin/login`,
   PROFILE: `${API_BASE_URL}/api/admin/profile`,
-  STATS: `${API_BASE_URL}/api/admin/stats`, // ⭐ IMPORTANT
+  STATS: `${API_BASE_URL}/api/admin/stats`,
 };
 
 /**
@@ -102,7 +112,7 @@ export const CATEGORY_ROUTES = {
  */
 export const ORDER_ROUTES = {
   GET_ALL: `${API_BASE_URL}/api/orders`,
-  CREATE: `${API_BASE_URL}/api/orders`, // POST
+  CREATE: `${API_BASE_URL}/api/orders`,
   GET_USER: (userId: string) => `${API_BASE_URL}/api/orders/user/${userId}`,
   UPDATE_STATUS: (orderId: string) =>
     `${API_BASE_URL}/api/orders/status/${orderId}`,
@@ -124,7 +134,7 @@ export const apiCall = async (
         "Content-Type": "application/json",
         ...(options.headers || {}),
       },
-      credentials: "include", // Allow cookie/JWT
+      credentials: "include",
       body: options.body || null,
     });
 
