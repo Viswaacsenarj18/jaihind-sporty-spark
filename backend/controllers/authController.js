@@ -5,9 +5,6 @@ import crypto from "crypto";
 import { v2 as cloudinary } from "cloudinary";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail.js";
 
-// ✅ FIX: Removed the self-import of authController functions
-//    (this file IS the authController, you cannot import from itself)
-
 /* =========================
    CLOUDINARY CONFIG
 ========================= */
@@ -47,7 +44,7 @@ export const registerUser = async (req, res) => {
     const user = await User.create({ name, email, password });
 
     res.status(201).json({
-      message: "User registered",
+      message: "User registered successfully",
       token: generateToken(user._id),
       user,
     });
@@ -94,7 +91,10 @@ export const updateProfile = async (req, res) => {
       { new: true }
     ).select("-password");
 
-    res.json({ message: "Profile updated", user });
+    res.json({
+      message: "Profile updated successfully",
+      user,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -112,15 +112,13 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    console.log(`📝 Forgot password request for: ${email}`);
+    console.log("📝 Forgot password request:", email);
+
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log(`❌ User not found: ${email}`);
       return res.status(404).json({ message: "User not found" });
     }
-
-    console.log(`✅ User found: ${user.name}`);
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -128,49 +126,32 @@ export const forgotPassword = async (req, res) => {
     user.resetTokenExpire = Date.now() + 15 * 60 * 1000;
 
     await user.save();
-    console.log(`🔐 Reset token generated for: ${email}`);
 
-    // 🌐 Determine FRONTEND_URL dynamically for dev and production
-    let frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    
-    // For production, use the domain from environment or request
-    if (process.env.NODE_ENV === "production") {
-      if (!process.env.FRONTEND_URL || process.env.FRONTEND_URL.includes("localhost")) {
-        frontendUrl = process.env.FRONTEND_URL_PROD || "https://jaihindsportsfit.in";
-      }
+    const frontendUrl =
+      process.env.FRONTEND_URL || "http://localhost:5173";
+
+    const resetUrl = `${frontendUrl}/reset-password/${token}`;
+
+    console.log("🔗 Reset URL:", resetUrl);
+
+    try {
+      await sendPasswordResetEmail({
+        email: user.email,
+        name: user.name,
+        resetUrl,
+      });
+
+      console.log("✅ Email sent to:", user.email);
+    } catch (emailError) {
+      console.error("⚠️ Email sending failed:", emailError.message);
     }
-    
-    console.log(`🌐 Using frontend URL: ${frontendUrl}`);
-    const resetUrl = `${frontendUrl}/reset-password/${token}`.trim();
 
-    console.log(`📧 Queuing reset email to: ${email}`);
-    console.log(`🌐 Reset URL: ${resetUrl}`);
-    console.log(`⏱️  Timeout: 30 seconds for email service`);
-    
-    // 🚀 IMPORTANT: Send email in BACKGROUND (non-blocking)
-    // Return success to user immediately, email sends asynchronously
-    console.log(`🔄 Starting async email sending...`);
-    sendPasswordResetEmail({
-      email: user.email,
-      name: user.name,
-      resetUrl,
-    }).then((result) => {
-      console.log(`✅ Email sent successfully to: ${user.email}`);
-      console.log(`📨 Message ID: ${result.messageId}`);
-    }).catch(error => {
-      console.error(`⚠️  Email sending failed:`, error.message);
-      console.error(`⚠️  User was given reset token, but email may not arrive`);
-      // Don't crash the response - user already got the reset token
-    });
-
-    console.log(`✅ Reset token created and queued for email delivery`);
-    res.status(200).json({ 
-      message: "✅ Password reset link sent! Check your email (check spam folder too)",
-      success: true 
+    res.json({
+      message: "Password reset link sent to your email",
     });
   } catch (error) {
-    console.error(`❌ Forgot password error:`, error.message);
-    res.status(500).json({ message: error.message || "Failed to process password reset" });
+    console.error("❌ Forgot password error:", error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -183,38 +164,22 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
-    console.log(`🔐 Reset password request received`);
-    console.log(`📝 Token received: ${token?.substring(0, 10)}...${token?.substring(-10)}`);
-    console.log(`⏰ Current time: ${Date.now()}`);
-
-    if (!password) {
-      return res.status(400).json({ message: "Password is required" });
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
-    }
-
-    console.log(`🔍 Searching for user with token and expiry check...`);
     const user = await User.findOne({
       resetToken: token,
       resetTokenExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      console.log(`❌ No user found with valid token`);
-      // Check if token exists but is expired
-      const expiredUser = await User.findOne({ resetToken: token });
-      if (expiredUser) {
-        console.log(`⏰ Token exists but is EXPIRED`);
-        return res.status(400).json({ message: "Reset link has expired. Please request a new one." });
-      }
-      console.log(`❌ Token does not exist in database`);
-      return res.status(400).json({ message: "Invalid reset link. Please request a new password reset." });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset link" });
     }
-
-    console.log(`✅ User found: ${user.email}`);
-    console.log(`🔐 Updating password...`);
 
     user.password = password;
     user.resetToken = null;
@@ -222,11 +187,12 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    console.log(`✅ Password updated successfully for: ${user.email}`);
-    res.json({ message: "✅ Password reset successful! Please log in with your new password." });
+    res.json({
+      message: "Password reset successful",
+    });
   } catch (error) {
-    console.error(`❌ Reset password error:`, error.message);
-    res.status(500).json({ message: error.message || "Failed to reset password" });
+    console.error("❌ Reset password error:", error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -274,13 +240,15 @@ export const changePassword = async (req, res) => {
     );
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Current password incorrect" });
+      return res
+        .status(400)
+        .json({ message: "Current password incorrect" });
     }
 
     user.password = req.body.newPassword;
     await user.save();
 
-    res.json({ message: "Password changed" });
+    res.json({ message: "Password changed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -293,7 +261,8 @@ export const changePassword = async (req, res) => {
 export const deleteAccount = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.user.id);
-    res.json({ message: "Account deleted" });
+
+    res.json({ message: "Account deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -320,6 +289,7 @@ export const saveCart = async (req, res) => {
 export const getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+
     res.json(user.cartItems || []);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -333,6 +303,7 @@ export const getCart = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");
+
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -342,7 +313,8 @@ export const getAllUsers = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted" });
+
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
