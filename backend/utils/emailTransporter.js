@@ -49,22 +49,18 @@ async function createTransporter() {
   transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // Use TLS instead of SSL
+    port: 465,
+    secure: true, // Use SSL (port 465) - more reliable on Render
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    logger: true,
-    debug: process.env.NODE_ENV === "development",
-    connectionTimeout: 10000,  // 10 seconds
-    socketTimeout: 10000,      // 10 seconds
-    pool: {
-      maxConnections: 1,
-      maxMessages: 5,
-      rateDelta: 2000,
-      rateLimit: 3,
-    },
+    logger: false,
+    debug: false,
+    connectionTimeout: 10000,
+    socketTimeout: 10000,
+    maxConnections: 1,
+    maxMessages: 10,
   });
 
   return transporter;
@@ -76,23 +72,24 @@ try {
   console.log("✅ Email transporter created successfully");
 } catch (error) {
   console.error("❌ Failed to create email transporter:", error.message);
-  // Don't throw - let the app continue, will fail when trying to send email
+  // Don't throw - let the app continue
 }
 
 // Export the transporter
 export { transporter };
 
-// Verify transporter immediately
-if (transporter) {
-  console.log("⏳ Verifying email transporter connection...");
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error("❌ Email transporter verification FAILED:", error.message);
-      if (process.env.NODE_ENV === "production") {
-        console.error("⚠️  [PROD] Check your email credentials in Render dashboard");
+// Verify transporter asynchronously (non-blocking)
+if (transporter && process.env.NODE_ENV === "production") {
+  console.log("⏳ Verifying email transporter connection (async)...");
+  // Set a timeout to prevent hanging
+  setTimeout(() => {
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error("⚠️  [PROD] Email verification failed:", error.message);
+        console.error("⚠️  [PROD] Will attempt to send email anyway...");
+      } else {
+        console.log("✅ Email transporter verified and ready");
       }
-    } else {
-      console.log("✅ Email transporter is ready - emails can be sent");
-    }
-  });
+    });
+  }, 2000); // Delay verification to not block startup
 }

@@ -1,6 +1,43 @@
 import { transporter } from "./emailTransporter.js";
 import nodemailer from "nodemailer";
 
+// Helper function to send email with retry logic
+async function sendEmailWithRetry(mailOptions, maxRetries = 3) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`📧 Email send attempt ${attempt}/${maxRetries}...`);
+      const result = await transporter.sendMail(mailOptions);
+      
+      console.log(`✅ Email sent successfully on attempt ${attempt}!`);
+      console.log(`📨 Message ID: ${result.messageId}`);
+      if (result.response) {
+        console.log(`📬 Server response: ${result.response}`);
+      }
+      
+      return result;
+    } catch (error) {
+      lastError = error;
+      console.error(`⚠️  Attempt ${attempt} failed: ${error.message}`);
+      
+      // Don't retry on permanent errors
+      if (error.code === "EAUTH" || error.code === "EDESTROY") {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const delayMs = 1000 * attempt;
+        console.log(`⏳ Waiting ${delayMs}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  
+  throw lastError || new Error("Failed to send email after retries");
+}
+
 export const sendPasswordResetEmail = async ({
   email,
   name,
@@ -69,14 +106,8 @@ If you didn't request this, please ignore this email.
 `,
     };
 
-    console.log(`📧 Sending email directly...`);
-    const result = await transporter.sendMail(mailOptions);
-    
-    console.log(`✅ Email sent successfully!`);
-    console.log(`📨 Message ID: ${result.messageId}`);
-    if (result.response) {
-      console.log(`📬 Server response: ${result.response}`);
-    }
+    console.log(`📧 Sending email with retry logic...`);
+    const result = await sendEmailWithRetry(mailOptions, 3);
     
     // For Ethereal test emails in development, show preview URL
     if (env === "development" && result.messageId) {
@@ -104,7 +135,7 @@ If you didn't request this, please ignore this email.
       console.error(`\n⚠️  [PROD] Troubleshooting:`);
       console.error(`⚠️  1. Check Render environment variables for: EMAIL_USER, EMAIL_PASS`);
       console.error(`⚠️  2. Verify Gmail app password is correct`);
-      console.error(`⚠️  3. Check if Gmail is blocking the connection`);
+      console.error(`⚠️  3. The email server may be temporarily unavailable`);
     }
     
     // Re-throw the error so the controller can handle it
