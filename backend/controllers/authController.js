@@ -154,15 +154,16 @@ export const forgotPassword = async (req, res) => {
       email: user.email,
       name: user.name,
       resetUrl,
-    }).then(() => {
-      console.log(`✅ Email sending task completed successfully`);
+    }).then((result) => {
+      console.log(`✅ Email sent successfully to: ${user.email}`);
+      console.log(`📨 Message ID: ${result.messageId}`);
     }).catch(error => {
-      console.error(`⚠️  Email sending task failed:`, error.message);
-      console.error(`⚠️  This error is logged but user already got reset token`);
+      console.error(`⚠️  Email sending failed:`, error.message);
+      console.error(`⚠️  User was given reset token, but email may not arrive`);
       // Don't crash the response - user already got the reset token
     });
 
-    console.log(`✅ Reset token sent to user, email queued to send in background`);
+    console.log(`✅ Reset token created and queued for email delivery`);
     res.status(200).json({ 
       message: "✅ Password reset link sent! Check your email (check spam folder too)",
       success: true 
