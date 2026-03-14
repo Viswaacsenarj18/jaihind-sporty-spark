@@ -141,7 +141,7 @@ export const forgotPassword = async (req, res) => {
     }
     
     console.log(`🌐 Using frontend URL: ${frontendUrl}`);
-    const resetUrl = `${frontendUrl}/reset-password/${token}`;
+    const resetUrl = `${frontendUrl}/reset-password/${token}`.trim();
 
     console.log(`📧 Queuing reset email to: ${email}`);
     console.log(`🌐 Reset URL: ${resetUrl}`);
