@@ -18,8 +18,12 @@ export const transporter = nodemailer.createTransport({
   },
   logger: process.env.NODE_ENV === "development",
   debug: process.env.NODE_ENV === "development",
-  connectionTimeout: 10000, // 10 seconds
-  socketTimeout: 10000, // 10 seconds
+  connectionTimeout: 30000, // 30 seconds (increased from 10s)
+  socketTimeout: 30000, // 30 seconds (increased from 10s)
+  maxConnections: 1, // Use single connection to avoid rate limits
+  maxMessages: 100, // Per connection
+  rateDelta: 1000, // 1 second between messages
+  rateLimit: 5, // 5 messages per second
 });
 
 // Test email configuration on startup

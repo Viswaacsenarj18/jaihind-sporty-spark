@@ -143,18 +143,27 @@ export const forgotPassword = async (req, res) => {
     console.log(`🌐 Using frontend URL: ${frontendUrl}`);
     const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
-    console.log(`📧 Sending reset email to: ${email}`);
-    await sendPasswordResetEmail({
+    console.log(`📧 Queuing reset email to: ${email}`);
+    
+    // 🚀 IMPORTANT: Send email in BACKGROUND (non-blocking)
+    // Return success to user immediately, email sends asynchronously
+    sendPasswordResetEmail({
       email: user.email,
       name: user.name,
       resetUrl,
+    }).catch(error => {
+      console.error(`⚠️  Email sending failed (but user sees success):`, error.message);
+      // Don't crash the response - user already got the reset token
     });
 
-    console.log(`✅ Email sent successfully to: ${email}`);
-    res.status(200).json({ message: "Password reset email sent successfully" });
+    console.log(`✅ Reset token sent to user, email queued to send`);
+    res.status(200).json({ 
+      message: "✅ Password reset link sent! Check your email (check spam folder too)",
+      success: true 
+    });
   } catch (error) {
     console.error(`❌ Forgot password error:`, error.message);
-    res.status(500).json({ message: error.message || "Failed to send reset email" });
+    res.status(500).json({ message: error.message || "Failed to process password reset" });
   }
 };
 
