@@ -144,19 +144,25 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
     console.log(`📧 Queuing reset email to: ${email}`);
+    console.log(`🌐 Reset URL: ${resetUrl}`);
+    console.log(`⏱️  Timeout: 30 seconds for email service`);
     
     // 🚀 IMPORTANT: Send email in BACKGROUND (non-blocking)
     // Return success to user immediately, email sends asynchronously
+    console.log(`🔄 Starting async email sending...`);
     sendPasswordResetEmail({
       email: user.email,
       name: user.name,
       resetUrl,
+    }).then(() => {
+      console.log(`✅ Email sending task completed successfully`);
     }).catch(error => {
-      console.error(`⚠️  Email sending failed (but user sees success):`, error.message);
+      console.error(`⚠️  Email sending task failed:`, error.message);
+      console.error(`⚠️  This error is logged but user already got reset token`);
       // Don't crash the response - user already got the reset token
     });
 
-    console.log(`✅ Reset token sent to user, email queued to send`);
+    console.log(`✅ Reset token sent to user, email queued to send in background`);
     res.status(200).json({ 
       message: "✅ Password reset link sent! Check your email (check spam folder too)",
       success: true 

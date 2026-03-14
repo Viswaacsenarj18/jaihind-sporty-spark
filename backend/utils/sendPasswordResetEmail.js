@@ -5,14 +5,22 @@ async function sendEmailWithRetry(mailOptions, retries = 3, delay = 1000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`📧 Email attempt ${attempt}/${retries}: Sending to ${mailOptions.to}`);
+      console.log(`📨 From: ${mailOptions.from}`);
+      console.log(`📌 Subject: ${mailOptions.subject}`);
+      
       const result = await transporter.sendMail(mailOptions);
-      console.log(`✅ Email sent successfully on attempt ${attempt}`, result.response);
+      console.log(`✅ Email sent successfully on attempt ${attempt}`);
+      console.log(`📬 Response:`, result.response);
       return result;
     } catch (error) {
-      console.error(`❌ Email attempt ${attempt} failed:`, error.message);
+      console.error(`❌ Email attempt ${attempt} failed`);
+      console.error(`🔴 Error code:`, error.code);
+      console.error(`🔴 Error message:`, error.message);
+      console.error(`🔴 Full error:`, error);
       
       // If last attempt, throw error
       if (attempt === retries) {
+        console.error(`❌ Failed to send email after ${retries} attempts`);
         throw error;
       }
       
@@ -31,6 +39,8 @@ export const sendPasswordResetEmail = async ({
 }) => {
   try {
     console.log(`📧 Preparing password reset email for ${email}`);
+    console.log(`👤 User name: ${name}`);
+    console.log(`🔗 Reset URL: ${resetUrl}`);
 
     const mailOptions = {
       from: `"Jaihind Sports" <${process.env.EMAIL_USER}>`,
@@ -59,12 +69,15 @@ export const sendPasswordResetEmail = async ({
       `,
     };
 
+    console.log(`🚀 Starting email send with 3 retry attempts...`);
     // Send with retry logic (3 attempts with exponential backoff)
-    await sendEmailWithRetry(mailOptions, 3, 1000);
+    const result = await sendEmailWithRetry(mailOptions, 3, 2000);
     
     console.log(`✅ Password reset email processed for: ${email}`);
+    return result;
   } catch (error) {
-    console.error("❌ Email sending failed after all retries:", error.message);
+    console.error(`❌ Email sending failed after all retries:`, error.message);
+    console.error(`⚠️  User will still be able to reset password, but email won't arrive`);
     // Don't throw - let the background task fail silently
     // The user already has the reset token saved in DB
   }
