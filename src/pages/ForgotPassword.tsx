@@ -22,9 +22,12 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      // Create abort controller for timeout
+      console.log("📧 Submitting forgot password for:", email);
+      console.log("🌐 API URL:", getApiUrl("/api/auth/forgot-password"));
+      
+      // Create abort controller for timeout (50 seconds for production)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
 
       const res  = await fetch(getApiUrl("/api/auth/forgot-password"), {
         method: "POST",
@@ -36,6 +39,7 @@ const ForgotPassword = () => {
       clearTimeout(timeoutId);
 
       const data = await res.json();
+      console.log("✅ Response received:", res.status, data);
 
       if (res.ok) {
         setSuccess("✅ Password reset email sent! Check your inbox.");
@@ -45,11 +49,13 @@ const ForgotPassword = () => {
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        setError("Request timeout. Please try again.");
+        setError("Server taking too long. Please check your internet connection and try again.");
+      } else if (err.message.includes("Failed to fetch")) {
+        setError("Cannot connect to server. Please check your internet or try again later.");
       } else {
-        setError("Network error: " + err.message);
+        setError("Error: " + err.message);
       }
-      console.error("Forgot password error:", err);
+      console.error("❌ Forgot password error:", err);
     } finally {
       setLoading(false);
     }
