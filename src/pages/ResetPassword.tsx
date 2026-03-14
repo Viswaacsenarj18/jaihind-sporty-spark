@@ -46,10 +46,11 @@ const ResetPassword = () => {
       console.log("🔐 Resetting password...");
       console.log("📝 Token:", token.substring(0, 10) + "...");
       console.log("🌐 API URL:", getApiUrl(`/api/auth/reset-password/${token}`));
+      console.log("⏱️  Starting request with 120 second timeout...");
       
-      // Create abort controller for timeout (50 seconds for production)
+      // Create abort controller for timeout (120 seconds for production cold starts)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 50000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       const res  = await fetch(getApiUrl(`/api/auth/reset-password/${token}`), {
         method: "POST",
@@ -72,9 +73,9 @@ const ResetPassword = () => {
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        setError("⏱️ Request timeout. Server is taking too long. Please check your internet and try again.");
+        setError("⏱️ Request timeout after 120 seconds. Server is taking too long. Please wait a moment and try again.");
       } else if (err.message.includes("Failed to fetch")) {
-        setError("🌐 Connection error. Cannot reach the server. Please check your internet connection.");
+        setError("🌐 Cannot connect to server. Backend might be starting. Please wait 30 seconds and try again.");
       } else {
         setError("❌ Error: " + (err.message || "Unknown error occurred"));
       }

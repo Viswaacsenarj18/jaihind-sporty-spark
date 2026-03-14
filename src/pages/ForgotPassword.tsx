@@ -24,10 +24,11 @@ const ForgotPassword = () => {
     try {
       console.log("📧 Submitting forgot password for:", email);
       console.log("🌐 API URL:", getApiUrl("/api/auth/forgot-password"));
+      console.log("⏱️  Starting request with 120 second timeout...");
       
-      // Create abort controller for timeout (50 seconds for production)
+      // Create abort controller for timeout (120 seconds for production cold starts)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout
 
       const res  = await fetch(getApiUrl("/api/auth/forgot-password"), {
         method: "POST",
@@ -49,9 +50,9 @@ const ForgotPassword = () => {
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        setError("⏱️ Request timeout. Server is taking too long. Please check your internet and try again.");
+        setError("⏱️ Request timeout after 120 seconds. Server is taking too long. Please wait a moment and try again.");
       } else if (err.message.includes("Failed to fetch")) {
-        setError("🌐 Cannot connect to server. Please check your internet connection.");
+        setError("🌐 Cannot connect to server. Backend might be starting. Please wait 30 seconds and try again.");
       } else {
         setError("❌ Error: " + (err.message || "Unknown error"));
       }

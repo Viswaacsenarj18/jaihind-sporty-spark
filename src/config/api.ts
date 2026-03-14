@@ -21,6 +21,8 @@ if (isBrowser) {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
 
+  console.log(`🔍 Backend detection - Hostname: ${hostname}, Protocol: ${protocol}`);
+
   // For development/testing on custom domains, you can set via query param
   // e.g., ?apiBackend=http://localhost:5000
   const urlParams = new URLSearchParams(window.location.search);
@@ -32,18 +34,21 @@ if (isBrowser) {
   } else if (hostname.includes("jaihindsports.in")) {
     // For production jaihindsports.in, use same domain
     LIVE_BACKEND = `${protocol}//${hostname}`;
-    console.log("🌐 Using same-domain backend for jaihindsports.in");
+    console.log("🌐 Using same-domain backend for jaihindsports.in:", LIVE_BACKEND);
   } else if (hostname.includes("jaihindsportsfit.in")) {
     // For jaihindsportsfit.in, use Render backend
     LIVE_BACKEND = PRODUCTION_BACKEND;
-    console.log("🌐 Using Render backend for jaihindsportsfit.in");
+    console.log("🌐 Using Render backend for jaihindsportsfit.in:", LIVE_BACKEND);
+  } else if (isLocalhost) {
+    LIVE_BACKEND = LOCAL_BACKEND;
+    console.log("💻 Using localhost backend:", LIVE_BACKEND);
   }
 }
 
 // 🌐 Final Base URL
 export const API_BASE_URL = isLocalhost ? LOCAL_BACKEND : LIVE_BACKEND;
 
-console.log("🌐 API_BASE_URL:", API_BASE_URL);
+console.log("✅ Final API_BASE_URL:", API_BASE_URL);
 
 // ✅ FIX: Added getApiUrl — this was missing and caused the import error
 /**
@@ -51,8 +56,18 @@ console.log("🌐 API_BASE_URL:", API_BASE_URL);
  * Usage: getApiUrl("/api/tractors/confirm-rental")
  */
 export const getApiUrl = (path: string): string => {
-  return `${API_BASE_URL}${path}`;
+  const fullUrl = `${API_BASE_URL}${path}`;
+  console.log(`📍 Full API URL: ${fullUrl}`);
+  return fullUrl;
 };
+
+/**
+ * ============================
+ * ⏱️ REQUEST CONFIG
+ * ============================
+ */
+// Timeout for API requests (120 seconds for Render cold start handling)
+export const REQUEST_TIMEOUT_MS = 120000; // 120 seconds
 
 /**
  * ============================
