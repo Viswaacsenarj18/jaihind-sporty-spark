@@ -121,7 +121,19 @@ export const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    // 🌐 Determine FRONTEND_URL dynamically for dev and production
+    let frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    
+    // For production, use the domain from environment or request
+    if (process.env.NODE_ENV === "production") {
+      // Use explicit FRONTEND_URL if set, otherwise construct from request origin
+      if (!process.env.FRONTEND_URL || process.env.FRONTEND_URL.includes("localhost")) {
+        frontendUrl = process.env.FRONTEND_URL_PROD || "https://jaihindsportsfit.in";
+      }
+    }
+    
+    console.log(`🌐 Frontend URL for reset link: ${frontendUrl}`);
+    const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
     await sendPasswordResetEmail({
       email: user.email,
