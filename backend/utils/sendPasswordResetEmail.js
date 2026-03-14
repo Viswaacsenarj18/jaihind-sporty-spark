@@ -19,11 +19,11 @@ export const sendPasswordResetEmail = async ({ email, name, resetUrl }) => {
     `;
 
     await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "Reset Password",
-      html: htmlContent
-    });
+  from: "Jaihind Sports <support@jaihindsportsfit.in>",
+  to: email,
+  subject: "Reset Password",
+  html: htmlContent
+});
 
     console.log("✅ Email sent via Resend");
 
