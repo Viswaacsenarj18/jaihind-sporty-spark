@@ -22,21 +22,34 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const res  = await fetch(getApiUrl("/api/auth/forgot-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess("Password reset email sent! Check your inbox.");
+        setSuccess("✅ Password reset email sent! Check your inbox.");
+        setEmail(""); // Clear email field
       } else {
         setError(data.message || "Something went wrong.");
       }
     } catch (err: any) {
-      setError("Network error: " + err.message);
+      if (err.name === "AbortError") {
+        setError("Request timeout. Please try again.");
+      } else {
+        setError("Network error: " + err.message);
+      }
+      console.error("Forgot password error:", err);
     } finally {
       setLoading(false);
     }

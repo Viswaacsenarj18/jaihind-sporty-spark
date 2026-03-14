@@ -16,8 +16,10 @@ export const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  logger: true,
+  logger: process.env.NODE_ENV === "development",
   debug: process.env.NODE_ENV === "development",
+  connectionTimeout: 10000, // 10 seconds
+  socketTimeout: 10000, // 10 seconds
 });
 
 // Test email configuration on startup

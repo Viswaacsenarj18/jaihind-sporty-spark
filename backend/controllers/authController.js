@@ -108,11 +108,19 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    console.log(`📝 Forgot password request for: ${email}`);
     const user = await User.findOne({ email });
 
     if (!user) {
+      console.log(`❌ User not found: ${email}`);
       return res.status(404).json({ message: "User not found" });
     }
+
+    console.log(`✅ User found: ${user.name}`);
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -120,30 +128,33 @@ export const forgotPassword = async (req, res) => {
     user.resetTokenExpire = Date.now() + 15 * 60 * 1000;
 
     await user.save();
+    console.log(`🔐 Reset token generated for: ${email}`);
 
     // 🌐 Determine FRONTEND_URL dynamically for dev and production
     let frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     
     // For production, use the domain from environment or request
     if (process.env.NODE_ENV === "production") {
-      // Use explicit FRONTEND_URL if set, otherwise construct from request origin
       if (!process.env.FRONTEND_URL || process.env.FRONTEND_URL.includes("localhost")) {
         frontendUrl = process.env.FRONTEND_URL_PROD || "https://jaihindsportsfit.in";
       }
     }
     
-    console.log(`🌐 Frontend URL for reset link: ${frontendUrl}`);
+    console.log(`🌐 Using frontend URL: ${frontendUrl}`);
     const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
+    console.log(`📧 Sending reset email to: ${email}`);
     await sendPasswordResetEmail({
       email: user.email,
       name: user.name,
       resetUrl,
     });
 
-    res.json({ message: "Password reset email sent" });
+    console.log(`✅ Email sent successfully to: ${email}`);
+    res.status(200).json({ message: "Password reset email sent successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(`❌ Forgot password error:`, error.message);
+    res.status(500).json({ message: error.message || "Failed to send reset email" });
   }
 };
 
