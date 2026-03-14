@@ -26,24 +26,30 @@ const ResetPassword = () => {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("❌ Passwords do not match.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("❌ Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!token) {
+      setError("❌ Invalid reset link. Please request a new password reset.");
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log("🔐 Resetting password with token...");
+      console.log("🔐 Resetting password...");
+      console.log("📝 Token:", token.substring(0, 10) + "...");
       console.log("🌐 API URL:", getApiUrl(`/api/auth/reset-password/${token}`));
       
       // Create abort controller for timeout (50 seconds for production)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 50000);
 
       const res  = await fetch(getApiUrl(`/api/auth/reset-password/${token}`), {
         method: "POST",
@@ -55,21 +61,22 @@ const ResetPassword = () => {
       clearTimeout(timeoutId);
 
       const data = await res.json();
-      console.log("✅ Reset response:", res.status, data);
+      console.log("📨 Reset response:", res.status, data);
 
       if (res.ok) {
-        setSuccess("✅ Password reset successful! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2500);
+        setSuccess("✅ Password reset successful! Redirecting to login in 3 seconds...");
+        setTimeout(() => navigate("/login"), 3000);
       } else {
-        setError(data.message || "Failed to reset password.");
+        // Show backend error message or generic error
+        setError(data.message || "❌ Failed to reset password. Please try again.");
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        setError("Server taking too long. Please check your internet connection and try again.");
+        setError("⏱️ Request timeout. Server is taking too long. Please check your internet and try again.");
       } else if (err.message.includes("Failed to fetch")) {
-        setError("Cannot connect to server. Please check your internet or try again later.");
+        setError("🌐 Connection error. Cannot reach the server. Please check your internet connection.");
       } else {
-        setError("Error: " + err.message);
+        setError("❌ Error: " + (err.message || "Unknown error occurred"));
       }
       console.error("❌ Reset password error:", err);
     } finally {

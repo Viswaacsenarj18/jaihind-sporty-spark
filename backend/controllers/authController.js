@@ -167,14 +167,38 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
+    console.log(`🔐 Reset password request received`);
+    console.log(`📝 Token received: ${token?.substring(0, 10)}...${token?.substring(-10)}`);
+    console.log(`⏰ Current time: ${Date.now()}`);
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    console.log(`🔍 Searching for user with token and expiry check...`);
     const user = await User.findOne({
       resetToken: token,
       resetTokenExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      console.log(`❌ No user found with valid token`);
+      // Check if token exists but is expired
+      const expiredUser = await User.findOne({ resetToken: token });
+      if (expiredUser) {
+        console.log(`⏰ Token exists but is EXPIRED`);
+        return res.status(400).json({ message: "Reset link has expired. Please request a new one." });
+      }
+      console.log(`❌ Token does not exist in database`);
+      return res.status(400).json({ message: "Invalid reset link. Please request a new password reset." });
     }
+
+    console.log(`✅ User found: ${user.email}`);
+    console.log(`🔐 Updating password...`);
 
     user.password = password;
     user.resetToken = null;
@@ -182,9 +206,11 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "Password reset successful" });
+    console.log(`✅ Password updated successfully for: ${user.email}`);
+    res.json({ message: "✅ Password reset successful! Please log in with your new password." });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(`❌ Reset password error:`, error.message);
+    res.status(500).json({ message: error.message || "Failed to reset password" });
   }
 };
 

@@ -39,21 +39,21 @@ const ForgotPassword = () => {
       clearTimeout(timeoutId);
 
       const data = await res.json();
-      console.log("✅ Response received:", res.status, data);
+      console.log("📨 Response received:", res.status, data);
 
       if (res.ok) {
-        setSuccess("✅ Password reset email sent! Check your inbox.");
+        setSuccess("✅ Password reset email sent! Check your inbox and spam folder.");
         setEmail(""); // Clear email field
       } else {
-        setError(data.message || "Something went wrong.");
+        setError(data.message || "❌ Something went wrong. Please try again.");
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        setError("Server taking too long. Please check your internet connection and try again.");
+        setError("⏱️ Request timeout. Server is taking too long. Please check your internet and try again.");
       } else if (err.message.includes("Failed to fetch")) {
-        setError("Cannot connect to server. Please check your internet or try again later.");
+        setError("🌐 Cannot connect to server. Please check your internet connection.");
       } else {
-        setError("Error: " + err.message);
+        setError("❌ Error: " + (err.message || "Unknown error"));
       }
       console.error("❌ Forgot password error:", err);
     } finally {
