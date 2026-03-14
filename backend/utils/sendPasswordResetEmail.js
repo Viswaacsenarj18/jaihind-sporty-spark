@@ -1,22 +1,20 @@
 import { transporter } from "./emailTransporter.js";
 
+// Email retry queue to handle Render timeout issues
+const emailQueue = [];
+let isProcessing = false;
+
 // Helper function to retry email sending with exponential backoff
-async function sendEmailWithRetry(mailOptions, retries = 3, delay = 1000) {
+async function sendEmailWithRetry(mailOptions, retries = 3, delay = 500) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`📧 Email attempt ${attempt}/${retries}: Sending to ${mailOptions.to}`);
-      console.log(`📨 From: ${mailOptions.from}`);
-      console.log(`📌 Subject: ${mailOptions.subject}`);
       
       const result = await transporter.sendMail(mailOptions);
       console.log(`✅ Email sent successfully on attempt ${attempt}`);
-      console.log(`📬 Response:`, result.response);
       return result;
     } catch (error) {
-      console.error(`❌ Email attempt ${attempt} failed`);
-      console.error(`🔴 Error code:`, error.code);
-      console.error(`🔴 Error message:`, error.message);
-      console.error(`🔴 Full error:`, error);
+      console.error(`❌ Email attempt ${attempt} failed: ${error.code || error.message}`);
       
       // If last attempt, throw error
       if (attempt === retries) {
@@ -32,14 +30,36 @@ async function sendEmailWithRetry(mailOptions, retries = 3, delay = 1000) {
   }
 }
 
+// Process email queue one at a time (prevents overwhelming Gmail)
+async function processEmailQueue() {
+  if (isProcessing || emailQueue.length === 0) return;
+  
+  isProcessing = true;
+  while (emailQueue.length > 0) {
+    const emailData = emailQueue.shift();
+    try {
+      console.log(`📬 Processing queued email to: ${emailData.mailOptions.to}`);
+      await sendEmailWithRetry(emailData.mailOptions, 3, 500);
+      console.log(`✅ Queued email delivered`);
+    } catch (error) {
+      console.error(`⚠️  Queued email failed:`, error.message);
+    }
+    
+    // Small delay between emails
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  isProcessing = false;
+}
+
 export const sendPasswordResetEmail = async ({
   email,
   name,
   resetUrl,
 }) => {
   try {
-    console.log(`📧 Preparing password reset email for ${email}`);
-    console.log(`👤 User name: ${name}`);
+    console.log(`\n📧 === PASSWORD RESET EMAIL ===`);
+    console.log(`👤 To: ${email}`);
+    console.log(`👨 Name: ${name}`);
     console.log(`🔗 Reset URL: ${resetUrl}`);
 
     const mailOptions = {
@@ -69,15 +89,17 @@ export const sendPasswordResetEmail = async ({
       `,
     };
 
-    console.log(`🚀 Starting email send with 3 retry attempts...`);
-    // Send with retry logic (3 attempts with exponential backoff)
-    const result = await sendEmailWithRetry(mailOptions, 3, 2000);
+    // Add to queue to be processed asynchronously
+    emailQueue.push({ mailOptions });
+    console.log(`✔️ Email queued for sending (Queue length: ${emailQueue.length})`);
     
-    console.log(`✅ Password reset email processed for: ${email}`);
-    return result;
+    // Start processing queue
+    setImmediate(() => processEmailQueue());
+    
   } catch (error) {
-    console.error(`❌ Email sending failed after all retries:`, error.message);
-    console.error(`⚠️  User will still be able to reset password, but email won't arrive`);
+    console.error(`❌ Email queueing error:`, error.message);
+  }
+};
     // Don't throw - let the background task fail silently
     // The user already has the reset token saved in DB
   }
