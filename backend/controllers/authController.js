@@ -48,6 +48,7 @@ export const registerUser = async (req, res) => {
       token: generateToken(user._id),
       user,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -59,6 +60,7 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -72,6 +74,7 @@ export const loginUser = async (req, res) => {
       token: generateToken(user._id),
       user,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -83,6 +86,7 @@ export const loginUser = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
+
     const { name, email } = req.body;
 
     const user = await User.findByIdAndUpdate(
@@ -95,6 +99,7 @@ export const updateProfile = async (req, res) => {
       message: "Profile updated successfully",
       user,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -106,10 +111,13 @@ export const updateProfile = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
+
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({
+        message: "Email is required",
+      });
     }
 
     console.log("📝 Forgot password request:", email);
@@ -117,9 +125,12 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
+    // Generate token
     const token = crypto.randomBytes(32).toString("hex");
 
     user.resetToken = token;
@@ -141,17 +152,26 @@ export const forgotPassword = async (req, res) => {
         resetUrl,
       });
 
-      console.log("✅ Email sent to:", user.email);
+      console.log("✅ Reset email sent to:", user.email);
+
     } catch (emailError) {
+
       console.error("⚠️ Email sending failed:", emailError.message);
+
     }
 
-    res.json({
+    res.status(200).json({
       message: "Password reset link sent to your email",
     });
+
   } catch (error) {
+
     console.error("❌ Forgot password error:", error.message);
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      message: "Server error. Please try again.",
+    });
+
   }
 };
 
@@ -161,13 +181,14 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
+
     const { token } = req.params;
     const { password } = req.body;
 
     if (!password || password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
     }
 
     const user = await User.findOne({
@@ -176,9 +197,9 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired reset link" });
+      return res.status(400).json({
+        message: "Invalid or expired reset link",
+      });
     }
 
     user.password = password;
@@ -190,9 +211,15 @@ export const resetPassword = async (req, res) => {
     res.json({
       message: "Password reset successful",
     });
+
   } catch (error) {
+
     console.error("❌ Reset password error:", error.message);
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      message: "Server error. Please try again.",
+    });
+
   }
 };
 
@@ -202,8 +229,11 @@ export const resetPassword = async (req, res) => {
 
 export const uploadProfilePhoto = async (req, res) => {
   try {
+
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({
+        message: "No file uploaded",
+      });
     }
 
     const result = await cloudinary.uploader.upload(req.file.path, {
@@ -221,6 +251,7 @@ export const uploadProfilePhoto = async (req, res) => {
       photo: result.secure_url,
       user,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -232,6 +263,7 @@ export const uploadProfilePhoto = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   try {
+
     const user = await User.findById(req.user.id);
 
     const isMatch = await bcrypt.compare(
@@ -240,15 +272,19 @@ export const changePassword = async (req, res) => {
     );
 
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ message: "Current password incorrect" });
+      return res.status(400).json({
+        message: "Current password incorrect",
+      });
     }
 
     user.password = req.body.newPassword;
+
     await user.save();
 
-    res.json({ message: "Password changed successfully" });
+    res.json({
+      message: "Password changed successfully",
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -260,9 +296,13 @@ export const changePassword = async (req, res) => {
 
 export const deleteAccount = async (req, res) => {
   try {
+
     await User.findByIdAndDelete(req.user.id);
 
-    res.json({ message: "Account deleted successfully" });
+    res.json({
+      message: "Account deleted successfully",
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -274,6 +314,7 @@ export const deleteAccount = async (req, res) => {
 
 export const saveCart = async (req, res) => {
   try {
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { cartItems: req.body.cartItems },
@@ -281,6 +322,7 @@ export const saveCart = async (req, res) => {
     );
 
     res.json(user.cartItems);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -288,9 +330,11 @@ export const saveCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
+
     const user = await User.findById(req.user.id);
 
     res.json(user.cartItems || []);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -302,9 +346,11 @@ export const getCart = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
+
     const users = await User.find().select("-password");
 
     res.json(users);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -312,9 +358,13 @@ export const getAllUsers = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
+
     await User.findByIdAndDelete(req.params.id);
 
-    res.json({ message: "User deleted successfully" });
+    res.json({
+      message: "User deleted successfully",
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

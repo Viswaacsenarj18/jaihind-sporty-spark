@@ -1,12 +1,14 @@
-import transporter from "./emailTransporter.js";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendPasswordResetEmail = async ({ email, name, resetUrl }) => {
   try {
 
     console.log("📧 Sending reset email to:", email);
 
-    const mailOptions = {
-      from: `"Jaihind Sports" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "Jaihind Sports <onboarding@resend.dev>",
       to: email,
       subject: "Reset Your Password",
 
@@ -14,7 +16,7 @@ export const sendPasswordResetEmail = async ({ email, name, resetUrl }) => {
       <div style="font-family:Arial;padding:20px">
         <h2>Password Reset</h2>
 
-        <p>Hello ${name},</p>
+        <p>Hello ${name}</p>
 
         <p>Click the button below to reset your password:</p>
 
@@ -34,16 +36,11 @@ export const sendPasswordResetEmail = async ({ email, name, resetUrl }) => {
         </p>
       </div>
       `,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log("✅ Email sent:", info.messageId);
-
-    return info;
+    console.log("✅ Email sent via Resend");
 
   } catch (error) {
-    console.error("❌ Email send error:", error);
-    throw error;
+    console.error("❌ Email error:", error);
   }
 };
